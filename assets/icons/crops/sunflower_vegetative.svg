@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Robust hairy stem -->
+  <line x1="60" y1="110" x2="60" y2="30" stroke="#558B2F" stroke-width="5" stroke-linecap="round"/>
+  <!-- Trichome hairs on stem -->
+  <line x1="60" y1="100" x2="63" y2="97" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="90" x2="57" y2="87" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="80" x2="63" y2="77" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="70" x2="57" y2="67" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="60" x2="63" y2="57" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="50" x2="57" y2="47" stroke="#558B2F" stroke-width="0.8"/>
+  <!-- Large heart-shaped leaves — alternate -->
+  <!-- Leaf pair 1 (bottom) -->
+  <path d="M60 100 C48 94 28 90 14 84 C6 80 4 72 12 70 C24 68 46 78 60 92Z" fill="#33691E"/>
+  <path d="M60 100 C72 94 92 90 106 84 C114 80 116 72 108 70 C96 68 74 78 60 92Z" fill="#33691E"/>
+  <!-- Midrib L1 -->
+  <path d="M60 98 C48 90 28 84 14 78" stroke="#66BB6A" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <path d="M60 98 C72 90 92 84 106 78" stroke="#66BB6A" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <!-- Leaf pair 2 (mid) -->
+  <path d="M60 78 C50 70 34 64 20 58 C14 55 12 48 18 46 C28 44 48 54 60 68Z" fill="#2E7D32"/>
+  <path d="M60 78 C70 70 86 64 100 58 C106 55 108 48 102 46 C92 44 72 54 60 68Z" fill="#2E7D32"/>
+  <!-- Midrib L2 -->
+  <path d="M60 76 C50 68 34 62 20 56" stroke="#66BB6A" stroke-width="1" fill="none" opacity="0.6"/>
+  <path d="M60 76 C70 68 86 62 100 56" stroke="#66BB6A" stroke-width="1" fill="none" opacity="0.6"/>
+  <!-- Leaf pair 3 (upper, smaller) -->
+  <path d="M60 56 C52 50 40 44 30 40 C24 38 22 32 28 30 C36 28 52 36 60 48Z" fill="#388E3C"/>
+  <path d="M60 56 C68 50 80 44 90 40 C96 38 98 32 92 30 C84 28 68 36 60 48Z" fill="#388E3C"/>
+  <!-- Bud at apex -->
+  <circle cx="60" cy="28" r="5" fill="#33691E"/>
+  <circle cx="60" cy="27" r="3" fill="#4CAF50"/>
+</svg>

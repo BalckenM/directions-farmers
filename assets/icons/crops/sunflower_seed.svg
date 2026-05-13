@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="25" cy="126" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="85" cy="138" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Sunflower achene (striped black/gray) -->
+  <ellipse cx="60" cy="116" rx="5" ry="7" fill="#3E2723"/>
+  <line x1="58" y1="109" x2="58" y2="123" stroke="#78909C" stroke-width="0.8" opacity="0.6"/>
+  <line x1="62" y1="109" x2="62" y2="123" stroke="#78909C" stroke-width="0.8" opacity="0.6"/>
+  <!-- Radicle -->
+  <path d="M60 109 Q60 104 60 100" stroke="#81C784" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Cotyledons (thick, fleshy — sunflower cotyledons are large) -->
+  <ellipse cx="54" cy="98" rx="5" ry="3.5" fill="#A5D6A7" transform="rotate(-15,54,98)"/>
+  <ellipse cx="66" cy="98" rx="5" ry="3.5" fill="#A5D6A7" transform="rotate(15,66,98)"/>
+</svg>

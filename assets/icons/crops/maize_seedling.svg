@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="22" cy="124" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="88" cy="138" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Stalk -->
+  <line x1="60" y1="110" x2="60" y2="78" stroke="#558B2F" stroke-width="3" stroke-linecap="round"/>
+  <!-- Leaf 1 — broad, linear, with midrib -->
+  <path d="M60 100 C55 92 44 86 36 80 C32 77 34 72 38 74 C46 78 56 88 60 96Z" fill="#388E3C"/>
+  <path d="M60 98 C54 91 44 85 36 79" stroke="#66BB6A" stroke-width="1" fill="none" opacity="0.7"/>
+  <!-- Leaf 2 right -->
+  <path d="M60 90 C65 82 76 76 84 70 C88 67 86 62 82 64 C74 68 64 78 60 86Z" fill="#388E3C"/>
+  <path d="M60 88 C66 81 76 75 84 69" stroke="#66BB6A" stroke-width="1" fill="none" opacity="0.7"/>
+  <!-- 3rd emerging leaf in center -->
+  <path d="M60 78 C60 72 60 66 59 60" stroke="#4CAF50" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M59 70 Q56 64 54 60" stroke="#66BB6A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</svg>

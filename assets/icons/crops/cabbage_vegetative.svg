@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <!-- Soil -->
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="15" cy="122" r="1.5" fill="#8D6E63" opacity="0.6"/>
+  <circle cx="55" cy="140" r="1" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="100" cy="130" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <!-- Outer spreading leaves — wavy, organic -->
+  <path d="M60 110 C48 98 30 90 22 80 C18 75 24 68 30 72 C38 77 50 88 60 98 C70 88 82 77 90 72 C96 68 102 75 98 80 C90 90 72 98 60 110Z" fill="#66BB6A"/>
+  <!-- Leaf veins outer -->
+  <path d="M60 108 C52 96 36 85 26 77" stroke="#A5D6A7" stroke-width="1" fill="none" opacity="0.7"/>
+  <path d="M60 108 C68 96 84 85 94 77" stroke="#A5D6A7" stroke-width="1" fill="none" opacity="0.7"/>
+  <!-- Mid layer leaves -->
+  <path d="M60 105 C50 95 38 86 34 78 C32 74 38 70 43 74 C50 80 56 92 60 100 C64 92 70 80 77 74 C82 70 88 74 86 78 C82 86 70 95 60 105Z" fill="#4CAF50"/>
+  <!-- Inner leaves forming head -->
+  <path d="M60 102 C52 94 44 84 44 78 C44 72 52 68 60 72 C68 68 76 72 76 78 C76 84 68 94 60 102Z" fill="#2E7D32"/>
+  <!-- Head center -->
+  <circle cx="60" cy="82" r="12" fill="#1B5E20"/>
+  <circle cx="55" cy="77" r="5" fill="#2E7D32" opacity="0.6"/>
+</svg>

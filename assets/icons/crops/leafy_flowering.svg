@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/><stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <line x1="60" y1="110" x2="60" y2="96" stroke="#388E3C" stroke-width="2.5"/>
+  <!-- Large mature rosette -->
+  <path d="M60 108 C40 100 22 86 20 68 C18 52 32 46 42 58 C50 68 56 88 60 106Z" fill="#2E7D32"/>
+  <path d="M60 108 C80 100 98 86 100 68 C102 52 88 46 78 58 C70 68 64 88 60 106Z" fill="#2E7D32"/>
+  <path d="M60 106 C44 90 36 68 40 50 C44 34 58 32 60 50 C60 68 60 88 60 106Z" fill="#33691E"/>
+  <path d="M60 106 C76 90 84 68 80 50 C76 34 62 32 60 50 C60 68 60 88 60 106Z" fill="#33691E"/>
+  <path d="M60 110 C38 108 20 98 18 84 C16 70 30 64 42 72 C52 80 58 96 60 110Z" fill="#388E3C"/>
+  <path d="M60 110 C82 108 100 98 102 84 C104 70 90 64 78 72 C68 80 62 96 60 110Z" fill="#388E3C"/>
+  <!-- Bolt — central flower stalk -->
+  <line x1="60" y1="96" x2="60" y2="60" stroke="#558B2F" stroke-width="1.8"/>
+  <circle cx="60" cy="56" r="6" fill="#FFF176"/>
+  <circle cx="60" cy="56" r="3" fill="#F9A825"/>
+</svg>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+    <linearGradient id="carrotGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#E64A19"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Root visible -->
+  <path d="M50 110 Q60 106 70 110 Q67 115 60 113 Q53 115 50 110Z" fill="url(#carrotGrad)"/>
+  <!-- Frond structure -->
+  <path d="M60 108 Q44 95 32 80" stroke="#33691E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q50 90 44 70" stroke="#33691E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q60 90 60 65" stroke="#33691E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q70 90 76 70" stroke="#33691E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q76 95 88 80" stroke="#33691E" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Leaflets -->
+  <path d="M32 80 Q28 75 27 70" stroke="#558B2F" stroke-width="1.2" fill="none"/>
+  <path d="M42 90 Q38 85 37 80" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M88 80 Q92 75 93 70" stroke="#558B2F" stroke-width="1.2" fill="none"/>
+  <path d="M78 90 Q82 85 83 80" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M44 70 Q40 64 39 58" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M76 70 Q80 64 81 58" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M60 76 Q55 70 54 64" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M60 76 Q65 70 66 64" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <!-- Umbel flower cluster — white tiny flowers in compound umbel -->
+  <!-- Primary umbel radiating from top -->
+  <g transform="translate(60,55)">
+    <line x1="0" y1="0" x2="-12" y2="-10" stroke="#558B2F" stroke-width="1"/>
+    <line x1="0" y1="0" x2="-6" y2="-14" stroke="#558B2F" stroke-width="1"/>
+    <line x1="0" y1="0" x2="0" y2="-15" stroke="#558B2F" stroke-width="1"/>
+    <line x1="0" y1="0" x2="6" y2="-14" stroke="#558B2F" stroke-width="1"/>
+    <line x1="0" y1="0" x2="12" y2="-10" stroke="#558B2F" stroke-width="1"/>
+    <!-- Tiny white flower clusters at tips -->
+    <circle cx="-12" cy="-10" r="3.5" fill="#FAFAFA"/>
+    <circle cx="-6" cy="-14" r="3" fill="#FAFAFA"/>
+    <circle cx="0" cy="-15" r="3.5" fill="#FAFAFA"/>
+    <circle cx="6" cy="-14" r="3" fill="#FAFAFA"/>
+    <circle cx="12" cy="-10" r="3.5" fill="#FAFAFA"/>
+    <!-- Pink center dot in each cluster -->
+    <circle cx="-12" cy="-10" r="1" fill="#F48FB1"/>
+    <circle cx="0" cy="-15" r="1" fill="#F48FB1"/>
+    <circle cx="12" cy="-10" r="1" fill="#F48FB1"/>
+  </g>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="22" cy="128" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="90" cy="140" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Bean seed (kidney-shaped) -->
+  <path d="M50 122 C50 115 55 110 62 110 C69 110 74 115 74 122 C74 126 71 129 68 129 C64 130 56 130 52 128 C50 126 50 124 50 122Z" fill="#8B4513"/>
+  <!-- Seed coat markings -->
+  <path d="M52 118 Q60 116 70 118" stroke="#6D3410" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <circle cx="54" cy="122" r="1.5" fill="#5D3010" opacity="0.5"/>
+  <!-- Hilum (seed attachment scar) -->
+  <path d="M60 110 Q62 108 64 110" stroke="#5D3010" stroke-width="1.5" fill="none"/>
+  <!-- Radicle -->
+  <path d="M60 110 Q60 104 60 100" stroke="#81C784" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Epicotyl hook (epigeal germination) -->
+  <path d="M60 100 Q64 94 60 90 Q56 86 58 82" stroke="#66BB6A" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

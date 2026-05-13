@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Stem (slightly bent under heavy head) -->
+  <path d="M60 110 C60 90 60 70 58 46" stroke="#8D6E00" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- Dry leaves drooping -->
+  <path d="M60 96 C44 90 22 86 6 82 C0 80 -2 73 4 71 C16 69 42 78 60 90Z" fill="#8D6E00" opacity="0.7"/>
+  <path d="M60 96 C76 90 98 86 114 82 C120 80 122 73 116 71 C104 69 78 78 60 90Z" fill="#8D6E00" opacity="0.7"/>
+  <path d="M60 76 C46 68 28 60 14 56 C8 54 6 46 12 44 C22 42 44 52 60 66Z" fill="#8D6E00" opacity="0.6"/>
+  <!-- Dry ray petals (wilted, darker yellow-brown) -->
+  <g transform="translate(58,46)">
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(22.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(45)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(67.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(90)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(112.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(135)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(157.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(180)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(202.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(225)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(247.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(270)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(292.5)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(315)"/>
+    <ellipse cx="0" cy="-16" rx="3.5" ry="7" fill="#E6A800" opacity="0.8" transform="rotate(337.5)"/>
+    <!-- Seed-filled disk (mature) -->
+    <circle r="14" fill="#3E2723"/>
+    <!-- Seed spiral pattern (Fibonacci) -->
+    <circle cx="0" cy="-6" r="1.8" fill="#4E342E"/>
+    <circle cx="5" cy="-4" r="1.8" fill="#5D4037"/>
+    <circle cx="7" cy="2" r="1.8" fill="#4E342E"/>
+    <circle cx="4" cy="7" r="1.8" fill="#5D4037"/>
+    <circle cx="-2" cy="9" r="1.8" fill="#4E342E"/>
+    <circle cx="-7" cy="6" r="1.8" fill="#5D4037"/>
+    <circle cx="-9" cy="0" r="1.8" fill="#4E342E"/>
+    <circle cx="-6" cy="-6" r="1.8" fill="#5D4037"/>
+    <circle cx="0" cy="-9" r="1.8" fill="#4E342E"/>
+    <circle cx="3" cy="-1" r="1.5" fill="#6D4C41"/>
+    <circle cx="-3" cy="-1" r="1.5" fill="#6D4C41"/>
+    <circle cx="0" cy="4" r="1.5" fill="#6D4C41"/>
+    <!-- Striped seeds showing -->
+    <line x1="0" y1="-7" x2="0" y2="-11" stroke="#78909C" stroke-width="0.5" opacity="0.5"/>
+    <line x1="5" y1="-5" x2="7" y2="-8" stroke="#78909C" stroke-width="0.5" opacity="0.5"/>
+  </g>
+</svg>

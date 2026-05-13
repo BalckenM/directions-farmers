@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Thread-like cotyledon (grass-like) — characteristic Allium -->
+  <!-- 3 thin thread leaves -->
+  <path d="M58 110 Q55 96 50 80" stroke="#388E3C" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M60 110 Q60 94 60 76" stroke="#388E3C" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M62 110 Q65 96 70 80" stroke="#388E3C" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Hollow tube characteristic (slight flattening) -->
+  <path d="M50 84 Q48 80 50 76" stroke="#4CAF50" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <path d="M70 84 Q72 80 70 76" stroke="#4CAF50" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <!-- Tiny bulb swelling at base -->
+  <ellipse cx="60" cy="112" rx="5" ry="3" fill="#A5D6A7" opacity="0.5"/>
+</svg>

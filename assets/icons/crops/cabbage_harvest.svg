@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+    <radialGradient id="headGrad" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#4CAF50"/>
+      <stop offset="100%" stop-color="#1B5E20"/>
+    </radialGradient>
+  </defs>
+  <!-- Soil -->
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="20" cy="120" r="1.5" fill="#8D6E63" opacity="0.6"/>
+  <circle cx="90" cy="132" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Broad outer wrapper leaves -->
+  <path d="M60 112 C40 96 16 84 8 68 C4 60 14 52 24 60 C38 70 54 88 60 106 C66 88 82 70 96 60 C106 52 116 60 112 68 C104 84 80 96 60 112Z" fill="#558B2F"/>
+  <!-- Vein on outer leaves -->
+  <path d="M60 110 C48 96 30 82 14 66" stroke="#81C784" stroke-width="1.2" fill="none" opacity="0.5"/>
+  <path d="M60 110 C72 96 90 82 106 66" stroke="#81C784" stroke-width="1.2" fill="none" opacity="0.5"/>
+  <!-- Mid leaves wrapping head -->
+  <path d="M60 106 C46 92 34 76 34 62 C34 52 44 44 60 48 C76 44 86 52 86 62 C86 76 74 92 60 106Z" fill="#388E3C"/>
+  <!-- Inner wrapper -->
+  <path d="M60 98 C50 86 44 72 44 62 C44 54 51 48 60 50 C69 48 76 54 76 62 C76 72 70 86 60 98Z" fill="#2E7D32"/>
+  <!-- Mature head — tight, round, large -->
+  <circle cx="60" cy="66" r="22" fill="url(#headGrad)"/>
+  <!-- Surface texture lines (leaf layers) -->
+  <path d="M42 58 C48 52 60 50 72 54" stroke="#4CAF50" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M40 66 C46 60 60 58 74 62" stroke="#4CAF50" stroke-width="1" fill="none" opacity="0.4"/>
+  <path d="M42 74 C48 68 60 66 72 70" stroke="#4CAF50" stroke-width="1" fill="none" opacity="0.4"/>
+  <!-- Highlight -->
+  <circle cx="52" cy="56" r="8" fill="#4CAF50" opacity="0.3"/>
+  <!-- Short stub stem -->
+  <line x1="60" y1="88" x2="60" y2="110" stroke="#33691E" stroke-width="4" stroke-linecap="round"/>
+</svg>

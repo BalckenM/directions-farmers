@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//e/4Directions''''''''/Products/mobile_app/**)",
+      "WebSearch",
+      "Read(//e/4Directions''''/Products/mobile_app/**)",
+      "Read(//e/4Directions''/Products/mobile_app/lib/features/auth/**)",
+      "Read(//e/4Directions''/Products/mobile_app/lib/features/livestock/**)",
+      "Read(//e/4Directions''/Products/mobile_app/lib/core/router/**)",
+      "Read(//e/4Directions''/Products/mobile_app/data/mock/api/events/**)",
+      "Bash(~/flutter/bin/flutter analyze:*)"
+    ]
+  }
+}

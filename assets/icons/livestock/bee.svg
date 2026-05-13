@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor">
+  <ellipse cx="32" cy="36" rx="14" ry="10"/>
+  <path d="M32 26c0-8-6-14-6-14s-4 6-2 14M32 26c0-8 6-14 6-14s4 6 2 14"/>
+  <path d="M18 36c-4-2-10-4-14-2s-2 8 2 10M46 36c4-2 10-4 14-2s2 8-2 10"/>
+  <path d="M24 44c-2 4-2 10 2 12M40 44c2 4 2 10-2 12"/>
+  <circle cx="32" cy="34" r="3"/>
+</svg>

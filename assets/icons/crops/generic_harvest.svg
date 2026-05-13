@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs><linearGradient id="soil" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6D4C41"/><stop offset="100%" stop-color="#4E342E"/></linearGradient></defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="22" cy="120" r="1.5" fill="#8D6E63" opacity="0.6"/>
+  <circle cx="88" cy="128" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <line x1="60" y1="110" x2="60" y2="38" stroke="#33691E" stroke-width="3"/>
+  <path d="M60 96 C44 84 28 70 22 52 C18 38 28 30 40 40 C50 50 56 70 60 94Z" fill="#1B5E20"/>
+  <path d="M60 96 C76 84 92 70 98 52 C102 38 92 30 80 40 C70 50 64 70 60 94Z" fill="#1B5E20"/>
+  <path d="M60 78 C44 64 30 48 28 32 C26 18 38 12 48 24 C56 34 58 58 60 76Z" fill="#2E7D32"/>
+  <path d="M60 78 C76 64 90 48 92 32 C94 18 82 12 72 24 C64 34 62 58 60 76Z" fill="#2E7D32"/>
+  <!-- Fruit/head at top -->
+  <circle cx="60" cy="36" r="10" fill="#E53935"/>
+  <path d="M55 28 C52 22 56 18 60 20 C64 18 68 22 65 28" fill="#2E7D32"/>
+  <line x1="60" y1="46" x2="60" y2="38" stroke="#33691E" stroke-width="2"/>
+</svg>

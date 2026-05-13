@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+    <radialGradient id="bulbGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FF7043"/>
+      <stop offset="100%" stop-color="#BF360C"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Medium bulb at soil -->
+  <ellipse cx="60" cy="111" rx="15" ry="10" fill="url(#bulbGrad)"/>
+  <!-- Bulb skin lines -->
+  <path d="M48 108 Q54 105 60 106 Q66 105 72 108" stroke="#9C3F00" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <!-- Leaves (fewer, as energy going to flower) -->
+  <path d="M52 106 Q44 86 36 62" stroke="#1B5E20" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M60 106 Q60 84 60 54" stroke="#1B5E20" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M68 106 Q76 86 84 62" stroke="#1B5E20" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Flower scape (tall hollow stem) -->
+  <path d="M60 106 Q62 78 60 28" stroke="#2E7D32" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Spathe (papery bract) -->
+  <path d="M58 36 Q60 28 62 36 Q60 38 58 36Z" fill="#B0BEC5"/>
+  <!-- Globe-shaped umbel of tiny white flowers -->
+  <circle cx="60" cy="24" r="14" fill="none" stroke="#E1F5FE" stroke-width="1" opacity="0.3"/>
+  <!-- Individual florets on globe -->
+  <g transform="translate(60,24)">
+    <circle cx="0" cy="-12" r="2" fill="white"/>
+    <circle cx="6" cy="-10" r="2" fill="white"/>
+    <circle cx="11" cy="-5" r="2" fill="white"/>
+    <circle cx="12" cy="2" r="2" fill="white"/>
+    <circle cx="9" cy="8" r="2" fill="white"/>
+    <circle cx="4" cy="12" r="2" fill="white"/>
+    <circle cx="-2" cy="13" r="2" fill="white"/>
+    <circle cx="-8" cy="10" r="2" fill="white"/>
+    <circle cx="-12" cy="5" r="2" fill="white"/>
+    <circle cx="-12" cy="-2" r="2" fill="white"/>
+    <circle cx="-9" cy="-8" r="2" fill="white"/>
+    <circle cx="-4" cy="-12" r="2" fill="white"/>
+    <!-- Inner flowers -->
+    <circle cx="3" cy="-5" r="1.5" fill="#E8F5E9"/>
+    <circle cx="-3" cy="-5" r="1.5" fill="#E8F5E9"/>
+    <circle cx="0" cy="0" r="1.5" fill="#E8F5E9"/>
+    <circle cx="5" cy="2" r="1.5" fill="#E8F5E9"/>
+    <circle cx="-5" cy="2" r="1.5" fill="#E8F5E9"/>
+  </g>
+  <!-- Pedicel spokes -->
+  <g transform="translate(60,24)" stroke="#558B2F" stroke-width="0.6" fill="none">
+    <line x1="0" y1="0" x2="0" y2="-12"/>
+    <line x1="0" y1="0" x2="6" y2="-10"/>
+    <line x1="0" y1="0" x2="11" y2="-5"/>
+    <line x1="0" y1="0" x2="12" y2="2"/>
+    <line x1="0" y1="0" x2="9" y2="8"/>
+    <line x1="0" y1="0" x2="-9" y2="8"/>
+    <line x1="0" y1="0" x2="-12" y2="2"/>
+    <line x1="0" y1="0" x2="-11" y2="-5"/>
+    <line x1="0" y1="0" x2="-6" y2="-10"/>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs><linearGradient id="soil" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6D4C41"/><stop offset="100%" stop-color="#4E342E"/></linearGradient></defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <ellipse cx="60" cy="108" rx="5" ry="3.5" fill="#8D6E63"/>
+  <line x1="60" y1="106" x2="60" y2="96" stroke="#66BB6A" stroke-width="2"/>
+  <ellipse cx="54" cy="93" rx="6" ry="4" fill="#81C784" transform="rotate(-25,54,93)"/>
+  <ellipse cx="66" cy="93" rx="6" ry="4" fill="#81C784" transform="rotate(25,66,93)"/>
+</svg>

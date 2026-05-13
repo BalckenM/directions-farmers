@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- 3 tillers emerging -->
+  <!-- Left tiller -->
+  <path d="M52 110 Q48 96 42 80" stroke="#66BB6A" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M46 88 Q40 82 36 76" stroke="#66BB6A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Center tiller -->
+  <path d="M60 110 Q60 94 60 76" stroke="#66BB6A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M60 88 Q54 82 50 74" stroke="#66BB6A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M60 88 Q66 82 70 74" stroke="#66BB6A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Right tiller -->
+  <path d="M68 110 Q72 96 78 80" stroke="#66BB6A" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M74 88 Q80 82 84 76" stroke="#66BB6A" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Ligule (characteristic grass feature) at base -->
+  <path d="M58 110 Q60 108 62 110" stroke="#388E3C" stroke-width="1" fill="none"/>
+</svg>

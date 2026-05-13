@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="25" cy="124" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="85" cy="136" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <!-- Thin stem -->
+  <line x1="60" y1="110" x2="60" y2="90" stroke="#388E3C" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Delicate feathery fronds (carrot is Apiaceae - umbel) -->
+  <!-- Central frond -->
+  <path d="M60 90 Q60 82 60 75" stroke="#558B2F" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Left frond -->
+  <path d="M60 90 Q54 83 48 78" stroke="#558B2F" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Right frond -->
+  <path d="M60 90 Q66 83 72 78" stroke="#558B2F" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Tiny pinnate leaflets on fronds -->
+  <path d="M54 83 Q51 80 50 77" stroke="#81C784" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M57 85 Q55 81 55 78" stroke="#81C784" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M66 83 Q69 80 70 77" stroke="#81C784" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M63 85 Q65 81 65 78" stroke="#81C784" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M60 82 Q57 78 56 74" stroke="#81C784" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M60 82 Q63 78 64 74" stroke="#81C784" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+</svg>

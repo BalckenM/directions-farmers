@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+    <radialGradient id="tuberGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#E8C87A"/>
+      <stop offset="100%" stop-color="#BF8D3C"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Dying tops (senescent, yellowish) -->
+  <line x1="44" y1="110" x2="30" y2="76" stroke="#9E8800" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="60" y1="110" x2="60" y2="70" stroke="#9E8800" stroke-width="3" stroke-linecap="round"/>
+  <line x1="76" y1="110" x2="90" y2="76" stroke="#9E8800" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Yellowing leaves -->
+  <path d="M30 90 C16 82 4 74 -2 64 C-6 59 -2 52 4 54 C14 57 28 68 30 82Z" fill="#8D8000" opacity="0.7"/>
+  <path d="M60 88 C44 80 26 72 14 62 C8 58 8 51 14 50 C24 48 44 58 60 74Z" fill="#8D8000" opacity="0.7"/>
+  <path d="M60 88 C76 80 94 72 106 62 C112 58 112 51 106 50 C96 48 76 58 60 74Z" fill="#8D8000" opacity="0.7"/>
+  <path d="M90 90 C104 82 116 74 122 64 C126 59 122 52 116 54 C106 57 92 68 90 82Z" fill="#8D8000" opacity="0.7"/>
+  <!-- Tubers partially pulled from soil -->
+  <!-- Main tuber 1 -->
+  <path d="M32 116 C28 110 28 106 32 104 C38 101 46 103 50 108 C54 113 52 120 46 122 C40 124 34 120 32 116Z" fill="url(#tuberGrad)"/>
+  <circle cx="35" cy="108" r="2" fill="#8B6914"/>
+  <circle cx="42" cy="105" r="1.5" fill="#8B6914"/>
+  <!-- Main tuber 2 -->
+  <path d="M62 112 C58 106 58 101 64 99 C70 97 78 100 80 106 C82 112 78 118 72 119 C66 120 64 116 62 112Z" fill="url(#tuberGrad)"/>
+  <circle cx="67" cy="101" r="2" fill="#8B6914"/>
+  <!-- Main tuber 3 (largest, harvest ready) -->
+  <path d="M86 118 C82 111 82 105 88 103 C96 100 106 103 108 110 C110 117 106 124 98 125 C90 126 88 122 86 118Z" fill="url(#tuberGrad)"/>
+  <circle cx="92" cy="105" r="2" fill="#8B6914"/>
+  <circle cx="100" cy="104" r="1.5" fill="#8B6914"/>
+  <!-- Small tuber -->
+  <ellipse cx="50" cy="124" rx="6" ry="4" fill="#D4AC73"/>
+  <!-- Stolon hint -->
+  <path d="M60 114 C56 118 50 120 44 120" stroke="#8D6E63" stroke-width="1" fill="none" stroke-dasharray="2,1" opacity="0.6"/>
+  <path d="M60 114 C64 118 70 119 76 118" stroke="#8D6E63" stroke-width="1" fill="none" stroke-dasharray="2,1" opacity="0.6"/>
+</svg>

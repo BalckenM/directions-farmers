@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="22" cy="126" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="88" cy="138" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Seed potato (tuber piece with eye) -->
+  <path d="M46 124 C46 116 52 110 60 110 C68 110 74 116 74 124 C74 132 68 138 60 138 C52 138 46 132 46 124Z" fill="#D4AC73"/>
+  <!-- Tuber surface texture -->
+  <path d="M48 118 Q54 116 60 117 Q66 116 72 118" stroke="#BC8A40" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <path d="M47 124 Q53 122 60 123 Q67 122 73 124" stroke="#BC8A40" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <!-- Eye bud -->
+  <circle cx="60" cy="117" r="2.5" fill="#8B6914"/>
+  <!-- Sprout (chit) emerging from eye -->
+  <path d="M60 114.5 Q60 110 60 106" stroke="#66BB6A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <ellipse cx="57" cy="104" rx="3.5" ry="2.5" fill="#81C784" transform="rotate(-20,57,104)"/>
+  <ellipse cx="63" cy="104" rx="3.5" ry="2.5" fill="#81C784" transform="rotate(20,63,104)"/>
+</svg>

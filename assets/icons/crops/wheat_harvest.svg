@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Golden ripe wheat — 5 tillers with heavy heads drooping -->
+  <!-- Far left stalk drooping -->
+  <path d="M28 110 Q24 90 16 68 Q12 56 8 40" stroke="#DAA520" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <g transform="translate(8,40)">
+    <line x1="0" y1="0" x2="0" y2="-22" stroke="#E6A817" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="-4" cy="-5" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="4" cy="-5" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="-4" cy="-11" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="4" cy="-11" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="-4" cy="-17" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="4" cy="-17" rx="4" ry="2.5" fill="#E6A817"/>
+    <line x1="-4" y1="-19" x2="-7" y2="-28" stroke="#DAA520" stroke-width="0.9"/>
+    <line x1="4" y1="-19" x2="7" y2="-28" stroke="#DAA520" stroke-width="0.9"/>
+    <line x1="0" y1="-22" x2="0" y2="-30" stroke="#DAA520" stroke-width="0.9"/>
+  </g>
+  <!-- Left stalk -->
+  <path d="M42 110 Q40 90 36 68 Q32 52 30 32" stroke="#DAA520" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <g transform="translate(30,32)">
+    <line x1="0" y1="0" x2="0" y2="-24" stroke="#E6B800" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="-4" cy="-5" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="4" cy="-5" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="-4" cy="-12" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="4" cy="-12" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="-4" cy="-19" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="4" cy="-19" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <line x1="-4" y1="-21" x2="-7" y2="-30" stroke="#BF8F00" stroke-width="1"/>
+    <line x1="4" y1="-21" x2="7" y2="-30" stroke="#BF8F00" stroke-width="1"/>
+  </g>
+  <!-- Center stalk (tallest) -->
+  <path d="M60 110 Q60 88 60 64 Q60 48 56 24" stroke="#DAA520" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <g transform="translate(56,24)">
+    <line x1="0" y1="0" x2="0" y2="-18" stroke="#E6B800" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="-5" cy="-4" rx="5" ry="3" fill="#E6B800"/>
+    <ellipse cx="5" cy="-4" rx="5" ry="3" fill="#E6B800"/>
+    <ellipse cx="-5" cy="-10" rx="5" ry="3" fill="#E6B800"/>
+    <ellipse cx="5" cy="-10" rx="5" ry="3" fill="#E6B800"/>
+    <ellipse cx="-5" cy="-16" rx="5" ry="3" fill="#E6B800"/>
+    <ellipse cx="5" cy="-16" rx="5" ry="3" fill="#E6B800"/>
+    <line x1="-5" y1="-18" x2="-9" y2="-28" stroke="#BF8F00" stroke-width="1.2"/>
+    <line x1="5" y1="-18" x2="9" y2="-28" stroke="#BF8F00" stroke-width="1.2"/>
+    <line x1="0" y1="-18" x2="0" y2="-26" stroke="#BF8F00" stroke-width="1"/>
+  </g>
+  <!-- Right stalk drooping -->
+  <path d="M78 110 Q80 90 84 68 Q88 52 90 32" stroke="#DAA520" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <g transform="translate(90,32)">
+    <line x1="0" y1="0" x2="0" y2="-24" stroke="#E6B800" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="-4" cy="-5" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="4" cy="-5" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="-4" cy="-12" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="4" cy="-12" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="-4" cy="-19" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <ellipse cx="4" cy="-19" rx="4.5" ry="2.8" fill="#E6B800"/>
+    <line x1="-4" y1="-21" x2="-7" y2="-30" stroke="#BF8F00" stroke-width="1"/>
+    <line x1="4" y1="-21" x2="7" y2="-30" stroke="#BF8F00" stroke-width="1"/>
+  </g>
+  <!-- Far right -->
+  <path d="M92 110 Q96 90 104 68 Q108 56 112 40" stroke="#DAA520" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <g transform="translate(112,40)">
+    <line x1="0" y1="0" x2="0" y2="-22" stroke="#E6A817" stroke-width="2" stroke-linecap="round"/>
+    <ellipse cx="-4" cy="-5" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="4" cy="-5" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="-4" cy="-11" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="4" cy="-11" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="-4" cy="-17" rx="4" ry="2.5" fill="#E6A817"/>
+    <ellipse cx="4" cy="-17" rx="4" ry="2.5" fill="#E6A817"/>
+    <line x1="0" y1="-22" x2="0" y2="-30" stroke="#DAA520" stroke-width="0.9"/>
+  </g>
+  <!-- Leaf blades (golden) -->
+  <path d="M42 80 Q36 72 30 64" stroke="#9E8000" stroke-width="1.2" fill="none"/>
+  <path d="M60 82 Q52 72 46 62" stroke="#9E8000" stroke-width="1.2" fill="none"/>
+  <path d="M78 80 Q84 72 90 64" stroke="#9E8000" stroke-width="1.2" fill="none"/>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+    <linearGradient id="carrotGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#E64A19"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="22" cy="122" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="90" cy="135" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <!-- Orange shoulder peeking above soil -->
+  <path d="M52 110 Q60 107 68 110 Q65 113 60 112 Q55 113 52 110Z" fill="url(#carrotGrad)"/>
+  <!-- Multiple feathery fronds -->
+  <line x1="60" y1="110" x2="60" y2="108" stroke="#33691E" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Left fronds -->
+  <path d="M60 108 Q48 98 38 88" stroke="#33691E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q52 92 46 75" stroke="#33691E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Right fronds -->
+  <path d="M60 108 Q72 98 82 88" stroke="#33691E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q68 92 74 75" stroke="#33691E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Central frond -->
+  <path d="M60 108 Q60 92 60 72" stroke="#33691E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <!-- Pinnate leaflets on each frond -->
+  <path d="M38 88 Q34 84 33 80" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M43 93 Q40 88 39 84" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M48 97 Q46 92 46 88" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M82 88 Q86 84 87 80" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M77 93 Q80 88 81 84" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M72 97 Q74 92 74 88" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M46 75 Q43 70 43 66" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M74 75 Q77 70 77 66" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M60 80 Q56 75 55 70" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M60 80 Q64 75 65 70" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M60 72 Q57 67 56 63" stroke="#558B2F" stroke-width="1" fill="none"/>
+  <path d="M60 72 Q63 67 64 63" stroke="#558B2F" stroke-width="1" fill="none"/>
+</svg>

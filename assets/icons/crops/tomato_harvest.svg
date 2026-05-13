@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+    <radialGradient id="tomRed" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#EF5350"/>
+      <stop offset="100%" stop-color="#B71C1C"/>
+    </radialGradient>
+    <radialGradient id="tomRed2" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#E53935"/>
+      <stop offset="100%" stop-color="#C62828"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="15" cy="120" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="90" cy="138" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Main stem -->
+  <path d="M60 110 C60 96 58 82 60 50" stroke="#33691E" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- Foliage -->
+  <path d="M58 100 C46 92 30 84 20 72 C16 68 20 62 28 66 C38 72 52 86 58 96Z" fill="#33691E"/>
+  <path d="M62 100 C74 92 90 84 100 72 C104 68 100 62 92 66 C82 72 68 86 62 96Z" fill="#33691E"/>
+  <path d="M57 80 C46 72 32 64 24 54 C20 50 24 44 30 48 C40 54 53 66 57 76Z" fill="#2E7D32"/>
+  <path d="M63 80 C74 72 88 64 96 54 C100 50 96 44 90 48 C80 54 67 66 63 76Z" fill="#2E7D32"/>
+  <!-- Ripe red tomatoes -->
+  <!-- Large tomato left -->
+  <circle cx="30" cy="80" r="12" fill="url(#tomRed)"/>
+  <ellipse cx="26" cy="75" rx="5" ry="4" fill="#EF9A9A" opacity="0.4"/>
+  <!-- Calyx -->
+  <path d="M30 68 C27 65 24 67 26 69" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+  <path d="M30 68 C33 65 36 67 34 69" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+  <path d="M30 68 C29 64 31 64 30 68" stroke="#1B5E20" stroke-width="1.2" fill="none"/>
+  <!-- Large tomato right -->
+  <circle cx="90" cy="74" r="11" fill="url(#tomRed2)"/>
+  <ellipse cx="86" cy="69" rx="4.5" ry="3.5" fill="#EF9A9A" opacity="0.4"/>
+  <path d="M90 63 C87 60 84 62 86 64" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+  <path d="M90 63 C93 60 96 62 94 64" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+  <!-- Medium tomato top-center -->
+  <circle cx="62" cy="58" r="9" fill="url(#tomRed)"/>
+  <ellipse cx="58" cy="54" rx="3.5" ry="2.8" fill="#EF9A9A" opacity="0.4"/>
+  <path d="M62 49 C59 46 57 48 59 50" stroke="#1B5E20" stroke-width="1.2" fill="none"/>
+  <path d="M62 49 C65 46 67 48 65 50" stroke="#1B5E20" stroke-width="1.2" fill="none"/>
+  <!-- Small tomato bottom -->
+  <circle cx="48" cy="94" r="7" fill="#D32F2F"/>
+  <path d="M48 87 C46 84 44 86 45 87" stroke="#1B5E20" stroke-width="1" fill="none"/>
+  <path d="M48 87 C50 84 52 86 51 87" stroke="#1B5E20" stroke-width="1" fill="none"/>
+</svg>

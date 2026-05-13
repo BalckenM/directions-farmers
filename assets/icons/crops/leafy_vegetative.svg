@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/><stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="25" cy="118" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <!-- Short central crown -->
+  <line x1="60" y1="110" x2="60" y2="100" stroke="#388E3C" stroke-width="2.5"/>
+  <!-- Spreading rosette leaves — wavy spatula shapes -->
+  <path d="M60 106 C44 98 30 88 28 72 C26 60 38 56 46 66 C52 74 56 88 60 104Z" fill="#43A047"/>
+  <path d="M60 106 C76 98 90 88 92 72 C94 60 82 56 74 66 C68 74 64 88 60 104Z" fill="#43A047"/>
+  <path d="M60 104 C46 92 38 74 44 60 C50 46 62 46 62 62 C62 76 60 92 60 104Z" fill="#388E3C"/>
+  <path d="M60 104 C74 92 82 74 76 60 C70 46 58 46 58 62 C58 76 60 92 60 104Z" fill="#388E3C"/>
+  <path d="M60 108 C40 106 26 100 24 90 C22 80 34 76 44 82 C52 88 58 98 60 108Z" fill="#4CAF50"/>
+  <path d="M60 108 C80 106 94 100 96 90 C98 80 86 76 76 82 C68 88 62 98 60 108Z" fill="#4CAF50"/>
+  <!-- Leaf veins -->
+  <path d="M60 104 C50 90 38 72 30 60" stroke="#A5D6A7" stroke-width="0.8" fill="none" opacity="0.6"/>
+  <path d="M60 104 C70 90 82 72 90 60" stroke="#A5D6A7" stroke-width="0.8" fill="none" opacity="0.6"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="30" cy="128" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="80" cy="140" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <!-- Wheat grain (oval, tan) -->
+  <ellipse cx="60" cy="117" rx="5" ry="3.5" fill="#E6B800"/>
+  <ellipse cx="60" cy="116.5" rx="4" ry="2.8" fill="#FFD740"/>
+  <!-- Crease -->
+  <line x1="60" y1="114" x2="60" y2="120" stroke="#BF8F00" stroke-width="0.8" opacity="0.6"/>
+  <!-- Coleoptile emerging -->
+  <path d="M60 114 Q60 108 60 103" stroke="#81C784" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Coleoptile sheath -->
+  <path d="M58 114 C57 110 57 106 58 103 C59 101 61 101 62 103 C63 106 63 110 62 114Z" fill="#C8E6C9" opacity="0.6"/>
+</svg>

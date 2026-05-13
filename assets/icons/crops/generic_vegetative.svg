@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs><linearGradient id="soil" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6D4C41"/><stop offset="100%" stop-color="#4E342E"/></linearGradient></defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <line x1="60" y1="110" x2="60" y2="60" stroke="#388E3C" stroke-width="3"/>
+  <path d="M60 95 C50 84 36 76 30 62 C26 52 34 44 44 52 C52 58 58 74 60 92Z" fill="#43A047"/>
+  <path d="M60 95 C70 84 84 76 90 62 C94 52 86 44 76 52 C68 58 62 74 60 92Z" fill="#43A047"/>
+  <path d="M60 78 C50 68 38 58 34 46 C30 36 40 30 48 38 C54 46 58 62 60 76Z" fill="#388E3C"/>
+  <path d="M60 78 C70 68 82 58 86 46 C90 36 80 30 72 38 C66 46 62 62 60 76Z" fill="#388E3C"/>
+  <path d="M60 62 C54 52 50 40 54 30 C58 20 66 22 64 34 C62 44 60 54 60 62Z" fill="#4CAF50"/>
+  <path d="M60 62 C66 52 70 40 66 30 C62 20 54 22 56 34 C58 44 60 54 60 62Z" fill="#4CAF50"/>
+</svg>

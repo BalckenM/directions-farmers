@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="25" cy="125" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="70" cy="138" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="95" cy="128" r="1" fill="#8D6E63" opacity="0.5"/>
+  <!-- Flat tomato seed -->
+  <ellipse cx="60" cy="116" rx="5" ry="3" fill="#A1887F"/>
+  <ellipse cx="60" cy="115.5" rx="4" ry="2.5" fill="#BCAAA4"/>
+  <!-- Radicle and hypocotyl -->
+  <path d="M60 113 Q60 108 59 104" stroke="#66BB6A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- Cotyledons -->
+  <ellipse cx="56" cy="102" rx="4" ry="2.5" fill="#81C784" transform="rotate(-30,56,102)"/>
+  <ellipse cx="64" cy="102" rx="4" ry="2.5" fill="#81C784" transform="rotate(30,64,102)"/>
+</svg>

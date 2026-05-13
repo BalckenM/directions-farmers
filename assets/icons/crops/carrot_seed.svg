@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <circle cx="30" cy="126" r="1.2" fill="#8D6E63" opacity="0.5"/>
+  <circle cx="80" cy="140" r="1.5" fill="#8D6E63" opacity="0.5"/>
+  <!-- Tiny carrot seed (oval, ridged) -->
+  <ellipse cx="60" cy="116" rx="4" ry="2.5" fill="#A1887F"/>
+  <line x1="58" y1="116" x2="62" y2="116" stroke="#8D6E63" stroke-width="0.5" opacity="0.8"/>
+  <!-- Germination radicle -->
+  <path d="M60 113.5 Q60.5 108 60 104" stroke="#81C784" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="58.5" cy="103" rx="3" ry="2" fill="#A5D6A7" transform="rotate(-20,58.5,103)"/>
+  <ellipse cx="62" cy="103" rx="3" ry="2" fill="#A5D6A7" transform="rotate(20,62,103)"/>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Developing bulb (small) -->
+  <ellipse cx="60" cy="112" rx="10" ry="7" fill="#FF7043" opacity="0.7"/>
+  <!-- Multiple hollow tubular leaves -->
+  <path d="M56 108 Q50 90 44 70" stroke="#1B5E20" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M58 108 Q56 88 54 62" stroke="#1B5E20" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M60 108 Q60 88 60 56" stroke="#1B5E20" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M62 108 Q64 88 66 62" stroke="#1B5E20" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M64 108 Q70 90 76 70" stroke="#1B5E20" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Sheath highlights (hollow tube internal reflection) -->
+  <path d="M45 72 Q44 66 46 62" stroke="#4CAF50" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M55 64 Q54 57 56 52" stroke="#4CAF50" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M60 64 Q60 57 60 50" stroke="#4CAF50" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Bluish-green wax bloom on leaves -->
+  <path d="M60 80 Q57 70 54 58" stroke="#00796B" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <path d="M60 80 Q63 70 66 58" stroke="#00796B" stroke-width="0.8" fill="none" opacity="0.3"/>
+</svg>

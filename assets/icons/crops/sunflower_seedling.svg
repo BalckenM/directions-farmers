@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160">
+  <defs>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6D4C41"/>
+      <stop offset="100%" stop-color="#4E342E"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="110" width="120" height="50" fill="url(#soil)"/>
+  <!-- Stem (slightly hairy) -->
+  <line x1="60" y1="110" x2="60" y2="74" stroke="#558B2F" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Stem hairs (trichomes) -->
+  <line x1="60" y1="100" x2="62" y2="98" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="94" x2="58" y2="92" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="88" x2="62" y2="86" stroke="#558B2F" stroke-width="0.8"/>
+  <line x1="60" y1="82" x2="58" y2="80" stroke="#558B2F" stroke-width="0.8"/>
+  <!-- Large cotyledons (sunflower characteristic — paddle-shaped) -->
+  <path d="M60 88 C50 84 38 82 30 78 C24 75 22 70 28 68 C36 66 50 72 60 82Z" fill="#66BB6A"/>
+  <path d="M60 88 C70 84 82 82 90 78 C96 75 98 70 92 68 C84 66 70 72 60 82Z" fill="#66BB6A"/>
+  <!-- Midribs -->
+  <path d="M60 86 C52 80 36 74 28 68" stroke="#A5D6A7" stroke-width="1" fill="none" opacity="0.7"/>
+  <path d="M60 86 C68 80 84 74 92 68" stroke="#A5D6A7" stroke-width="1" fill="none" opacity="0.7"/>
+  <!-- First true leaf pair (heart-shaped) -->
+  <path d="M60 74 C54 68 44 64 40 58 C38 54 42 50 46 52 C52 56 58 64 60 70Z" fill="#4CAF50"/>
+  <path d="M60 74 C66 68 76 64 80 58 C82 54 78 50 74 52 C68 56 62 64 60 70Z" fill="#4CAF50"/>
+  <!-- Rough texture lines on leaves -->
+  <path d="M44 58 Q52 62 60 70" stroke="#388E3C" stroke-width="0.7" fill="none" opacity="0.5"/>
+</svg>
