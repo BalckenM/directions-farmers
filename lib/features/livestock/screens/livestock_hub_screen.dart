@@ -235,6 +235,8 @@ final Map<String, _SpeciesConfig> _speciesConfigs = {
     primaryColor: AppColors.cattleColor,
     containerColor: AppColors.cattleColorContainer,
     unit: 'head',
+    specializedRoute: AppRoutes.cattleList,
+    specializedLabel: 'Open Cattle Herd',
     kpis: [
       _KpiItem(label: 'Total Head', value: '–', sub: 'loading...'),
       _KpiItem(label: 'ADG', value: '0.95 kg', sub: 'avg daily gain'),
@@ -254,12 +256,13 @@ final Map<String, _SpeciesConfig> _speciesConfigs = {
       _AutomationItem(label: 'Feed Mixer', icon: Icons.restaurant_rounded, initialOn: false),
     ],
     tools: [
-      _ToolItem(label: 'Reproduction', icon: Icons.favorite_rounded, route: AppRoutes.recordBreeding),
-      _ToolItem(label: 'BCS Scores', icon: Icons.monitor_weight_rounded, route: AppRoutes.recordWeight),
-      _ToolItem(label: 'Health Events', icon: Icons.monitor_heart_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'LITS Export', icon: Icons.upload_rounded, route: AppRoutes.movementRecords),
-      _ToolItem(label: 'Movements', icon: Icons.swap_horiz_rounded, route: AppRoutes.movementRecords),
-      _ToolItem(label: 'Reports', icon: Icons.description_rounded, route: AppRoutes.reports),
+      _ToolItem(label: 'Herd Manager',    icon: Icons.format_list_bulleted_rounded,   route: AppRoutes.cattleList),
+      _ToolItem(label: 'Calving',         icon: Icons.child_care_rounded,             route: AppRoutes.cattleList),
+      _ToolItem(label: 'Pasture',         icon: Icons.grass_rounded,                  route: AppRoutes.cattlePasture),
+      _ToolItem(label: 'Feed & Supp.',    icon: Icons.restaurant_rounded,             route: AppRoutes.cattleFeedSupplement),
+      _ToolItem(label: 'Sales & Finance', icon: Icons.account_balance_wallet_rounded, route: AppRoutes.cattleSales),
+      _ToolItem(label: 'Inventory',       icon: Icons.inventory_2_rounded,            route: AppRoutes.cattleInventory),
+      _ToolItem(label: 'Reports',         icon: Icons.description_rounded,            route: AppRoutes.cattleReports),
     ],
   ),
   'sheep': _SpeciesConfig(

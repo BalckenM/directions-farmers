@@ -155,16 +155,17 @@ class _EditGoatScreenState extends ConsumerState<EditGoatScreen> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _isSaving ? null : _save,
-                  child: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Save Changes'),
-                ),
+                if (ref.watch(canManageAnimalsProvider))
+                  FilledButton(
+                    onPressed: _isSaving ? null : _save,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Save Changes'),
+                  ),
               ],
             ),
           ),

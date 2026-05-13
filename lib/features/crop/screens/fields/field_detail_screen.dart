@@ -109,8 +109,8 @@ class FieldDetailScreen extends ConsumerWidget {
                 SectionHeader(
                   title: 'Growing Crops',
                   actionLabel: 'Add Plan',
-                  onAction: () =>
-                      context.push(AppRoutes.addCropSeason),
+                  onAction: () => context.push(
+                      '${AppRoutes.addPlantingPlan}?fieldId=$fieldId'),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 plansAsync.when(
@@ -661,8 +661,8 @@ class _NoCropsCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 OutlinedButton.icon(
-                  onPressed: () =>
-                      context.push(AppRoutes.addCropSeason),
+                  onPressed: () => context.push(
+                      '${AppRoutes.addPlantingPlan}?fieldId=$fieldId'),
                   icon: const Icon(Icons.add_rounded, size: 16),
                   label: const Text('Add Plan'),
                   style: OutlinedButton.styleFrom(

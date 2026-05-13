@@ -41,6 +41,15 @@ class GoatAnimal {
     this.dairySpecific,
     this.fiberSpecific,
     this.breederSpecific,
+    // ── South African compliance ──────────────────────────────────────────
+    this.brandNumber,
+    this.brandPosition,
+    this.earmarkDesc,
+    this.brucellaTested = false,
+    this.brucellaTestDate,
+    this.fmdZone,
+    this.rmisAnimalId,
+    this.importPermitNo,
   });
 
   final String id;
@@ -87,6 +96,24 @@ class GoatAnimal {
   final DairySpecific? dairySpecific;
   final FiberSpecific? fiberSpecific;
   final BreederSpecific? breederSpecific;
+
+  // ── South African compliance fields ──────────────────────────────────────
+  /// Brand number registered with the relevant provincial authority.
+  final String? brandNumber;
+  /// Body position of the brand (e.g. 'left rib', 'right hip').
+  final String? brandPosition;
+  /// Description of earmark notch pattern.
+  final String? earmarkDesc;
+  /// Whether the animal has a current brucellosis negative test certificate.
+  final bool brucellaTested;
+  /// Date of most recent brucellosis test (ISO 8601).
+  final String? brucellaTestDate;
+  /// Foot-and-Mouth Disease zone classification (e.g. 'free', 'protection', 'surveillance').
+  final String? fmdZone;
+  /// RMIS (Red Meat Industry Services) animal identifier.
+  final String? rmisAnimalId;
+  /// Import permit number (for animals imported into South Africa).
+  final String? importPermitNo;
 
   // ── Computed helpers ──────────────────────────────────────────────────────
 
@@ -159,6 +186,14 @@ class GoatAnimal {
     DairySpecific? dairySpecific,
     FiberSpecific? fiberSpecific,
     BreederSpecific? breederSpecific,
+    String? brandNumber,
+    String? brandPosition,
+    String? earmarkDesc,
+    bool? brucellaTested,
+    String? brucellaTestDate,
+    String? fmdZone,
+    String? rmisAnimalId,
+    String? importPermitNo,
   }) =>
       GoatAnimal(
         id: id ?? this.id,
@@ -197,6 +232,14 @@ class GoatAnimal {
         dairySpecific: dairySpecific ?? this.dairySpecific,
         fiberSpecific: fiberSpecific ?? this.fiberSpecific,
         breederSpecific: breederSpecific ?? this.breederSpecific,
+        brandNumber: brandNumber ?? this.brandNumber,
+        brandPosition: brandPosition ?? this.brandPosition,
+        earmarkDesc: earmarkDesc ?? this.earmarkDesc,
+        brucellaTested: brucellaTested ?? this.brucellaTested,
+        brucellaTestDate: brucellaTestDate ?? this.brucellaTestDate,
+        fmdZone: fmdZone ?? this.fmdZone,
+        rmisAnimalId: rmisAnimalId ?? this.rmisAnimalId,
+        importPermitNo: importPermitNo ?? this.importPermitNo,
       );
 
   factory GoatAnimal.fromJson(Map<String, dynamic> j) => GoatAnimal(
@@ -245,6 +288,14 @@ class GoatAnimal {
             ? BreederSpecific.fromJson(
                 j['breederSpecific'] as Map<String, dynamic>)
             : null,
+        brandNumber: j['brandNumber'] as String?,
+        brandPosition: j['brandPosition'] as String?,
+        earmarkDesc: j['earmarkDesc'] as String?,
+        brucellaTested: j['brucellaTested'] as bool? ?? false,
+        brucellaTestDate: j['brucellaTestDate'] as String?,
+        fmdZone: j['fmdZone'] as String?,
+        rmisAnimalId: j['rmisAnimalId'] as String?,
+        importPermitNo: j['importPermitNo'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -287,6 +338,14 @@ class GoatAnimal {
         if (fiberSpecific != null) 'fiberSpecific': fiberSpecific!.toJson(),
         if (breederSpecific != null)
           'breederSpecific': breederSpecific!.toJson(),
+        if (brandNumber != null) 'brandNumber': brandNumber,
+        if (brandPosition != null) 'brandPosition': brandPosition,
+        if (earmarkDesc != null) 'earmarkDesc': earmarkDesc,
+        'brucellaTested': brucellaTested,
+        if (brucellaTestDate != null) 'brucellaTestDate': brucellaTestDate,
+        if (fmdZone != null) 'fmdZone': fmdZone,
+        if (rmisAnimalId != null) 'rmisAnimalId': rmisAnimalId,
+        if (importPermitNo != null) 'importPermitNo': importPermitNo,
       };
 }
 

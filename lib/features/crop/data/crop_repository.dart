@@ -1,5 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../models/advisory_content.dart';
 import '../models/calendar_event.dart';
 import '../models/crop.dart';
@@ -15,8 +13,6 @@ import '../models/planting_plan.dart';
 import '../models/spray_record.dart';
 import '../models/weather_alert.dart';
 import 'crop_data_source.dart';
-import 'crop_mock_data_source.dart';
-import 'crop_remote_data_source.dart';
 
 class CropRepository {
   CropRepository(this._source);
@@ -180,6 +176,12 @@ class CropRepository {
     if (fieldId != null) all = all.where((e) => e.fieldId == fieldId).toList();
     all.sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
     return all;
+  }
+
+  Future<CalendarEvent> addCalendarEvent(CalendarEvent event) async {
+    await getCalendarEvents();
+    _events!.add(event);
+    return event;
   }
 
   Future<CalendarEvent> updateCalendarEvent(CalendarEvent updated) async {
@@ -396,10 +398,3 @@ class CropRepository {
     return all;
   }
 }
-
-final cropRepositoryProvider = Provider<CropRepository>((ref) {
-  final source = AppConstants.useMockData
-      ? CropMockDataSource()
-      : CropRemoteDataSource();
-  return CropRepository(source);
-});

@@ -10,7 +10,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
-import '../../data/crop_repository.dart';
 import '../../models/harvest_record.dart';
 import '../../providers/crop_providers.dart';
 
@@ -150,6 +149,9 @@ class _HarvestLogScreenState extends ConsumerState<HarvestLogScreen> {
                               ref.invalidate(harvestRecordsProvider);
                             },
                             child: GestureDetector(
+                              onTap: () => context.push(
+                                  AppRoutes.harvestDetail,
+                                  extra: record),
                               onLongPress: () => context.push(
                                   AppRoutes.editHarvestRecord,
                                   extra: record),

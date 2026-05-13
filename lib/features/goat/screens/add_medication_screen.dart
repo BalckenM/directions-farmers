@@ -124,14 +124,15 @@ class _GoatAddMedicationScreenState
                 ),
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _isSaving ? null : _save,
-                  icon: const Icon(Icons.save_rounded),
-                  label: const Text('Save Medication Record'),
+              if (ref.watch(canManageHealthProvider))
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _isSaving ? null : _save,
+                    icon: const Icon(Icons.save_rounded),
+                    label: const Text('Save Medication Record'),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

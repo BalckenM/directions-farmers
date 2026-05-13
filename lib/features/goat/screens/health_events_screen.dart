@@ -61,6 +61,7 @@ class _GoatHealthEventsScreenState
           : _notesController.text.trim(),
     );
     ref.read(newHealthEventProvider.notifier).addEvent(widget.goatId, event);
+    final condition = _conditionController.text.trim();
     _dateController.clear();
     _conditionController.clear();
     _treatmentController.clear();
@@ -72,6 +73,40 @@ class _GoatHealthEventsScreenState
       _severity = 'mild';
       _outcome = null;
     });
+    _checkNotifiableDisease(condition);
+  }
+
+  void _checkNotifiableDisease(String condition) {
+    const notifiable = [
+      'ppr',
+      'peste des petits',
+      'sheep pox',
+      'goat pox',
+      'foot and mouth',
+      'fmd',
+    ];
+    final lower = condition.toLowerCase();
+    if (!notifiable.any((k) => lower.contains(k))) return;
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Notifiable Disease — Mandatory Report Required'),
+        content: const Text(
+          'This condition may be a notifiable disease under the Animal Diseases Act.\n\n'
+          'DAFF Emergency Hotline: 012 319 7000',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Mark as Reported'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

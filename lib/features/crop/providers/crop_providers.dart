@@ -1,4 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/app_constants.dart';
+import '../data/crop_data_source.dart';
+import '../data/crop_mock_data_source.dart';
+import '../data/crop_remote_data_source.dart';
 import '../data/crop_repository.dart';
 import '../models/advisory_content.dart';
 import '../models/calendar_event.dart';
@@ -14,6 +18,15 @@ import '../models/pest_observation.dart';
 import '../models/planting_plan.dart';
 import '../models/spray_record.dart';
 import '../models/weather_alert.dart';
+
+// ── Repository ───────────────────────────────────────────────────────────────
+
+final cropRepositoryProvider = Provider<CropRepository>((ref) {
+  final CropDataSource source = AppConstants.useMockData
+      ? CropMockDataSource()
+      : CropRemoteDataSource();
+  return CropRepository(source);
+});
 
 // ── Crop Catalog ─────────────────────────────────────────────────────────────
 

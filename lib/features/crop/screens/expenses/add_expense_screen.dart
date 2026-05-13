@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../data/crop_repository.dart';
 import '../../models/crop_expense.dart';
 import '../../providers/crop_providers.dart';
 

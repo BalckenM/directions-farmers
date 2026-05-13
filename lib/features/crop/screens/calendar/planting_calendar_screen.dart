@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
-import '../../data/crop_repository.dart';
 import '../../models/calendar_event.dart';
+import '../../models/crop_field.dart';
+import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
 import '../../widgets/crop_illustration.dart';
 
@@ -57,6 +57,19 @@ class _PlantingCalendarScreenState
             Tab(icon: Icon(Icons.list_alt_rounded, size: 18), text: 'Activities'),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (_) => const _AddEventSheet(),
+        ),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add Activity'),
       ),
       body: eventsAsync.when(
         loading: () => Padding(
@@ -260,7 +273,7 @@ class _SeasonalGanttTab extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   itemCount: rows.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+                  separatorBuilder: (_, i) => const SizedBox(width: AppSpacing.sm),
                   itemBuilder: (context, i) {
                     final row = rows[i];
                     final inPlanting = _GanttChart._monthInRange(currentMonth, row.plantStart, row.plantEnd);
@@ -889,6 +902,281 @@ class _MarkDoneButtonState extends ConsumerState<_MarkDoneButton> {
                 Text('Done', style: TextStyle(fontSize: 11)),
               ],
             ),
+    );
+  }
+}
+
+// ── Add Event Sheet ───────────────────────────────────────────────────────────
+
+class _AddEventSheet extends ConsumerStatefulWidget {
+  const _AddEventSheet();
+
+  @override
+  ConsumerState<_AddEventSheet> createState() => _AddEventSheetState();
+}
+
+class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+
+  CropField? _selectedField;
+  PlantingPlan? _selectedPlan;
+  CalendarActivityType _activityType = CalendarActivityType.scouting;
+  DateTime _scheduledDate = DateTime.now().add(const Duration(days: 1));
+  int _reminderDays = 1;
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _scheduledDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+    );
+    if (picked != null) setState(() => _scheduledDate = picked);
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedField == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a field')),
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    final event = CalendarEvent(
+      id: 'evt-${DateTime.now().millisecondsSinceEpoch}',
+      planId: _selectedPlan?.id ?? '',
+      fieldId: _selectedField!.id,
+      activityType: _activityType,
+      title: _titleCtrl.text.trim(),
+      scheduledDate: _scheduledDate,
+      status: 'pending',
+      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      reminderDaysBefore: _reminderDays,
+    );
+
+    try {
+      await ref.read(cropRepositoryProvider).addCalendarEvent(event);
+      ref.invalidate(calendarEventsProvider);
+      ref.invalidate(upcomingCalendarEventsProvider);
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final fieldsAsync = ref.watch(cropFieldsProvider(null));
+    final plansAsync = ref.watch(plantingPlansProvider(null));
+    final cropsAsync = ref.watch(cropsProvider(null));
+    final cropNames = <String, String>{
+      for (final c in cropsAsync.value ?? []) c.id: c.name,
+    };
+
+    final fields = fieldsAsync.value ?? [];
+    final allPlans = plansAsync.value ?? [];
+    final fieldPlans = _selectedField == null
+        ? <PlantingPlan>[]
+        : allPlans.where((p) => p.fieldId == _selectedField!.id).toList();
+
+    final dateFmt = DateFormat('dd MMM yyyy');
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.md,
+        right: AppSpacing.md,
+        top: AppSpacing.md,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            Text(
+              'Add Calendar Activity',
+              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Field picker
+            DropdownButtonFormField<CropField>(
+              decoration: const InputDecoration(
+                labelText: 'Field *',
+                prefixIcon: Icon(Icons.grid_view_outlined),
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedField,
+              items: fields
+                  .map((f) => DropdownMenuItem(value: f, child: Text(f.name)))
+                  .toList(),
+              onChanged: (f) => setState(() {
+                _selectedField = f;
+                _selectedPlan = null; // reset plan when field changes
+              }),
+              validator: (v) => v == null ? 'Required' : null,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Plan picker (optional)
+            DropdownButtonFormField<PlantingPlan?>(
+              decoration: const InputDecoration(
+                labelText: 'Planting Plan (optional)',
+                prefixIcon: Icon(Icons.spa_outlined),
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedPlan,
+              items: [
+                const DropdownMenuItem<PlantingPlan?>(
+                    value: null, child: Text('None')),
+                ...fieldPlans.map(
+                  (p) => DropdownMenuItem<PlantingPlan?>(
+                    value: p,
+                    child: Text(cropNames[p.cropId] ?? p.cropId),
+                  ),
+                ),
+              ],
+              onChanged: (p) => setState(() => _selectedPlan = p),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Activity type
+            DropdownButtonFormField<CalendarActivityType>(
+              decoration: const InputDecoration(
+                labelText: 'Activity Type *',
+                prefixIcon: Icon(Icons.category_outlined),
+                border: OutlineInputBorder(),
+              ),
+              value: _activityType,
+              items: CalendarActivityType.values
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                  .toList(),
+              onChanged: (t) {
+                if (t != null) setState(() => _activityType = t);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Title
+            TextFormField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Title *',
+                prefixIcon: Icon(Icons.title_outlined),
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.sentences,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Scheduled date
+            InkWell(
+              onTap: _pickDate,
+              borderRadius: AppRadius.card,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Scheduled Date *',
+                  prefixIcon: Icon(Icons.calendar_today_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(dateFmt.format(_scheduledDate)),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Notes (optional)
+            TextFormField(
+              controller: _notesCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                prefixIcon: Icon(Icons.notes_outlined),
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Reminder days
+            Row(
+              children: [
+                const Icon(Icons.notifications_outlined,
+                    size: AppSpacing.iconMd, color: AppColors.onSurfaceVariant),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Remind me', style: tt.bodyMedium),
+                const Spacer(),
+                DropdownButton<int>(
+                  value: _reminderDays,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 0, child: Text('Same day')),
+                    DropdownMenuItem(value: 1, child: Text('1 day before')),
+                    DropdownMenuItem(value: 3, child: Text('3 days before')),
+                    DropdownMenuItem(value: 7, child: Text('1 week before')),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setState(() => _reminderDays = v);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Save button
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _saving ? null : _save,
+                icon: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.check_rounded),
+                label: Text(_saving ? 'Saving…' : 'Save Activity'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

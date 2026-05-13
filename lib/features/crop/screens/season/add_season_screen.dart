@@ -7,7 +7,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/date_picker_field.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
-import '../../data/crop_repository.dart';
 import '../../models/crop.dart';
 import '../../models/crop_field.dart';
 import '../../models/crop_season.dart';

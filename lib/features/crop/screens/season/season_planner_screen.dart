@@ -9,7 +9,6 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
-import '../../data/crop_repository.dart';
 import '../../models/crop_season.dart';
 import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
@@ -83,7 +82,8 @@ class _SeasonPlannerScreenState extends ConsumerState<SeasonPlannerScreen> {
                 season: season,
                 fieldCount: fieldCount,
                 cropCount: cropCount,
-                onTap: () => _showSeasonDetails(context, season, seasonPlans),
+                onTap: () => context.push(
+                    AppRoutes.cropSeasonDetail, extra: season),
                 onEdit: () =>
                     context.push(AppRoutes.editCropSeason, extra: season),
                 onDelete: () => _confirmDelete(context, season),
@@ -120,91 +120,6 @@ class _SeasonPlannerScreenState extends ConsumerState<SeasonPlannerScreen> {
     }
   }
 
-  void _showSeasonDetails(
-    BuildContext context,
-    CropSeason season,
-    List<PlantingPlan> plans,
-  ) {
-    final fmt = DateFormat('dd MMM yyyy');
-    final fieldCount = plans.map((p) => p.fieldId).toSet().length;
-    final cropCount = plans.map((p) => p.cropId).toSet().length;
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: AppRadius.topOnly),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.lg,
-            AppSpacing.md,
-            AppSpacing.xl,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.outlineVariant,
-                    borderRadius: AppRadius.chip,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                season.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              _DetailRow(
-                icon: Icons.calendar_today_outlined,
-                label: 'Start',
-                value: fmt.format(season.startDate),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _DetailRow(
-                icon: Icons.event_outlined,
-                label: 'End',
-                value: fmt.format(season.endDate),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _DetailRow(
-                icon: Icons.wb_sunny_outlined,
-                label: 'Type',
-                value: _seasonTypeLabel(season.seasonType),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _DetailRow(
-                icon: Icons.grid_on_rounded,
-                label: 'Fields',
-                value: '$fieldCount field${fieldCount != 1 ? 's' : ''}',
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _DetailRow(
-                icon: Icons.eco_outlined,
-                label: 'Crops',
-                value: '$cropCount crop${cropCount != 1 ? 's' : ''}',
-              ),
-              if (season.notes != null && season.notes!.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _DetailRow(
-                  icon: Icons.notes_outlined,
-                  label: 'Notes',
-                  value: season.notes!,
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
 
 String _seasonTypeLabel(String type) => switch (type) {
@@ -402,41 +317,6 @@ class _SeasonTypeChip extends StatelessWidget {
                 color: AppColors.secondary,
                 fontWeight: FontWeight.w600,
               ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: AppSpacing.iconMd, color: AppColors.onSurfaceVariant),
-        const SizedBox(width: AppSpacing.sm),
-        SizedBox(
-          width: 72,
-          child: Text(
-            label,
-            style: tt.bodySmall
-                ?.copyWith(color: AppColors.onSurfaceVariant),
-          ),
-        ),
-        Expanded(
-          child: Text(value, style: tt.bodyMedium),
         ),
       ],
     );

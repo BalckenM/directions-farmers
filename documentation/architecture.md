@@ -99,6 +99,7 @@ final repositoryProvider = Provider<LivestockRepository>((ref) {
 | crop | ✅ | ✅ | ✅ | ✅ |
 | settings | ✅ | ✅ | ✅ | ✅ |
 | insights | ✅ | ✅ | ✅ | ✅ |
+| cattle | ❌ | ❌ | ❌ | ❌ |
 
 ### Files to Delete Once All Features Are Migrated
 
@@ -398,8 +399,42 @@ lib/
     │       ├── inventory_screen.dart
     │       ├── pasture_screen.dart
     │       └── cross_herd_comparison_screen.dart
-    │
-    ├── pigs/
+    │    ├── cattle/
+    │   ├── data/
+    │   │   ├── cattle_data_source.dart
+    │   │   ├── cattle_mock_data_source.dart
+    │   │   ├── cattle_remote_data_source.dart
+    │   │   └── cattle_repository.dart
+    │   ├── models/
+    │   │   ├── cattle_animal.dart
+    │   │   └── cattle_records.dart
+    │   ├── providers/
+    │   │   └── cattle_providers.dart
+    │   └── screens/
+    │       ├── cattle_screen.dart
+    │       ├── cattle_breed_screen.dart
+    │       ├── cattle_detail_screen.dart
+    │       ├── add_cattle_screen.dart
+    │       ├── edit_cattle_screen.dart
+    │       ├── add_calf_screen.dart
+    │       ├── calving_screen.dart
+    │       ├── breeding_screen.dart
+    │       ├── pregnancy_check_screen.dart
+    │       ├── milk_records_screen.dart
+    │       ├── weight_records_screen.dart
+    │       ├── health_events_screen.dart
+    │       ├── vaccination_screen.dart
+    │       ├── add_medication_screen.dart
+    │       ├── body_condition_screen.dart
+    │       ├── dipping_screen.dart
+    │       ├── cattle_financials_screen.dart
+    │       ├── cattle_reports_screen.dart
+    │       ├── sales_screen.dart
+    │       ├── inventory_screen.dart
+    │       ├── pasture_screen.dart
+    │       ├── feed_supplement_screen.dart
+    │       └── cross_herd_comparison_screen.dart
+    │    ├── pigs/
     │   ├── data/
     │   │   └── pigs_repository.dart
     │   ├── models/
@@ -638,6 +673,14 @@ test/
 │   │   └── goat_records_test.dart
 │   └── providers/
 │       └── goat_providers_test.dart
+├── cattle/
+│   ├── data/
+│   │   └── cattle_repository_test.dart
+│   ├── models/
+│   │   ├── cattle_animal_test.dart
+│   │   └── cattle_records_test.dart
+│   └── providers/
+│       └── cattle_providers_test.dart
 └── routing/
     └── poultry_hub_routing_test.dart
 ```
@@ -653,6 +696,7 @@ test/
 | livestock | repository | 3 files | 8 |
 | poultry | repository | providers | 25 |
 | goat | repository + 3 source files | providers | 21 |
+| cattle | repository + 3 source files | providers | 23 |
 | pigs | repository | providers | 2 |
 | aquaculture | repository | providers | 2 |
 | apiculture | repository | providers | 2 |

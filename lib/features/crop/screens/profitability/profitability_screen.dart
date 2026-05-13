@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -105,7 +107,7 @@ class ProfitabilityScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(
                             top: AppSpacing.sm, bottom: AppSpacing.sm),
                         child: TextButton.icon(
-                          onPressed: () => _showLogSaleSheet(context),
+                          onPressed: () => context.push(AppRoutes.addCropSale),
                           icon: const Icon(Icons.add),
                           label: const Text('Log Sale'),
                         ),
@@ -736,184 +738,6 @@ class _FieldMetric extends StatelessWidget {
       ],
     );
   }
-}
-
-// ── Log Sale Bottom Sheet ─────────────────────────────────────────────────────
-
-void _showLogSaleSheet(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: AppRadius.topOnly),
-    builder: (_) => const _LogSaleSheet(),
-  );
-}
-
-class _LogSaleSheet extends StatefulWidget {
-  const _LogSaleSheet();
-
-  @override
-  State<_LogSaleSheet> createState() => _LogSaleSheetState();
-}
-
-class _LogSaleSheetState extends State<_LogSaleSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _quantityCtrl = TextEditingController();
-  final _priceCtrl = TextEditingController();
-  final _buyerCtrl = TextEditingController();
-
-  String? _selectedCrop;
-  DateTime? _saleDate;
-
-  static const List<String> _crops = [
-    'Maize (White)',
-    'Tomato',
-    'Wheat',
-    'Sunflower',
-  ];
-
-  @override
-  void dispose() {
-    _quantityCtrl.dispose();
-    _priceCtrl.dispose();
-    _buyerCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _saleDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) setState(() => _saleDate = picked);
-  }
-
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sale logged')),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.viewInsetsOf(context).bottom,
-        left: AppSpacing.md,
-        right: AppSpacing.md,
-        top: AppSpacing.md,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: cs.outlineVariant,
-                  borderRadius: AppRadius.chip,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text('Log Sale',
-                style:
-                    tt.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: AppSpacing.md),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCrop,
-              decoration: _dec('Crop'),
-              items: _crops
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedCrop = v),
-              validator: (v) => v == null ? 'Select a crop' : null,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _quantityCtrl,
-                    decoration: _dec('Quantity (tons)'),
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Required' : null,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: TextFormField(
-                    controller: _priceCtrl,
-                    decoration: _dec('Price/ton (ZAR)'),
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Required' : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: _buyerCtrl,
-              decoration: _dec('Buyer (optional)'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            InkWell(
-              onTap: _pickDate,
-              borderRadius: AppRadius.input,
-              child: InputDecorator(
-                decoration: _dec('Sale Date'),
-                child: Text(
-                  _saleDate == null
-                      ? 'Select date'
-                      : '${_saleDate!.day.toString().padLeft(2, '0')}/'
-                          '${_saleDate!.month.toString().padLeft(2, '0')}/'
-                          '${_saleDate!.year}',
-                  style: _saleDate == null
-                      ? tt.bodyMedium?.copyWith(
-                          color: cs.onSurfaceVariant)
-                      : tt.bodyMedium,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _submit,
-                child: const Text('Save Sale'),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _dec(String label) => InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: AppRadius.input),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        isDense: true,
-      );
 }
 
 // ── Error message ─────────────────────────────────────────────────────────────

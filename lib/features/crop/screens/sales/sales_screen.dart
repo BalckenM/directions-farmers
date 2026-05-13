@@ -10,7 +10,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
-import '../../data/crop_repository.dart';
 import '../../models/crop_sale.dart';
 import '../../providers/crop_providers.dart';
 
@@ -149,6 +148,9 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                                   ref.invalidate(grossMarginProvider);
                                 },
                                 child: GestureDetector(
+                                  onTap: () => context.push(
+                                      AppRoutes.saleDetail,
+                                      extra: sale),
                                   onLongPress: () => context.push(
                                       AppRoutes.editCropSale,
                                       extra: sale),

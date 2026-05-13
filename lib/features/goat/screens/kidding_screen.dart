@@ -101,6 +101,22 @@ class _GoatKiddingScreenState extends ConsumerState<GoatKiddingScreen> {
     );
 
     ref.read(newKiddingEventProvider.notifier).addEvent(widget.goatId, event);
+
+    // Show colostrum reminder if kidding is within the last 12 hours
+    try {
+      final kDate = DateTime.parse(_dateController.text.trim());
+      if (DateTime.now().difference(kDate).abs().inHours < 12) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Ensure colostrum intake within first 2 hours. '
+                'Record first milk feed in Milk Records.'),
+            duration: Duration(seconds: 6),
+          ),
+        );
+      }
+    } catch (_) {}
+
     _dateController.clear();
     _totalBornController.clear();
     _aliveController.clear();

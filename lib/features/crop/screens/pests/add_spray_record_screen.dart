@@ -8,7 +8,6 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../data/crop_repository.dart';
 import '../../models/spray_record.dart';
 import '../../providers/crop_providers.dart';
 

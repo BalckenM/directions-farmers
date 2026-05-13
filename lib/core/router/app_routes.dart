@@ -88,13 +88,15 @@ abstract final class AppRoutes {
   static String plantedCropDetailPath(String fieldId, String planId) =>
       '/crop/fields/$fieldId/plan/$planId';
   static const String cropSeasons    = '/crop/seasons';
-  static const String addCropSeason  = '/crop/seasons/add';
+  static const String addCropSeason    = '/crop/seasons/add';
+  static const String cropSeasonDetail = '/crop/seasons/detail';
   static const String cropCalendar   = '/crop/calendar';
   static const String cropTasks      = '/crop/tasks';
   static String cropTaskDetailPath(String id) => '/crop/tasks/$id';
   static const String addCropTask    = '/crop/tasks/add';
   static const String cropWeather    = '/crop/weather';
   static const String cropPests      = '/crop/pests';
+  static const String sprayDetail    = '/crop/pests/spray/detail';
   static const String addPestObs     = '/crop/pests/add';
   static const String addSprayRecord = '/crop/pests/spray/add';
   static const String cropExpenses   = '/crop/expenses';
@@ -111,8 +113,11 @@ abstract final class AppRoutes {
   static const String editPlantingPlan  = '/crop/fields/plan/edit';
   static const String editPestObs       = '/crop/pests/edit';
   static const String editSprayRecord   = '/crop/pests/spray/edit';
+  static const String harvestDetail    = '/crop/harvest/detail';
   static const String editHarvestRecord = '/crop/harvest/edit';
+  static const String saleDetail        = '/crop/sales/detail';
   static const String editCropSale      = '/crop/sales/edit';
+  static const String editCropExpense   = '/crop/expenses/edit';
 
   // ── Utility routes ────────────────────────────────────────────────────────────
   static const String notFound = '/404';
@@ -198,6 +203,38 @@ abstract final class AppRoutes {
   static const String goatFamacha = '/livestock/goats/famacha';
   static String goatBreedPath(String breed) =>
       '/livestock/goats/breed/${Uri.encodeComponent(breed)}';
+
+  // Cattle module
+  static const String cattleHub = '/livestock/cattle';
+  static const String cattleList = '/livestock/cattle/herd';
+  static const String addCattle = '/livestock/cattle/new';
+  static String cattleDetailPath(String id) => '/livestock/cattle/$id';
+  static String editCattlePath(String id) => '/livestock/cattle/$id/edit';
+  static String cattleHealthPath(String id) => '/livestock/cattle/$id/health';
+  static String cattleBreedingPath(String id) =>
+      '/livestock/cattle/$id/breeding';
+  static String cattleCalvingPath(String id) =>
+      '/livestock/cattle/$id/calving';
+  static String addCalfPath(String damId) =>
+      '/livestock/cattle/$damId/add-calf';
+  static String cattleMilkPath(String id) => '/livestock/cattle/$id/milk';
+  static String cattleWeightsPath(String id) => '/livestock/cattle/$id/weights';
+  static String cattleFinancialsPath(String id) =>
+      '/livestock/cattle/$id/financials';
+  static String addCattleMedicationPath(String id) =>
+      '/livestock/cattle/$id/add-medication';
+  static const String cattleReports = '/livestock/cattle/reports';
+  static const String cattleInventory = '/livestock/cattle/inventory';
+  static const String cattlePasture = '/livestock/cattle/pasture';
+  static const String cattleCrossHerd = '/livestock/cattle/compare';
+  static const String cattlePregnancyCheck = '/livestock/cattle/pregnancy-check';
+  static const String cattleBodyCondition = '/livestock/cattle/bcs';
+  static const String cattleVaccinations = '/livestock/cattle/vaccinations';
+  static const String cattleSales = '/livestock/cattle/sales';
+  static const String cattleDipping = '/livestock/cattle/dipping';
+  static const String cattleFeedSupplement = '/livestock/cattle/feed-supplement';
+  static String cattleBreedPath(String breed) =>
+      '/livestock/cattle/breed/${Uri.encodeComponent(breed)}';
 
   // Pigs — hub at /livestock/pigs, sow board nested
   static const String pigsHub = '/livestock/pigs';

@@ -232,6 +232,58 @@ class _OverviewTab extends StatelessWidget {
             ),
           ]),
         ],
+        // ── Low BCS warning ──────────────────────────────────────────────────
+        if (a.isAlive && a.bodyConditionScore != null && a.bodyConditionScore! < 2.0) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withAlpha(30),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.withAlpha(100)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Low BCS Alert: BCS ${a.bodyConditionScore} is below 2.0. Review nutrition and supplementation immediately.',
+                    style: const TextStyle(fontSize: 13, color: Colors.orange),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        // ── SA Compliance ────────────────────────────────────────────────────
+        if (a.brandNumber != null ||
+            a.brandPosition != null ||
+            a.earmarkDesc != null ||
+            a.brucellaTested ||
+            a.brucellaTestDate != null ||
+            a.fmdZone != null ||
+            a.rmisAnimalId != null ||
+            a.importPermitNo != null) ...[
+          const SizedBox(height: 12),
+          _InfoCard(title: 'SA Compliance', children: [
+            if (a.brandNumber != null)
+              _InfoRow(label: 'Brand No.', value: a.brandNumber!),
+            if (a.brandPosition != null)
+              _InfoRow(label: 'Brand Position', value: a.brandPosition!),
+            if (a.earmarkDesc != null)
+              _InfoRow(label: 'Earmark', value: a.earmarkDesc!),
+            _InfoRow(label: 'Brucella Tested', value: a.brucellaTested ? 'Yes' : 'No'),
+            if (a.brucellaTestDate != null)
+              _InfoRow(label: 'Brucella Test Date', value: a.brucellaTestDate!),
+            if (a.fmdZone != null)
+              _InfoRow(label: 'FMD Zone', value: a.fmdZone!),
+            if (a.rmisAnimalId != null)
+              _InfoRow(label: 'RMIS ID', value: a.rmisAnimalId!),
+            if (a.importPermitNo != null)
+              _InfoRow(label: 'Import Permit', value: a.importPermitNo!),
+          ]),
+        ],
       ],
     );
   }

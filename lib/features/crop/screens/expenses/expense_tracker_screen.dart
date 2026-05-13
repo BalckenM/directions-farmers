@@ -13,14 +13,51 @@ import '../../../../shared/widgets/section_header.dart';
 import '../../models/crop_expense.dart';
 import '../../providers/crop_providers.dart';
 
-class ExpenseTrackerScreen extends ConsumerWidget {
+class ExpenseTrackerScreen extends ConsumerStatefulWidget {
   const ExpenseTrackerScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ExpenseTrackerScreen> createState() =>
+      _ExpenseTrackerScreenState();
+}
+
+class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
+  final currencyFmt =
+      NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
+
+  Future<bool> _confirmDelete(CropExpense expense) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Delete Expense?'),
+            content: Text(
+                'Remove "${expense.description}" (${currencyFmt.format(expense.amountZar)})?'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
+              FilledButton(
+                  style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.error),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Delete')),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _delete(CropExpense expense) async {
+    final repo = ref.read(cropRepositoryProvider);
+    await repo.deleteExpense(expense.id);
+    ref.invalidate(cropExpensesProvider);
+    ref.invalidate(totalExpensesProvider);
+    ref.invalidate(grossMarginProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final expensesAsync = ref.watch(cropExpensesProvider(null));
-    final currencyFmt =
-        NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
 
     return FarmScaffold(
       appBar: AppBar(
@@ -90,14 +127,40 @@ class ExpenseTrackerScreen extends ConsumerWidget {
                       ),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
-                          (context, index) => Padding(
-                            padding: const EdgeInsets.only(
-                                bottom: AppSpacing.sm),
-                            child: _ExpenseCard(
-                              expense: expenses[index],
-                              currencyFmt: currencyFmt,
-                            ),
-                          ),
+                          (context, index) {
+                            final expense = expenses[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: AppSpacing.sm),
+                              child: Dismissible(
+                                key: ValueKey(expense.id),
+                                direction: DismissDirection.endToStart,
+                                confirmDismiss: (_) =>
+                                    _confirmDelete(expense),
+                                onDismissed: (_) => _delete(expense),
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(
+                                      right: AppSpacing.md),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    borderRadius: AppRadius.card,
+                                  ),
+                                  child: const Icon(Icons.delete_rounded,
+                                      color: Colors.white),
+                                ),
+                                child: GestureDetector(
+                                  onLongPress: () => context.push(
+                                      AppRoutes.editCropExpense,
+                                      extra: expense),
+                                  child: _ExpenseCard(
+                                    expense: expense,
+                                    currencyFmt: currencyFmt,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                           childCount: expenses.length,
                         ),
                       ),

@@ -63,6 +63,29 @@ class CropExpense {
   final double? quantity;
   final String? unit;
 
+  CropExpense copyWith({
+    ExpenseCategory? category,
+    String? description,
+    double? amountZar,
+    DateTime? date,
+    String? supplier,
+    double? quantity,
+    String? unit,
+  }) =>
+      CropExpense(
+        id:          id,
+        farmId:      farmId,
+        fieldId:     fieldId,
+        planId:      planId,
+        category:    category    ?? this.category,
+        description: description ?? this.description,
+        amountZar:   amountZar   ?? this.amountZar,
+        date:        date        ?? this.date,
+        supplier:    supplier,
+        quantity:    quantity,
+        unit:        unit,
+      );
+
   factory CropExpense.fromJson(Map<String, dynamic> json) => CropExpense(
         id: json['id'] as String,
         farmId: json['farm_id'] as String,

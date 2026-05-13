@@ -1,5 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 // ── Crop type resolution ──────────────────────────────────────────────────────
 
@@ -29,7 +29,6 @@ CropType cropTypeFromName(String name) {
   if (n.contains('onion') || n.contains('garlic') || n.contains('leek') || n.contains('shallot') || n.contains('chive')) return CropType.onion;
   if (n.contains('bean') || n.contains('soy') || n.contains('pea') || n.contains('lentil') || n.contains('chickpea') || n.contains('groundnut') || n.contains('peanut') || n.contains('cowpea') || n.contains('lupin')) return CropType.beans;
   if (n.contains('spinach') || n.contains('lettuce') || n.contains('chard') || n.contains('salad') || n.contains('mustard') || n.contains('arugula') || n.contains('rocket') || n.contains('watercress') || n.contains('pak choi') || n.contains('celery')) return CropType.leafy;
-  if (n.contains('sugar cane') || n.contains('sugarcane') || n.contains('pepper') || n.contains('chilli') || n.contains('cucumber') || n.contains('pumpkin') || n.contains('squash') || n.contains('watermelon') || n.contains('melon') || n.contains('mango') || n.contains('avocado') || n.contains('citrus') || n.contains('orange') || n.contains('lemon') || n.contains('banana') || n.contains('grape') || n.contains('apple') || n.contains('eggplant') || n.contains('brinjal')) return CropType.generic;
   return CropType.generic;
 }
 
@@ -46,53 +45,66 @@ GrowthStage stageFromProgress(double p) {
 }
 
 String stageLabel(GrowthStage s) => switch (s) {
-      GrowthStage.seed      => 'Germination',
-      GrowthStage.seedling  => 'Seedling',
+      GrowthStage.seed       => 'Germination',
+      GrowthStage.seedling   => 'Seedling',
       GrowthStage.vegetative => 'Vegetative',
-      GrowthStage.flowering => 'Flowering',
-      GrowthStage.harvest   => 'Harvest Ready',
+      GrowthStage.flowering  => 'Flowering',
+      GrowthStage.harvest    => 'Harvest Ready',
     };
 
 Color stageColor(GrowthStage s) => switch (s) {
-      GrowthStage.seed      => const Color(0xFF8D6E63),
-      GrowthStage.seedling  => const Color(0xFF66BB6A),
+      GrowthStage.seed       => const Color(0xFF8D6E63),
+      GrowthStage.seedling   => const Color(0xFF66BB6A),
       GrowthStage.vegetative => const Color(0xFF2E7D32),
-      GrowthStage.flowering => const Color(0xFFFB8C00),
-      GrowthStage.harvest   => const Color(0xFFE53935),
+      GrowthStage.flowering  => const Color(0xFFFB8C00),
+      GrowthStage.harvest    => const Color(0xFFE53935),
     };
 
-// ── SVG asset path resolution ─────────────────────────────────────────────────
+// ── Real crop photo URLs (Unsplash) ───────────────────────────────────────────
 
-String _cropTypeName(CropType type) => switch (type) {
-      CropType.cabbage   => 'cabbage',
-      CropType.tomato    => 'tomato',
-      CropType.carrot    => 'carrot',
-      CropType.maize     => 'maize',
-      CropType.wheat     => 'wheat',
-      CropType.sunflower => 'sunflower',
-      CropType.potato    => 'potato',
-      CropType.onion     => 'onion',
-      CropType.beans     => 'beans',
-      CropType.leafy     => 'leafy',
-      CropType.generic   => 'generic',
+String cropImageUrl(CropType type) => switch (type) {
+      CropType.maize     => 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80&fit=crop',
+      CropType.wheat     => 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=80&fit=crop',
+      CropType.tomato    => 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&q=80&fit=crop',
+      CropType.cabbage   => 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&q=80&fit=crop',
+      CropType.carrot    => 'https://images.unsplash.com/photo-1447175008436-054170c2e979?w=400&q=80&fit=crop',
+      CropType.potato    => 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80&fit=crop',
+      CropType.onion     => 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400&q=80&fit=crop',
+      CropType.sunflower => 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&q=80&fit=crop',
+      CropType.beans     => 'https://images.unsplash.com/photo-1590165482129-1b8b27698780?w=400&q=80&fit=crop',
+      CropType.leafy     => 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&q=80&fit=crop',
+      CropType.generic   => 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=400&q=80&fit=crop',
     };
 
-String _stageName(GrowthStage stage) => switch (stage) {
-      GrowthStage.seed       => 'seed',
-      GrowthStage.seedling   => 'seedling',
-      GrowthStage.vegetative => 'vegetative',
-      GrowthStage.flowering  => 'flowering',
-      GrowthStage.harvest    => 'harvest',
+// ── Crop icon fallback per type ───────────────────────────────────────────────
+
+IconData _cropIcon(CropType type) => switch (type) {
+      CropType.maize     => Icons.grain,
+      CropType.wheat     => Icons.grain,
+      CropType.sunflower => Icons.filter_vintage_outlined,
+      CropType.beans     => Icons.spa_outlined,
+      CropType.leafy     => Icons.eco_outlined,
+      _                  => Icons.local_florist_outlined,
     };
 
-String svgAssetPath(CropType type, GrowthStage stage) =>
-    'assets/icons/crops/${_cropTypeName(type)}_${_stageName(stage)}.svg';
+Color _cropColor(CropType type) => switch (type) {
+      CropType.maize     => const Color(0xFFF9A825),
+      CropType.wheat     => const Color(0xFFFFB300),
+      CropType.tomato    => const Color(0xFFE53935),
+      CropType.cabbage   => const Color(0xFF43A047),
+      CropType.carrot    => const Color(0xFFFF6D00),
+      CropType.potato    => const Color(0xFF8D6E63),
+      CropType.onion     => const Color(0xFF7B1FA2),
+      CropType.sunflower => const Color(0xFFFDD835),
+      CropType.beans     => const Color(0xFF2E7D32),
+      CropType.leafy     => const Color(0xFF1B5E20),
+      CropType.generic   => const Color(0xFF388E3C),
+    };
 
 // ── CropIllustration widget ───────────────────────────────────────────────────
 
-/// Renders a professional SVG botanical illustration of a crop plant at a
-/// given growth progress (0.0 = just planted, 1.0 = harvest ready).
-/// Uses pre-drawn SVG assets for each crop type × growth stage combination.
+/// Shows a real crop photo thumbnail.
+/// Falls back to a coloured avatar with crop icon if image is unavailable.
 class CropIllustration extends StatelessWidget {
   const CropIllustration({
     super.key,
@@ -100,52 +112,40 @@ class CropIllustration extends StatelessWidget {
     this.growthProgress = 1.0,
     this.size = 120.0,
     this.showLabel = false,
-    this.showSoil = true,
+    this.showSoil = true, // retained for API compatibility
   });
 
   final String cropName;
   final double growthProgress;
   final double size;
   final bool showLabel;
-  /// showSoil is retained for API compatibility — SVGs always include soil.
   final bool showSoil;
 
   @override
   Widget build(BuildContext context) {
     final type  = cropTypeFromName(cropName);
     final stage = stageFromProgress(growthProgress.clamp(0.0, 1.0));
-    final path  = svgAssetPath(type, stage);
     final color = stageColor(stage);
+    final bg    = _cropColor(type);
+    final url   = cropImageUrl(type);
+    final radius = size * 0.2;
     final tt    = Theme.of(context).textTheme;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Builder(builder: (context) {
-          try {
-            return SvgPicture.asset(
-              path,
-              width: size,
-              height: size,
-              fit: BoxFit.contain,
-              placeholderBuilder: (_) => SizedBox(
-                width: size,
-                height: size,
-                child: Center(
-                  child: Icon(Icons.eco_rounded, size: size * 0.5, color: const Color(0xFF388E3C)),
-                ),
-              ),
-            );
-          } catch (_) {
-            return SizedBox(
-              width: size,
-              height: size,
-              child: Center(
-                child: Icon(Icons.eco_rounded, size: size * 0.5, color: const Color(0xFF388E3C)),
-              ),
-            );
-          }
-        }),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: CachedNetworkImage(
+            imageUrl: url,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            fadeInDuration: const Duration(milliseconds: 200),
+            placeholder: (_, __) => _Fallback(size: size, bg: bg, type: type),
+            errorWidget:  (_, __, ___) => _Fallback(size: size, bg: bg, type: type),
+          ),
+        ),
         if (showLabel) ...[
           const SizedBox(height: 4),
           Text(
@@ -176,6 +176,25 @@ class CropIllustration extends StatelessWidget {
       ],
     );
   }
+}
+
+class _Fallback extends StatelessWidget {
+  const _Fallback({required this.size, required this.bg, required this.type});
+  final double size;
+  final Color bg;
+  final CropType type;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        color: bg.withAlpha(40),
+        child: Icon(
+          _cropIcon(type),
+          size: size * 0.45,
+          color: bg,
+        ),
+      );
 }
 
 // ── Growth stage bar ──────────────────────────────────────────────────────────
@@ -225,7 +244,6 @@ class GrowthStageBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        // Segmented stage track
         Row(
           children: GrowthStage.values.map((s) {
             final idx        = GrowthStage.values.indexOf(s);
@@ -236,7 +254,7 @@ class GrowthStageBar extends StatelessWidget {
             final partial    = active
                 ? ((progress - stageStart) / (stageEnd - stageStart)).clamp(0.0, 1.0)
                 : 0.0;
-            final sc         = stageColor(s);
+            final sc = stageColor(s);
 
             return Expanded(
               child: Padding(

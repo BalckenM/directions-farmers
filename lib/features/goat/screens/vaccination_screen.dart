@@ -166,19 +166,20 @@ class _GoatVaccinationScreenState
                         ),
                       ]),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isSaving ? null : _save,
-                          child: _isSaving
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2))
-                              : const Text('Save Vaccination'),
+                      if (ref.watch(canManageHealthProvider))
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isSaving ? null : _save,
+                            child: _isSaving
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2))
+                                : const Text('Save Vaccination'),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

@@ -480,6 +480,48 @@ final shearingDueProvider =
   });
 });
 
+/// Alive animals with body condition score below 2.0 (poor condition, at-risk).
+final lowBcsAlertsProvider =
+    Provider.autoDispose<AsyncValue<List<GoatAnimal>>>((ref) {
+  return ref.watch(animalsProvider).whenData(
+        (animals) => animals
+            .where((a) =>
+                a.isAlive && (a.bodyConditionScore ?? 3.0) < 2.0)
+            .toList(),
+      );
+});
+
+/// Dairy animals whose dry-off date falls within the next 7 days.
+final dryOffSoonProvider =
+    Provider.autoDispose<AsyncValue<List<GoatAnimal>>>((ref) {
+  return ref.watch(animalsProvider).whenData((animals) {
+    final now = DateTime.now();
+    final cutoff = now.add(const Duration(days: 7));
+    return animals.where((a) {
+      if (a.dryOffDate == null || !a.isAlive) return false;
+      try {
+        final d = DateTime.parse(a.dryOffDate!);
+        return d.isAfter(now) && d.isBefore(cutoff);
+      } catch (_) {
+        return false;
+      }
+    }).toList();
+  });
+});
+
+// ── RBAC permission stubs ─────────────────────────────────────────────────────
+// These are intentionally always-true stubs. Replace with role-aware logic
+// once a proper auth/role system is implemented.
+
+/// Whether the current user can add or edit animal records.
+final canManageAnimalsProvider = Provider<bool>((ref) => true);
+
+/// Whether the current user can manage health and medication records.
+final canManageHealthProvider = Provider<bool>((ref) => true);
+
+/// Whether the current user can view or manage financial records.
+final canManageFinancialsProvider = Provider<bool>((ref) => true);
+
 // ── Module-level aggregate providers ─────────────────────────────────────────
 
 /// All sale records (mock + in-session).

@@ -37,6 +37,8 @@ class _GoatScreenState extends ConsumerState<GoatScreen> {
     final famachaAlert = ref.watch(famachaAlertProvider);
     final vacAlert = ref.watch(vaccinationOverdueProvider);
     final shearingAlert = ref.watch(shearingDueProvider);
+    final lowBcsAlert = ref.watch(lowBcsAlertsProvider);
+    final dryOffAlert = ref.watch(dryOffSoonProvider);
 
     return FarmScaffold(
       drawer: null,
@@ -58,13 +60,15 @@ class _GoatScreenState extends ConsumerState<GoatScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.addGoat),
-        backgroundColor: AppColors.goatColor,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Goat'),
-      ),
+      floatingActionButton: ref.watch(canManageAnimalsProvider)
+          ? FloatingActionButton.extended(
+              onPressed: () => context.push(AppRoutes.addGoat),
+              backgroundColor: AppColors.goatColor,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Goat'),
+            )
+          : null,
       body: animalsAsync.when(
         loading: () => LoadingShimmer.list(count: 6),
         error: (e, _) => _ErrorView(message: e.toString()),
@@ -81,88 +85,97 @@ class _GoatScreenState extends ConsumerState<GoatScreen> {
             data: (breedMap) {
               final filteredBreeds = _buildFilteredBreeds(breedMap);
 
-              return Column(
-                children: [
-                  _AnalyticsStrip(
-                    total: alive.length,
-                    does: does,
-                    bucks: bucks,
-                    pregnant: pregnant,
-                    lactating: lactating,
-                  ),
-                  _AlertBanners(
-                    kiddingDue: kiddingAlert.asData?.value ?? [],
-                    famachaHigh: famachaAlert.asData?.value ?? [],
-                    vacOverdue: vacAlert.asData?.value ?? [],
-                    shearingDue: shearingAlert.asData?.value ?? [],
-                  ),
-                  const _QuickActions(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs,
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: _AnalyticsStrip(
+                      total: alive.length,
+                      does: does,
+                      bucks: bucks,
+                      pregnant: pregnant,
+                      lactating: lactating,
                     ),
-                    child: Row(
-                      children: [
-                        const Text(
-                          'By Breed',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: AppColors.goatColor,
+                  ),
+                  SliverToBoxAdapter(
+                    child: _AlertBanners(
+                      kiddingDue: kiddingAlert.asData?.value ?? [],
+                      famachaHigh: famachaAlert.asData?.value ?? [],
+                      vacOverdue: vacAlert.asData?.value ?? [],
+                      shearingDue: shearingAlert.asData?.value ?? [],
+                      lowBcs: lowBcsAlert.asData?.value ?? [],
+                      dryOffSoon: dryOffAlert.asData?.value ?? [],
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: _QuickActions()),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.xs,
+                      ),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'By Breed',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: AppColors.goatColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: _ProductionFilter.values.map((mode) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: AppSpacing.xs),
-                                  child: ChoiceChip(
-                                    label: Text(_filterLabel(mode)),
-                                    selected: _filter == mode,
-                                    selectedColor: AppColors.goatColor.withAlpha(38),
-                                    labelStyle: TextStyle(
-                                      fontSize: 12,
-                                      color: _filter == mode ? AppColors.goatColor : null,
-                                      fontWeight: _filter == mode
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: _ProductionFilter.values.map((mode) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: AppSpacing.xs),
+                                    child: ChoiceChip(
+                                      label: Text(_filterLabel(mode)),
+                                      selected: _filter == mode,
+                                      selectedColor: AppColors.goatColor.withAlpha(38),
+                                      labelStyle: TextStyle(
+                                        fontSize: 12,
+                                        color: _filter == mode ? AppColors.goatColor : null,
+                                        fontWeight: _filter == mode
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                      onSelected: (_) => setState(() => _filter = mode),
                                     ),
-                                    onSelected: (_) => setState(() => _filter = mode),
-                                  ),
-                                );
-                              }).toList(),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: filteredBreeds.isEmpty
-                        ? const _EmptyState()
-                        : ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.md,
-                              AppSpacing.xs,
-                              AppSpacing.md,
-                              100,
-                            ),
-                            itemCount: filteredBreeds.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: AppSpacing.sm),
-                            itemBuilder: (_, i) {
-                              final entry = filteredBreeds[i];
-                              return _BreedGroupCard(
-                                breed: entry.key,
-                                animals: entry.value,
-                              );
-                            },
-                          ),
-                  ),
+                  if (filteredBreeds.isEmpty)
+                    const SliverFillRemaining(child: _EmptyState())
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.xs,
+                        AppSpacing.md,
+                        100,
+                      ),
+                      sliver: SliverList.separated(
+                        itemCount: filteredBreeds.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.sm),
+                        itemBuilder: (_, i) {
+                          final entry = filteredBreeds[i];
+                          return _BreedGroupCard(
+                            breed: entry.key,
+                            animals: entry.value,
+                          );
+                        },
+                      ),
+                    ),
                 ],
               );
             },
@@ -310,12 +323,16 @@ class _AlertBanners extends StatelessWidget {
     required this.famachaHigh,
     required this.vacOverdue,
     required this.shearingDue,
+    required this.lowBcs,
+    required this.dryOffSoon,
   });
 
   final List<GoatAnimal> kiddingDue;
   final List<GoatAnimal> famachaHigh;
   final List<GoatVaccination> vacOverdue;
   final List<GoatAnimal> shearingDue;
+  final List<GoatAnimal> lowBcs;
+  final List<GoatAnimal> dryOffSoon;
 
   @override
   Widget build(BuildContext context) {
@@ -347,6 +364,20 @@ class _AlertBanners extends StatelessWidget {
             icon: Icons.content_cut_outlined,
             color: Colors.indigo,
             message: '${shearingDue.length} fiber animal${shearingDue.length == 1 ? '' : 's'} due for shearing',
+            onTap: () => context.push(AppRoutes.goatReports),
+          ),
+        if (lowBcs.isNotEmpty)
+          _AlertBanner(
+            icon: Icons.monitor_weight_outlined,
+            color: AppColors.warning,
+            message: '${lowBcs.length} animal${lowBcs.length == 1 ? '' : 's'} with low BCS (< 2.0) — review nutrition',
+            onTap: () => context.push(AppRoutes.goatBodyCondition),
+          ),
+        if (dryOffSoon.isNotEmpty)
+          _AlertBanner(
+            icon: Icons.water_drop_outlined,
+            color: AppColors.warning,
+            message: '${dryOffSoon.length} dairy animal${dryOffSoon.length == 1 ? '' : 's'} due for dry-off within 7 days',
             onTap: () => context.push(AppRoutes.goatReports),
           ),
       ],

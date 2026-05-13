@@ -143,16 +143,17 @@ class _AddGoatScreenState extends ConsumerState<AddGoatScreen> {
                   const TextInputType.numberWithOptions(decimal: true),
             ),
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _isSaving ? null : _save,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Add Goat'),
-            ),
+            if (ref.watch(canManageAnimalsProvider))
+              FilledButton(
+                onPressed: _isSaving ? null : _save,
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Add Goat'),
+              ),
           ],
         ),
       ),

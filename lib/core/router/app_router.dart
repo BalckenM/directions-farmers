@@ -68,6 +68,28 @@ import '../../features/aquaculture/screens/aquaculture_screen.dart';
 import '../../features/aquaculture/screens/aquaculture_unit_detail_screen.dart';
 import '../../features/apiculture/screens/apiculture_screen.dart';
 import '../../features/apiculture/screens/hive_detail_screen.dart';
+import '../../features/cattle/screens/cattle_screen.dart';
+import '../../features/cattle/screens/cattle_breed_screen.dart';
+import '../../features/cattle/screens/cattle_detail_screen.dart';
+import '../../features/cattle/screens/add_cattle_screen.dart';
+import '../../features/cattle/screens/edit_cattle_screen.dart';
+import '../../features/cattle/screens/add_calf_screen.dart';
+import '../../features/cattle/screens/calving_screen.dart';
+import '../../features/cattle/screens/breeding_screen.dart';
+import '../../features/cattle/screens/pregnancy_check_screen.dart' as cattle_pregnancy;
+import '../../features/cattle/screens/milk_records_screen.dart' as cattle_milk;
+import '../../features/cattle/screens/weight_records_screen.dart' as cattle_weight;
+import '../../features/cattle/screens/health_events_screen.dart' as cattle_health;
+import '../../features/cattle/screens/vaccination_screen.dart' as cattle_vaccination;
+import '../../features/cattle/screens/add_medication_screen.dart' as cattle_medication;
+import '../../features/cattle/screens/body_condition_screen.dart' as cattle_bcs;
+import '../../features/cattle/screens/dipping_screen.dart' as cattle_dipping;
+import '../../features/cattle/screens/cattle_financials_screen.dart';
+import '../../features/cattle/screens/cattle_reports_screen.dart';
+import '../../features/cattle/screens/sales_screen.dart' show CattleSalesScreen;
+import '../../features/cattle/screens/inventory_screen.dart' show CattleInventoryScreen;
+import '../../features/cattle/screens/pasture_screen.dart' as cattle_pasture;
+import '../../features/cattle/screens/cross_herd_comparison_screen.dart' as cattle_comparison;
 import '../../features/goat/screens/goat_screen.dart';
 import '../../features/goat/screens/goat_breed_screen.dart';
 import '../../features/goat/screens/goat_detail_screen.dart';
@@ -127,11 +149,17 @@ import '../../features/crop/screens/profitability/profitability_screen.dart';
 import '../../features/crop/screens/advisory/advisory_hub_screen.dart';
 import '../../features/crop/screens/advisory/advisory_detail_screen.dart';
 import '../../features/crop/screens/season/edit_season_screen.dart';
+import '../../features/crop/screens/season/season_detail_screen.dart';
 import '../../features/crop/screens/fields/edit_planting_plan_screen.dart';
 import '../../features/crop/screens/pests/edit_pest_observation_screen.dart';
 import '../../features/crop/screens/pests/edit_spray_record_screen.dart';
 import '../../features/crop/screens/harvest/edit_harvest_screen.dart';
 import '../../features/crop/screens/sales/edit_sale_screen.dart';
+import '../../features/crop/screens/expenses/edit_expense_screen.dart';
+import '../../features/crop/screens/harvest/harvest_detail_screen.dart';
+import '../../features/crop/screens/sales/sale_detail_screen.dart';
+import '../../features/crop/screens/pests/spray_detail_screen.dart';
+import '../../features/crop/models/crop_expense.dart';
 import '../../features/crop/models/crop_season.dart';
 import '../../features/crop/models/planting_plan.dart';
 import '../../features/crop/models/pest_observation.dart';
@@ -480,6 +508,11 @@ List<RouteBase> _buildRoutes() {
                 builder: (_, state) =>
                     EditSeasonScreen(season: state.extra! as CropSeason),
               ),
+              GoRoute(
+                path: 'detail',
+                builder: (_, state) =>
+                    SeasonDetailScreen(season: state.extra! as CropSeason),
+              ),
             ],
           ),
           GoRoute(
@@ -527,6 +560,11 @@ List<RouteBase> _buildRoutes() {
                         state.uri.queryParameters['obsId']),
               ),
               GoRoute(
+                path: 'spray/detail',
+                builder: (_, state) =>
+                    SprayDetailScreen(record: state.extra! as SprayRecord),
+              ),
+              GoRoute(
                 path: 'edit',
                 builder: (_, state) => EditPestObservationScreen(
                     observation: state.extra! as PestObservation),
@@ -547,6 +585,11 @@ List<RouteBase> _buildRoutes() {
                 builder: (_, _) => const AddSaleScreen(),
               ),
               GoRoute(
+                path: 'detail',
+                builder: (_, state) =>
+                    SaleDetailScreen(sale: state.extra! as CropSale),
+              ),
+              GoRoute(
                 path: 'edit',
                 builder: (_, state) =>
                     EditSaleScreen(sale: state.extra! as CropSale),
@@ -561,6 +604,11 @@ List<RouteBase> _buildRoutes() {
                 path: 'add',
                 builder: (_, _) => const AddExpenseScreen(),
               ),
+              GoRoute(
+                path: 'edit',
+                builder: (_, state) =>
+                    EditExpenseScreen(expense: state.extra! as CropExpense),
+              ),
             ],
           ),
           GoRoute(
@@ -570,6 +618,11 @@ List<RouteBase> _buildRoutes() {
               GoRoute(
                 path: 'add',
                 builder: (_, _) => const AddHarvestScreen(),
+              ),
+              GoRoute(
+                path: 'detail',
+                builder: (_, state) =>
+                    HarvestDetailScreen(record: state.extra! as HarvestRecord),
               ),
               GoRoute(
                 path: 'edit',
@@ -843,6 +896,140 @@ List<RouteBase> _buildRoutes() {
                           path: ':sowId',
                           builder: (_, state) => SowDetailScreen(
                               sowId: state.pathParameters['sowId']!),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                // ── Cattle module ────────────────────────────────────────────
+                GoRoute(
+                  path: 'cattle',
+                  builder: (_, _) =>
+                      const LivestockHubScreen(species: 'cattle'),
+                  routes: [
+                    GoRoute(
+                      path: 'herd',
+                      builder: (_, _) => const CattleScreen(),
+                    ),
+                    GoRoute(
+                      path: 'new',
+                      builder: (_, _) => const AddCattleScreen(),
+                    ),
+                    GoRoute(
+                      path: 'reports',
+                      builder: (_, _) => const CattleReportsScreen(),
+                    ),
+                    GoRoute(
+                      path: 'inventory',
+                      builder: (_, _) => const CattleInventoryScreen(),
+                    ),
+                    GoRoute(
+                      path: 'pasture',
+                      builder: (_, _) => const cattle_pasture.PastureScreen(),
+                    ),
+                    GoRoute(
+                      path: 'compare',
+                      builder: (_, _) =>
+                          const cattle_comparison.CrossHerdComparisonScreen(),
+                    ),
+                    GoRoute(
+                      path: 'sales',
+                      builder: (_, _) => const CattleSalesScreen(),
+                    ),
+                    GoRoute(
+                      path: 'breed/:breed',
+                      builder: (_, state) => CattleBreedScreen(
+                        breed: Uri.decodeComponent(
+                            state.pathParameters['breed']!),
+                      ),
+                    ),
+                    GoRoute(
+                      path: ':cattleId',
+                      builder: (_, state) => CattleDetailScreen(
+                          cattleId: state.pathParameters['cattleId']!),
+                      routes: [
+                        GoRoute(
+                          path: 'edit',
+                          builder: (_, state) => EditCattleScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'health',
+                          builder: (_, state) => cattle_health.HealthEventsScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'breeding',
+                          builder: (_, state) => CattleBreedingScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'calving',
+                          builder: (_, state) => CalvingScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'add-calf',
+                          builder: (_, state) => AddCalfScreen(
+                              damId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'milk',
+                          builder: (_, state) => cattle_milk.MilkRecordsScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'weights',
+                          builder: (_, state) =>
+                              cattle_weight.WeightRecordsScreen(
+                                  cattleId: state
+                                      .pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'financials',
+                          builder: (_, state) => CattleFinancialsScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'add-medication',
+                          builder: (_, state) =>
+                              cattle_medication.AddMedicationScreen(
+                                  cattleId: state
+                                      .pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'bcs',
+                          builder: (_, state) =>
+                              cattle_bcs.BodyConditionScreen(
+                                  cattleId: state
+                                      .pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'vaccination',
+                          builder: (_, state) =>
+                              cattle_vaccination.VaccinationScreen(
+                                  cattleId: state
+                                      .pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'dipping',
+                          builder: (_, state) => cattle_dipping.DippingScreen(
+                              cattleId:
+                                  state.pathParameters['cattleId']!),
+                        ),
+                        GoRoute(
+                          path: 'pregnancy-check',
+                          builder: (_, state) =>
+                              cattle_pregnancy.PregnancyCheckScreen(
+                                  cattleId: state
+                                      .pathParameters['cattleId']!),
                         ),
                       ],
                     ),
