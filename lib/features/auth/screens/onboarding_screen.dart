@@ -25,13 +25,6 @@ class _StepMeta {
 
 const _stepData = [
   _StepMeta(
-    heroColor: AppColors.primary,
-    icon: Icons.agriculture_rounded,
-    title: 'Smart Farm\nManagement',
-    subtitle:
-        'Track livestock, health events, production records, and more — all in one place.',
-  ),
-  _StepMeta(
     heroColor: AppColors.tertiary,
     icon: Icons.home_work_rounded,
     title: 'Tell us about\nyour farm',
@@ -145,14 +138,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       controller: _pageCtrl,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
-                        _WelcomePage(step: _stepData[0]),
                         _FarmDetailsPage(
-                          step: _stepData[1],
+                          step: _stepData[0],
                           nameCtrl: _farmNameCtrl,
                           locationCtrl: _locationCtrl,
                         ),
                         _SpeciesPage(
-                          step: _stepData[2],
+                          step: _stepData[1],
                           selected: _selectedSpecies,
                           onToggle: (s) => setState(() {
                             if (_selectedSpecies.contains(s)) {
@@ -165,7 +157,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           }),
                         ),
                         _DonePage(
-                          step: _stepData[3],
+                          step: _stepData[2],
                           farmName: _farmNameCtrl.text.isEmpty
                               ? 'Your Farm'
                               : _farmNameCtrl.text,
@@ -284,94 +276,7 @@ class _StepDots extends StatelessWidget {
   }
 }
 
-// ── Page 1: Welcome ───────────────────────────────────────────────────────────
-
-class _WelcomePage extends StatelessWidget {
-  const _WelcomePage({required this.step});
-  final _StepMeta step;
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            step.title,
-            style: tt.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: cs.onSurface,
-              letterSpacing: -0.5,
-              height: 1.15,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            step.subtitle,
-            style:
-                tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant, height: 1.55),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          _FeatureBullet(
-            icon: Icons.pets_rounded,
-            color: AppColors.primary,
-            label: 'All livestock species in one place',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _FeatureBullet(
-            icon: Icons.medical_services_rounded,
-            color: AppColors.error,
-            label: 'Health events, alerts & vet records',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _FeatureBullet(
-            icon: Icons.bar_chart_rounded,
-            color: AppColors.tertiary,
-            label: 'Production records & reports',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeatureBullet extends StatelessWidget {
-  const _FeatureBullet(
-      {required this.icon, required this.color, required this.label});
-  final IconData icon;
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: color.withAlpha(20),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 18, color: color),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Text(label,
-              style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Page 2: Farm Details ──────────────────────────────────────────────────────
+// ── Page 1: Farm Details ──────────────────────────────────────────────────────
 
 class _FarmDetailsPage extends StatelessWidget {
   const _FarmDetailsPage({

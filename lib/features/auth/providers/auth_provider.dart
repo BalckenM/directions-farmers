@@ -8,6 +8,7 @@ export '../data/auth_mock_data_source.dart'
     show kSubscriptionPlans, kCountryProvinces, FarmerModules, SubscriptionPlan;
 
 const _kOnboardingKey = 'has_completed_onboarding';
+const _kIntroKey = 'has_seen_intro';
 
 // ── Provider for the data source ─────────────────────────────────────────────
 final authMockDataSourceProvider = Provider<AuthMockDataSource>((ref) {
@@ -106,6 +107,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   void markOnboardingDone() {
     ref.read(sharedPreferencesProvider).setBool(_kOnboardingKey, true);
   }
+
+  /// Persists the intro flag so the splash screen skips intro for returning users.
+  void markIntroSeen() {
+    ref.read(sharedPreferencesProvider).setBool(_kIntroKey, true);
+  }
 }
 
 // ── Provider ─────────────────────────────────────────────────────────────────
@@ -128,4 +134,10 @@ final currentUserProvider = Provider<AuthUser?>((ref) {
 final onboardingDoneProvider = Provider<bool>((ref) {
   final prefs = ref.read(sharedPreferencesProvider);
   return prefs.getBool(_kOnboardingKey) ?? false;
+});
+
+/// Whether the user has ever seen the intro slides on this device.
+final hasSeenIntroProvider = Provider<bool>((ref) {
+  final prefs = ref.read(sharedPreferencesProvider);
+  return prefs.getBool(_kIntroKey) ?? false;
 });

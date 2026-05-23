@@ -84,6 +84,8 @@ abstract final class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String onboarding = '/onboarding';
+  static const String intro = '/intro';
+  static const String welcome = '/welcome';
 
   // ── Crop Farming ──────────────────────────────────────────────────────────────
   static const String crop         = '/crop';
@@ -266,7 +268,6 @@ abstract final class AppRoutes {
   // ── Auth extras ────────────────────────────────────────────────────────────────
   static const String mfaChallenge = '/auth/mfa';
   static const String forgotPassword = '/forgot-password';
-  static const String welcome = '/welcome';
 
   // ── Payroll module ────────────────────────────────────────────────────────────
   static const String payrollHub             = '/payroll';

@@ -1,8 +1,11 @@
 {
+    "id": "4directions-farm",
     "name": "4Directions Farm",
     "short_name": "4D Farm",
     "start_url": ".",
     "display": "standalone",
+    "display_override": ["window-controls-overlay", "standalone"],
+    "categories": ["productivity", "utilities"],
     "background_color": "#2E7D32",
     "theme_color": "#2E7D32",
     "description": "Smart farming management for South African farmers.",

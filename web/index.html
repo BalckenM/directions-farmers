@@ -19,12 +19,15 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Smart farming management for South African farmers.">
+  <meta name="theme-color" content="#2E7D32">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="4Directions Farm">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-startup-image" href="icons/Icon-512.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
@@ -43,5 +46,21 @@
 <body>
 
   <script src="flutter_bootstrap.js" async></script>
+
+  <script>
+    let _pwaPrompt;
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      _pwaPrompt = e;
+      window.dispatchEvent(new CustomEvent('pwaInstallReady'));
+    });
+    window.triggerPwaInstall = async function() {
+      if (!_pwaPrompt) return 'not-available';
+      _pwaPrompt.prompt();
+      var result = await _pwaPrompt.userChoice;
+      _pwaPrompt = null;
+      return result.outcome;
+    };
+  </script>
 </body>
 </html>

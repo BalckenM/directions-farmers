@@ -13,11 +13,13 @@ import '../../features/aquaculture/screens/aquaculture_screen.dart';
 import '../../features/aquaculture/screens/aquaculture_unit_detail_screen.dart';
 import '../../features/auth/models/auth_state.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/screens/intro_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/mfa_challenge_screen.dart';
 import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/registration_screen.dart';
 import '../../features/auth/screens/splash_screen.dart';
+import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/cattle/screens/add_calf_screen.dart';
 import '../../features/cattle/screens/add_cattle_screen.dart';
 import '../../features/cattle/screens/add_medication_screen.dart' as cattle_medication;
@@ -519,6 +521,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         AppRoutes.login,
         AppRoutes.register,
         AppRoutes.onboarding,
+        AppRoutes.intro,
+        AppRoutes.welcome,
         AppRoutes.mfaChallenge,
       };
       final isOpen = openRoutes.contains(loc);
@@ -558,12 +562,26 @@ List<RouteBase> _buildRoutes() {
         builder: (_, _) => const LoginScreen(),
       ),
       GoRoute(
+        path: AppRoutes.intro,
+        builder: (context, state) => const IntroScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.onboarding,
         builder: (_, _) => const OnboardingScreen(),
       ),
       GoRoute(
         path: AppRoutes.register,
         builder: (_, _) => const RegistrationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.welcome,
+        builder: (_, state) {
+          final extra = state.extra as Map<String, String>? ?? {};
+          return WelcomeScreen(
+            firstName: extra['firstName'] ?? '',
+            farmName: extra['farmName'] ?? '',
+          );
+        },
       ),
 
       // ── Shell with bottom nav ────────────────────────────────────────────────

@@ -85,11 +85,33 @@ class _LoginScreenState extends State<LoginScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? cs.surface : const Color(0xFF1B5E20),
+      backgroundColor:
+          isDark ? cs.surface : const Color(0xFF1B5E20),
       body: Stack(
         children: [
-          // ── Decorative background (both light and dark) ───────────────────
+          // ── Decorative background ─────────────────────────────────────────
           if (!isDark) ...[
+            // Gradient overlay for richer hero
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: MediaQuery.sizeOf(context).height * 0.46,
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF1B5E20),
+                      Color(0xFF2E7D32),
+                      Color(0xFF1565C0),
+                    ],
+                    stops: [0.0, 0.65, 1.0],
+                  ),
+                ),
+              ),
+            ),
             Positioned(
               top: -60,
               right: -60,
@@ -110,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen>
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primaryLight.withAlpha(120),
+                  color: Colors.white.withAlpha(8),
                 ),
               ),
             ),
@@ -177,25 +199,7 @@ class _LoginScreenState extends State<LoginScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // L6: removed drag handle — card is not a draggable sheet
-                                Text(
-                                  'Welcome back',
-                                  style: tt.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark
-                                        ? cs.onSurface
-                                        : AppColors.primary,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
                                 const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  'Sign in to manage your farm',
-                                  style: tt.bodyMedium?.copyWith(
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.xl),
                                 FarmTextField(
                                   controller: _emailCtrl,
                                   label: 'Email address',
@@ -324,38 +328,137 @@ class _BrandHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: isDark ? cs.primaryContainer : Colors.white.withAlpha(28),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? cs.primary : Colors.white.withAlpha(60),
-                width: 1.5,
+          Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? cs.primaryContainer
+                      : Colors.white.withAlpha(22),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? cs.primary
+                        : Colors.white.withAlpha(70),
+                    width: 1.5,
+                  ),
+                  boxShadow: isDark
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(30),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                ),
+                child: Icon(
+                  Icons.agriculture_rounded,
+                  size: 30,
+                  color: isDark ? cs.onPrimaryContainer : Colors.white,
+                ),
               ),
-            ),
-            child: Icon(
-              Icons.agriculture_rounded,
-              size: 32,
-              color: isDark ? cs.onPrimaryContainer : Colors.white,
-            ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '4Directions',
+                    style: tt.titleLarge?.copyWith(
+                      color: isDark ? cs.onSurface : Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      height: 1.1,
+                    ),
+                  ),
+                  Text(
+                    'Farm Management',
+                    style: tt.bodySmall?.copyWith(
+                      color: isDark
+                          ? cs.onSurfaceVariant
+                          : Colors.white.withAlpha(190),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.lg),
-          // L3: unified brand name — "4Directions Farm" everywhere
           Text(
-            '4Directions Farm',
+            'Welcome back',
             style: tt.headlineMedium?.copyWith(
               color: isDark ? cs.onSurface : Colors.white,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
+              height: 1.1,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Complete livestock & production tracking',
+            'Sign in to manage your farm',
             style: tt.bodyMedium?.copyWith(
-              color: isDark ? cs.onSurfaceVariant : Colors.white.withAlpha(180),
+              color: isDark
+                  ? cs.onSurfaceVariant
+                  : Colors.white.withAlpha(190),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Feature pills
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: const [
+              _FeaturePill(label: 'Livestock', icon: Icons.pets_rounded),
+              _FeaturePill(label: 'Crops', icon: Icons.grass_rounded),
+              _FeaturePill(label: 'Payroll', icon: Icons.payments_rounded),
+              _FeaturePill(label: 'Analytics', icon: Icons.bar_chart_rounded),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeaturePill extends StatelessWidget {
+  const _FeaturePill({required this.label, required this.icon});
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isDark
+            ? cs.primaryContainer.withAlpha(80)
+            : Colors.white.withAlpha(22),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? cs.primary.withAlpha(60) : Colors.white.withAlpha(60),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12,
+            color: isDark ? cs.primary : Colors.white.withAlpha(200),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? cs.onPrimaryContainer : Colors.white.withAlpha(210),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
