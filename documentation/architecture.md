@@ -100,6 +100,7 @@ final repositoryProvider = Provider<LivestockRepository>((ref) {
 | settings | ✅ | ✅ | ✅ | ✅ |
 | insights | ✅ | ✅ | ✅ | ✅ |
 | cattle | ❌ | ❌ | ❌ | ❌ |
+| payroll | ❌ | ❌ | ❌ | ✅ |
 
 ### Files to Delete Once All Features Are Migrated
 
@@ -585,7 +586,7 @@ lib/
     │       ├── theme_settings_screen.dart
     │       └── paddocks_screen.dart
     │
-    └── crop/
+    ├── crop/
         ├── data/
         │   └── crop_repository.dart
         ├── models/
@@ -648,6 +649,71 @@ lib/
             │   └── add_edit_task_screen.dart
             └── weather/
                 └── weather_dashboard_screen.dart
+    │
+    └── payroll/
+        ├── data/
+        │   ├── payroll_data_source.dart          — abstract interface
+        │   ├── payroll_mock_data_source.dart     — SA mock employees + pay runs
+        │   ├── payroll_remote_data_source.dart   — Dio stub
+        │   └── payroll_repository.dart
+        ├── models/
+        │   ├── payroll_employee.dart
+        │   ├── employment_contract.dart
+        │   ├── pay_group.dart
+        │   ├── pay_structure.dart
+        │   ├── shift.dart
+        │   ├── attendance_record.dart
+        │   ├── task_assignment.dart
+        │   ├── piecework_log.dart
+        │   ├── pay_run.dart
+        │   ├── payslip.dart
+        │   ├── deduction_rule.dart
+        │   ├── leave_type.dart
+        │   ├── leave_request.dart
+        │   ├── leave_balance.dart
+        │   ├── payment_transaction.dart
+        │   ├── compliance_alert.dart
+        │   ├── audit_log_entry.dart
+        │   ├── incident_record.dart
+        │   └── communication_log.dart
+        ├── providers/
+        │   └── payroll_providers.dart
+        └── screens/
+            ├── payroll_hub_screen.dart
+            ├── employees/
+            │   ├── employee_list_screen.dart
+            │   ├── employee_detail_screen.dart
+            │   ├── add_employee_screen.dart
+            │   └── edit_employee_screen.dart
+            ├── contracts/
+            │   └── contract_detail_screen.dart
+            ├── roster/
+            │   └── roster_screen.dart
+            ├── attendance/
+            │   ├── attendance_screen.dart
+            │   └── clock_in_screen.dart
+            ├── pay_runs/
+            │   ├── pay_run_list_screen.dart
+            │   ├── pay_run_detail_screen.dart
+            │   └── create_pay_run_screen.dart
+            ├── payslips/
+            │   ├── payslip_list_screen.dart
+            │   └── payslip_detail_screen.dart
+            ├── leave/
+            │   ├── leave_dashboard_screen.dart
+            │   ├── leave_request_screen.dart
+            │   └── leave_approval_screen.dart
+            ├── deductions/
+            │   └── deductions_screen.dart
+            ├── pay_groups/
+            │   ├── pay_group_list_screen.dart
+            │   └── pay_structure_list_screen.dart
+            ├── compliance/
+            │   └── compliance_screen.dart
+            ├── disbursements/
+            │   └── disbursements_screen.dart
+            └── reports/
+                └── payroll_reports_screen.dart
 ```
 
 ---
@@ -681,6 +747,13 @@ test/
 │   │   └── cattle_records_test.dart
 │   └── providers/
 │       └── cattle_providers_test.dart
+├── payroll/
+│   ├── data/
+│   │   └── payroll_repository_test.dart
+│   ├── models/
+│   │   └── payroll_employee_test.dart
+│   └── providers/
+│       └── payroll_providers_test.dart
 └── routing/
     └── poultry_hub_routing_test.dart
 ```
@@ -709,6 +782,7 @@ test/
 | reports | uses multi-repo providers | — | 1 |
 | insights | repository + 3 source files | providers | 2 |
 | settings | repository + 3 source files | providers | 6 |
+| payroll | ❌ not started | ❌ not started | 0 / 44 planned |
 
 ---
 

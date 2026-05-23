@@ -5,7 +5,12 @@ class TraceabilityMockDataSource implements TraceabilityDataSource {
   @override
   Future<List<MovementRecord>> getMovementRecords() async => _movementRecords;
 
-  static const _movementRecords = [
+  @override
+  Future<void> addMovementRecord(MovementRecord record) async =>
+      _movementRecords.insert(0, record);
+
+  // Mutable in-memory seed data
+  final _movementRecords = <MovementRecord>[
     MovementRecord(
       id: 'MV-001',
       farmId: 'FARM-001',

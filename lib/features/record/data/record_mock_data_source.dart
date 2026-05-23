@@ -5,7 +5,11 @@ class RecordMockDataSource implements RecordDataSource {
   @override
   Future<List<FeedLog>> getFeedLogs() async => _feedLogs;
 
-  static const _feedLogs = [
+  @override
+  Future<void> addFeedLog(FeedLog log) async => _feedLogs.insert(0, log);
+
+  // Mutable in-memory seed data
+  final _feedLogs = <FeedLog>[
     FeedLog(
       id: 'FL-001',
       date: '2024-04-01',

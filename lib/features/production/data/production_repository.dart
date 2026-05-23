@@ -43,6 +43,36 @@ class ProductionRepository {
       throw Failure.fromException(UnexpectedException(e.toString()));
     }
   }
+
+  Future<void> addMilkRecord(MilkRecord record) async {
+    try {
+      await _source.addMilkRecord(record);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
+
+  Future<void> addEggRecord(EggRecord record) async {
+    try {
+      await _source.addEggRecord(record);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
+
+  Future<void> addWoolRecord(WoolRecord record) async {
+    try {
+      await _source.addWoolRecord(record);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
 }
 
 final productionRepositoryProvider = Provider<ProductionRepository>((ref) {

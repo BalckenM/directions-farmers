@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 import '../data/crop_data_source.dart';
 import '../data/crop_mock_data_source.dart';
 import '../data/crop_remote_data_source.dart';
@@ -18,6 +19,20 @@ import '../models/pest_observation.dart';
 import '../models/planting_plan.dart';
 import '../models/spray_record.dart';
 import '../models/weather_alert.dart';
+
+// ── Farm Identity ─────────────────────────────────────────────────────────────
+
+/// Resolves the active farm ID for the currently signed-in user.
+///
+/// • Mock mode  — always returns the seeded mock constant ('FARM-001') so all
+///   pre-populated mock data is visible immediately after login.
+/// • Live mode  — returns the authenticated user's id, which the real API uses
+///   as the farm-owner identifier.  Falls back to 'FARM-001' when unauthenticated
+///   (only happens during onboarding before the session is established).
+final currentFarmIdProvider = Provider<String>((ref) {
+  if (AppConstants.useMockData) return 'FARM-001';
+  return ref.watch(currentUserProvider)?.id ?? 'FARM-001';
+});
 
 // ── Repository ───────────────────────────────────────────────────────────────
 

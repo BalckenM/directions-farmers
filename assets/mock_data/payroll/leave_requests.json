@@ -1,0 +1,72 @@
+[
+  {
+    "id": "lr_sipho_annual",
+    "employeeId": "emp_sipho",
+    "leaveTypeId": "lt_annual",
+    "startDate": "2026-04-07T00:00:00.000",
+    "endDate": "2026-04-11T00:00:00.000",
+    "daysRequested": 5.0,
+    "reason": "Family holiday",
+    "status": "approved",
+    "reviewedByUserId": "usr_manager",
+    "reviewedAt": "2026-03-20T00:00:00.000",
+    "rejectionReason": null,
+    "submittedAt": "2026-03-18T00:00:00.000"
+  },
+  {
+    "id": "lr_maria_sick",
+    "employeeId": "emp_maria",
+    "leaveTypeId": "lt_sick",
+    "startDate": "2026-04-14T00:00:00.000",
+    "endDate": "2026-04-16T00:00:00.000",
+    "daysRequested": 3.0,
+    "reason": "Flu",
+    "status": "approved",
+    "reviewedByUserId": "usr_manager",
+    "reviewedAt": "2026-04-14T00:00:00.000",
+    "rejectionReason": null,
+    "submittedAt": "2026-04-14T00:00:00.000"
+  },
+  {
+    "id": "lr_thabo_annual",
+    "employeeId": "emp_thabo",
+    "leaveTypeId": "lt_annual",
+    "startDate": "2026-05-19T00:00:00.000",
+    "endDate": "2026-05-20T00:00:00.000",
+    "daysRequested": 2.0,
+    "reason": "Personal",
+    "status": "pending",
+    "reviewedByUserId": null,
+    "reviewedAt": null,
+    "rejectionReason": null,
+    "submittedAt": "2026-05-02T00:00:00.000"
+  },
+  {
+    "id": "lr_pieter_annual",
+    "employeeId": "emp_pieter",
+    "leaveTypeId": "lt_annual",
+    "startDate": "2026-06-01T00:00:00.000",
+    "endDate": "2026-06-05T00:00:00.000",
+    "daysRequested": 5.0,
+    "reason": "Vacation",
+    "status": "rejected",
+    "reviewedByUserId": "usr_manager",
+    "reviewedAt": "2026-05-01T00:00:00.000",
+    "rejectionReason": "Peak harvest period — insufficient cover",
+    "submittedAt": "2026-04-28T00:00:00.000"
+  },
+  {
+    "id": "lr_nomsa_family",
+    "employeeId": "emp_nomsa",
+    "leaveTypeId": "lt_family",
+    "startDate": "2026-05-05T00:00:00.000",
+    "endDate": "2026-05-05T00:00:00.000",
+    "daysRequested": 1.0,
+    "reason": "Child hospital appointment",
+    "status": "approved",
+    "reviewedByUserId": "usr_manager",
+    "reviewedAt": "2026-05-03T00:00:00.000",
+    "rejectionReason": null,
+    "submittedAt": "2026-05-02T00:00:00.000"
+  }
+]

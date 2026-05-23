@@ -191,6 +191,11 @@ class CropRepository {
     return updated;
   }
 
+  Future<void> deleteCalendarEvent(String id) async {
+    await getCalendarEvents();
+    _events!.removeWhere((e) => e.id == id);
+  }
+
   // ── Tasks ─────────────────────────────────────────────────────────────────────
 
   Future<List<CropTask>> getTasks({String? farmId, String? fieldId}) async {

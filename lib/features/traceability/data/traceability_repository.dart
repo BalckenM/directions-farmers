@@ -21,6 +21,16 @@ class TraceabilityRepository {
       throw Failure.fromException(UnexpectedException(e.toString()));
     }
   }
+
+  Future<void> addMovementRecord(MovementRecord record) async {
+    try {
+      await _source.addMovementRecord(record);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
 }
 
 final traceabilityRepositoryProvider = Provider<TraceabilityRepository>((ref) {

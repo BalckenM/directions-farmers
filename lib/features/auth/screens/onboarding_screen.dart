@@ -101,8 +101,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
     ref.read(authProvider.notifier).markOnboardingDone();
-    ref.read(authProvider.notifier).logIn();
-    context.go(AppRoutes.dashboard);
+    context.go(AppRoutes.login);
   }
 
   @override

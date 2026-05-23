@@ -7,4 +7,8 @@ abstract class EventsDataSource {
   Future<List<HealthEvent>> getHealthEvents();
   Future<List<WeightRecord>> getWeightRecords();
   Future<List<BreedingEvent>> getBreedingEvents();
+
+  Future<void> addHealthEvent(HealthEvent event);
+  Future<void> addWeightRecord(WeightRecord record);
+  Future<void> addBreedingEvent(BreedingEvent event);
 }

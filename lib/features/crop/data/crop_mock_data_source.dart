@@ -1354,83 +1354,131 @@ class CropMockDataSource implements CropDataSource {
     ),
   ];
 
-  @override
-  Future<List<CropCategory>> getCropCategories() async => _categories;
+  // ── Simulated network latency ─────────────────────────────────────────────
+  // Mirrors real API behaviour so loading states and shimmer widgets are
+  // exercised during development.  Keep short enough not to slow down QA.
+  static const _kReadDelay  = Duration(milliseconds: 350);
+  static const _kWriteDelay = Duration(milliseconds: 200);
 
   @override
-  Future<List<Crop>> getCrops() async => _crops;
+  Future<List<CropCategory>> getCropCategories() async {
+    await Future.delayed(_kReadDelay);
+    return _categories;
+  }
 
   @override
-  Future<List<CropField>> getCropFields() async => _fields;
+  Future<List<Crop>> getCrops() async {
+    await Future.delayed(_kReadDelay);
+    return _crops;
+  }
 
   @override
-  Future<List<CropSeason>> getSeasons() async => _seasons;
+  Future<List<CropField>> getCropFields() async {
+    await Future.delayed(_kReadDelay);
+    return _fields;
+  }
 
   @override
-  Future<List<PlantingPlan>> getPlantingPlans() async => _plans;
+  Future<List<CropSeason>> getSeasons() async {
+    await Future.delayed(_kReadDelay);
+    return _seasons;
+  }
 
   @override
-  Future<List<CalendarEvent>> getCalendarEvents() async => _calendarEvents;
+  Future<List<PlantingPlan>> getPlantingPlans() async {
+    await Future.delayed(_kReadDelay);
+    return _plans;
+  }
 
   @override
-  Future<List<CropTask>> getCropTasks() async => _tasks;
+  Future<List<CalendarEvent>> getCalendarEvents() async {
+    await Future.delayed(_kReadDelay);
+    return _calendarEvents;
+  }
 
   @override
-  Future<List<WeatherAlert>> getWeatherAlerts() async => _weatherAlerts;
+  Future<List<CropTask>> getCropTasks() async {
+    await Future.delayed(_kReadDelay);
+    return _tasks;
+  }
 
   @override
-  Future<List<PestObservation>> getPestObservations() async => _pests;
+  Future<List<WeatherAlert>> getWeatherAlerts() async {
+    await Future.delayed(_kReadDelay);
+    return _weatherAlerts;
+  }
 
   @override
-  Future<List<SprayRecord>> getSprayRecords() async => _sprays;
+  Future<List<PestObservation>> getPestObservations() async {
+    await Future.delayed(_kReadDelay);
+    return _pests;
+  }
 
   @override
-  Future<List<CropExpense>> getCropExpenses() async => _expenses;
+  Future<List<SprayRecord>> getSprayRecords() async {
+    await Future.delayed(_kReadDelay);
+    return _sprays;
+  }
 
   @override
-  Future<List<HarvestRecord>> getCropHarvestRecords() async => _harvests;
+  Future<List<CropExpense>> getCropExpenses() async {
+    await Future.delayed(_kReadDelay);
+    return _expenses;
+  }
 
   @override
-  Future<List<CropSale>> getCropSales() async => _sales;
+  Future<List<HarvestRecord>> getCropHarvestRecords() async {
+    await Future.delayed(_kReadDelay);
+    return _harvests;
+  }
 
   @override
-  Future<List<AdvisoryContent>> getAdvisoryContent() async => _advisory;
+  Future<List<CropSale>> getCropSales() async {
+    await Future.delayed(_kReadDelay);
+    return _sales;
+  }
+
+  @override
+  Future<List<AdvisoryContent>> getAdvisoryContent() async {
+    await Future.delayed(_kReadDelay);
+    return _advisory;
+  }
 
   // ── Write stubs (repository manages in-memory cache; mock persists nothing) ──
 
-  @override Future<CropField> addField(CropField f) async => f;
-  @override Future<CropField> updateField(CropField f) async => f;
-  @override Future<void> deleteField(String id) async {}
+  @override Future<CropField> addField(CropField f) async { await Future.delayed(_kWriteDelay); return f; }
+  @override Future<CropField> updateField(CropField f) async { await Future.delayed(_kWriteDelay); return f; }
+  @override Future<void> deleteField(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<CropSeason> addSeason(CropSeason s) async => s;
-  @override Future<CropSeason> updateSeason(CropSeason s) async => s;
-  @override Future<void> deleteSeason(String id) async {}
+  @override Future<CropSeason> addSeason(CropSeason s) async { await Future.delayed(_kWriteDelay); return s; }
+  @override Future<CropSeason> updateSeason(CropSeason s) async { await Future.delayed(_kWriteDelay); return s; }
+  @override Future<void> deleteSeason(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<PlantingPlan> addPlantingPlan(PlantingPlan p) async => p;
-  @override Future<PlantingPlan> updatePlantingPlan(PlantingPlan p) async => p;
-  @override Future<void> deletePlantingPlan(String id) async {}
+  @override Future<PlantingPlan> addPlantingPlan(PlantingPlan p) async { await Future.delayed(_kWriteDelay); return p; }
+  @override Future<PlantingPlan> updatePlantingPlan(PlantingPlan p) async { await Future.delayed(_kWriteDelay); return p; }
+  @override Future<void> deletePlantingPlan(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<CropTask> addTask(CropTask t) async => t;
-  @override Future<CropTask> updateTask(CropTask t) async => t;
-  @override Future<void> deleteTask(String id) async {}
+  @override Future<CropTask> addTask(CropTask t) async { await Future.delayed(_kWriteDelay); return t; }
+  @override Future<CropTask> updateTask(CropTask t) async { await Future.delayed(_kWriteDelay); return t; }
+  @override Future<void> deleteTask(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<PestObservation> addPestObservation(PestObservation o) async => o;
-  @override Future<PestObservation> updatePestObservation(PestObservation o) async => o;
-  @override Future<void> deletePestObservation(String id) async {}
+  @override Future<PestObservation> addPestObservation(PestObservation o) async { await Future.delayed(_kWriteDelay); return o; }
+  @override Future<PestObservation> updatePestObservation(PestObservation o) async { await Future.delayed(_kWriteDelay); return o; }
+  @override Future<void> deletePestObservation(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<SprayRecord> addSprayRecord(SprayRecord r) async => r;
-  @override Future<SprayRecord> updateSprayRecord(SprayRecord r) async => r;
-  @override Future<void> deleteSprayRecord(String id) async {}
+  @override Future<SprayRecord> addSprayRecord(SprayRecord r) async { await Future.delayed(_kWriteDelay); return r; }
+  @override Future<SprayRecord> updateSprayRecord(SprayRecord r) async { await Future.delayed(_kWriteDelay); return r; }
+  @override Future<void> deleteSprayRecord(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<CropExpense> addExpense(CropExpense e) async => e;
-  @override Future<CropExpense> updateExpense(CropExpense e) async => e;
-  @override Future<void> deleteExpense(String id) async {}
+  @override Future<CropExpense> addExpense(CropExpense e) async { await Future.delayed(_kWriteDelay); return e; }
+  @override Future<CropExpense> updateExpense(CropExpense e) async { await Future.delayed(_kWriteDelay); return e; }
+  @override Future<void> deleteExpense(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<HarvestRecord> addHarvestRecord(HarvestRecord r) async => r;
-  @override Future<HarvestRecord> updateHarvestRecord(HarvestRecord r) async => r;
-  @override Future<void> deleteHarvestRecord(String id) async {}
+  @override Future<HarvestRecord> addHarvestRecord(HarvestRecord r) async { await Future.delayed(_kWriteDelay); return r; }
+  @override Future<HarvestRecord> updateHarvestRecord(HarvestRecord r) async { await Future.delayed(_kWriteDelay); return r; }
+  @override Future<void> deleteHarvestRecord(String id) async { await Future.delayed(_kWriteDelay); }
 
-  @override Future<CropSale> addSale(CropSale s) async => s;
-  @override Future<CropSale> updateSale(CropSale s) async => s;
+  @override Future<CropSale> addSale(CropSale s) async { await Future.delayed(_kWriteDelay); return s; }
+  @override Future<CropSale> updateSale(CropSale s) async { await Future.delayed(_kWriteDelay); return s; }
   @override Future<void> deleteSale(String id) async {}
 }

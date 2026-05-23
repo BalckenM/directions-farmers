@@ -18,22 +18,7 @@ class HiveDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<HiveDetailScreen> createState() => _HiveDetailScreenState();
 }
 
-class _HiveDetailScreenState extends ConsumerState<HiveDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabs = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabs.dispose();
-    super.dispose();
-  }
-
+class _HiveDetailScreenState extends ConsumerState<HiveDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final hiveAsync = ref.watch(hiveDetailProvider(widget.hiveId));
@@ -46,40 +31,33 @@ class _HiveDetailScreenState extends ConsumerState<HiveDetailScreen>
         if (hive == null) {
           return const Scaffold(body: Center(child: Text('Hive not found')));
         }
-        return _HiveDetailView(
-            hiveId: widget.hiveId, hive: hive, tabs: _tabs);
+        return DefaultTabController(
+          length: 2,
+          child: _HiveDetailView(hiveId: widget.hiveId, hive: hive),
+        );
       },
     );
   }
 }
 
 class _HiveDetailView extends ConsumerWidget {
-  const _HiveDetailView({
-    required this.hiveId,
-    required this.hive,
-    required this.tabs,
-  });
+  const _HiveDetailView({required this.hiveId, required this.hive});
 
   final String hiveId;
   final Hive hive;
-  final TabController tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final inspectionsAsync =
-        ref.watch(hiveInspectionHistoryProvider(hiveId));
+    final inspectionsAsync = ref.watch(hiveInspectionHistoryProvider(hiveId));
 
     return FarmScaffold(
       appBar: FarmAppBar(
         title: 'Hive ${hive.hiveNumber}',
-        subtitle:
-            '${hive.hiveType} · ${hive.beeSubspecies}',
+        subtitle: '${hive.hiveType} · ${hive.beeSubspecies}',
         bottom: TabBar(
-          controller: tabs,
           indicatorColor: AppColors.beesColor,
           labelColor: AppColors.beesColor,
-          unselectedLabelColor:
-              Theme.of(context).colorScheme.onSurfaceVariant,
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
           tabs: const [
             Tab(text: 'Overview'),
             Tab(text: 'Inspections'),
@@ -87,7 +65,6 @@ class _HiveDetailView extends ConsumerWidget {
         ),
       ),
       body: TabBarView(
-        controller: tabs,
         children: [
           _OverviewTab(hive: hive),
           _InspectionsTab(inspectionsAsync: inspectionsAsync),
@@ -120,10 +97,13 @@ class _OverviewTab extends StatelessWidget {
             children: [
               const Text('Colony strength', style: TextStyle(fontSize: 13)),
               const Spacer(),
-              Text('${hive.colonyStrengthScore ?? 0}/10',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.beesColor)),
+              Text(
+                '${hive.colonyStrengthScore ?? 0}/10',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.beesColor,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 4),
@@ -133,10 +113,12 @@ class _OverviewTab extends StatelessWidget {
               value: ((hive.colonyStrengthScore ?? 0).clamp(0, 10) / 10)
                   .toDouble(),
               minHeight: 8,
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.beesColor),
+                AppColors.beesColor,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -144,13 +126,15 @@ class _OverviewTab extends StatelessWidget {
           // Queen info
           _InfoRow(label: 'Queen status', value: hive.queenStatus ?? '—'),
           _InfoRow(
-              label: 'Queen age',
-              value: hive.queenAgeMonths != null
-                  ? '${hive.queenAgeMonths} months'
-                  : '—'),
+            label: 'Queen age',
+            value: hive.queenAgeMonths != null
+                ? '${hive.queenAgeMonths} months'
+                : '—',
+          ),
           _InfoRow(
-              label: 'Queen marked',
-              value: hive.queenMarked == true ? 'Yes' : 'No'),
+            label: 'Queen marked',
+            value: hive.queenMarked == true ? 'Yes' : 'No',
+          ),
           if (hive.queenColorYear != null)
             _InfoRow(label: 'Queen colour year', value: hive.queenColorYear!),
 
@@ -159,16 +143,16 @@ class _OverviewTab extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
 
           _InfoRow(
-              label: 'Honey stores (frames)',
-              value: '${hive.honeyStoresFrames ?? 0}'),
+            label: 'Honey stores (frames)',
+            value: '${hive.honeyStoresFrames ?? 0}',
+          ),
+          _InfoRow(label: 'Supers on', value: '${hive.supersOn ?? 0}'),
           _InfoRow(
-              label: 'Supers on',
-              value: '${hive.supersOn ?? 0}'),
-          _InfoRow(
-              label: 'Total honey harvested',
-              value: hive.totalHoneyHarvestedKg != null
-                  ? '${hive.totalHoneyHarvestedKg!.toStringAsFixed(1)} kg'
-                  : '—'),
+            label: 'Total honey harvested',
+            value: hive.totalHoneyHarvestedKg != null
+                ? '${hive.totalHoneyHarvestedKg!.toStringAsFixed(1)} kg'
+                : '—',
+          ),
 
           const Divider(height: AppSpacing.lg * 2),
 
@@ -182,44 +166,51 @@ class _OverviewTab extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
-                    'Varroa infestation rate: ${hive.varroaInfestationRatePct!.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: hive.isVarroaAlert
-                            ? Colors.red
-                            : Colors.green)),
+                  'Varroa infestation rate: ${hive.varroaInfestationRatePct!.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: hive.isVarroaAlert ? Colors.red : Colors.green,
+                  ),
+                ),
               ],
             ),
             if (hive.isVarroaAlert)
               const Padding(
                 padding: EdgeInsets.only(top: 4),
                 child: Text(
-                    '⚠ Above treatment threshold (3%). Apply oxalic acid or amitraz.',
-                    style: TextStyle(fontSize: 12, color: Colors.red)),
+                  '⚠ Above treatment threshold (3%). Apply oxalic acid or amitraz.',
+                  style: TextStyle(fontSize: 12, color: Colors.red),
+                ),
               ),
             const SizedBox(height: AppSpacing.sm),
             _InfoRow(
-                label: 'Last varroa count',
-                value: hive.varroaLastCountDate ?? '—'),
+              label: 'Last varroa count',
+              value: hive.varroaLastCountDate ?? '—',
+            ),
           ],
 
           const SizedBox(height: AppSpacing.md),
           _SectionTitle('Schedule'),
           const SizedBox(height: AppSpacing.sm),
           _InfoRow(
-              label: 'Last inspection',
-              value: hive.lastInspectionDate ?? '—'),
+            label: 'Last inspection',
+            value: hive.lastInspectionDate ?? '—',
+          ),
           _InfoRow(
-              label: 'Next inspection due',
-              value: hive.nextInspectionDue ?? '—'),
+            label: 'Next inspection due',
+            value: hive.nextInspectionDue ?? '—',
+          ),
           if (hive.inspectionOverdue == true)
             const Padding(
               padding: EdgeInsets.only(top: 4),
-              child: Text('⚠ Inspection overdue',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.w600)),
+              child: Text(
+                '⚠ Inspection overdue',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
 
           const SizedBox(height: AppSpacing.md),
@@ -227,8 +218,9 @@ class _OverviewTab extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           _InfoRow(label: 'Type', value: hive.hiveType),
           _InfoRow(
-              label: 'Installation date',
-              value: hive.installationDate ?? '—'),
+            label: 'Installation date',
+            value: hive.installationDate ?? '—',
+          ),
           _InfoRow(label: 'Origin', value: hive.origin ?? '—'),
 
           const SizedBox(height: AppSpacing.xl),
@@ -255,8 +247,7 @@ class _InspectionsTab extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: inspections.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: AppSpacing.sm),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (_, i) =>
                   _InspectionCard(inspection: inspections[i]),
             ),
@@ -283,9 +274,12 @@ class _InspectionCard extends StatelessWidget {
             // Header
             Row(
               children: [
-                Text(inspection.inspectionDate,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  inspection.inspectionDate,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const Spacer(),
                 if (inspection.swarmCellsPresent == true)
                   _Tag(label: 'Swarm cells', color: Colors.orange),
@@ -297,9 +291,11 @@ class _InspectionCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             // Inspector + weather
             Text(
-                '${inspection.inspector ?? '—'} · ${inspection.weather ?? '—'}',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+              '${inspection.inspector ?? '—'} · ${inspection.weather ?? '—'}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: AppSpacing.sm),
 
             // Key observations
@@ -309,30 +305,35 @@ class _InspectionCard extends StatelessWidget {
               children: [
                 if (inspection.colonyTemperament != null)
                   _ObsChip(
-                      label: 'Temperament: ${inspection.colonyTemperament}'),
+                    label: 'Temperament: ${inspection.colonyTemperament}',
+                  ),
                 if (inspection.beePopulationFrames != null)
                   _ObsChip(
-                      label: 'Pop: ${inspection.beePopulationFrames} frames'),
+                    label: 'Pop: ${inspection.beePopulationFrames} frames',
+                  ),
                 if (inspection.broodFrames != null)
-                  _ObsChip(
-                      label: 'Brood: ${inspection.broodFrames} frames'),
+                  _ObsChip(label: 'Brood: ${inspection.broodFrames} frames'),
                 if (inspection.honeyStoresFrames != null)
                   _ObsChip(
-                      label: 'Honey: ${inspection.honeyStoresFrames} frames'),
+                    label: 'Honey: ${inspection.honeyStoresFrames} frames',
+                  ),
                 _ObsChip(
-                    label:
-                        'Queen seen: ${inspection.queenSeen == true ? 'Yes' : 'No'}'),
-                if (inspection.eggsSeen == true)
-                  _ObsChip(label: 'Eggs seen'),
+                  label:
+                      'Queen seen: ${inspection.queenSeen == true ? 'Yes' : 'No'}',
+                ),
+                if (inspection.eggsSeen == true) _ObsChip(label: 'Eggs seen'),
               ],
             ),
 
             if (inspection.actionTaken != null &&
                 inspection.actionTaken!.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.xs),
-              Text('Action: ${inspection.actionTaken}',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: AppColors.beesColor)),
+              Text(
+                'Action: ${inspection.actionTaken}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.beesColor,
+                ),
+              ),
             ],
           ],
         ),
@@ -356,9 +357,14 @@ class _Tag extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(label,
-          style: TextStyle(
-              color: color, fontSize: 10, fontWeight: FontWeight.w700)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
@@ -391,9 +397,13 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700, color: AppColors.beesColor));
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: AppColors.beesColor,
+      ),
+    );
   }
 }
 
@@ -410,13 +420,19 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant)),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const Spacer(),
-          Text(value,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );

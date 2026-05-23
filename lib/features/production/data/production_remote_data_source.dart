@@ -16,4 +16,16 @@ class ProductionRemoteDataSource implements ProductionDataSource {
   @override
   Future<List<WoolRecord>> getWoolRecords() =>
       throw UnimplementedError('ProductionRemoteDataSource.getWoolRecords not implemented');
+
+  @override
+  Future<void> addMilkRecord(MilkRecord record) =>
+      throw UnimplementedError('ProductionRemoteDataSource.addMilkRecord not implemented');
+
+  @override
+  Future<void> addEggRecord(EggRecord record) =>
+      throw UnimplementedError('ProductionRemoteDataSource.addEggRecord not implemented');
+
+  @override
+  Future<void> addWoolRecord(WoolRecord record) =>
+      throw UnimplementedError('ProductionRemoteDataSource.addWoolRecord not implemented');
 }

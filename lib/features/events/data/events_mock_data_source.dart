@@ -14,7 +14,19 @@ class EventsMockDataSource implements EventsDataSource {
   @override
   Future<List<BreedingEvent>> getBreedingEvents() async => _breedingEvents;
 
-  static const _events = [
+  @override
+  Future<void> addHealthEvent(HealthEvent event) async => _events.insert(0, event);
+
+  @override
+  Future<void> addWeightRecord(WeightRecord record) async =>
+      _weightRecords.insert(0, record);
+
+  @override
+  Future<void> addBreedingEvent(BreedingEvent event) async =>
+      _breedingEvents.insert(0, event);
+
+  // Mutable in-memory seed data
+  final _events = <HealthEvent>[
     HealthEvent(
       id: 'HE-001',
       animalId: 'C-001',
@@ -65,7 +77,7 @@ class EventsMockDataSource implements EventsDataSource {
     ),
   ];
 
-  static const _weightRecords = [
+  final _weightRecords = <WeightRecord>[
     WeightRecord(
       id: 'WR-001',
       animalId: 'C-001',
@@ -115,7 +127,7 @@ class EventsMockDataSource implements EventsDataSource {
     ),
   ];
 
-  static const _breedingEvents = [
+  final _breedingEvents = <BreedingEvent>[
     BreedingEvent(
       id: 'BE-001',
       animalId: 'C-001',

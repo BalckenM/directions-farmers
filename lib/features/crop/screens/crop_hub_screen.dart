@@ -6,6 +6,7 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/section_header.dart';
@@ -104,35 +105,14 @@ class CropHubScreen extends ConsumerWidget {
         .toList();
 
     return FarmScaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.cropGreen,
-        foregroundColor: AppColors.onPrimary,
-        elevation: 0,
+      appBar: FarmAppBar(
+        title: 'Crop Farming',
+        subtitle: 'AgriFlow SA',
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded),
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Crop Farming',
-              style: TextStyle(
-                  color: AppColors.onPrimary,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17),
-            ),
-            Text(
-              'AgriFlow SA',
-              style: TextStyle(
-                color: AppColors.onPrimary.withAlpha(191),
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
         ),
         actions: [
           // Advisory shortcut — catalog accessible from field planning
@@ -333,7 +313,13 @@ class _SeasonHeader extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () {}, // navigate to season detail
+            onTap: () {
+              if (activeSeason != null) {
+                context.push(AppRoutes.cropSeasonDetail, extra: activeSeason);
+              } else {
+                context.push(AppRoutes.addCropSeason);
+              }
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.sm, vertical: AppSpacing.xs),

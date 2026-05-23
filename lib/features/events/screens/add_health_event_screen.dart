@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -14,6 +15,9 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/notifiable_disease_prompt.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../livestock/providers/livestock_providers.dart';
+import '../data/events_repository.dart';
+import '../models/health_event.dart';
 
 // â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -36,6 +40,7 @@ class _AddHealthEventScreenState
 
   String? _eventType;
   String? _species;
+  String? _selectedAnimalId;
   DateTime? _eventDate;
   int? _famachaScore;
   int? _dagScore;
@@ -98,19 +103,49 @@ class _AddHealthEventScreenState
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Health event recorded'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.sm)),
-      ),
-    );
-    context.pop();
+    try {
+      final event = HealthEvent(
+        id: 'HE-${DateTime.now().millisecondsSinceEpoch}',
+        animalId: _selectedAnimalId ?? _tagCtrl.text.trim(),
+        animalType: _species ?? 'cattle',
+        eventType: _eventType?.toLowerCase() ?? 'vaccination',
+        eventDate: _eventDate != null
+            ? DateFormat('yyyy-MM-dd').format(_eventDate!)
+            : DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        description: _notesCtrl.text.trim(),
+        productName:
+            _productCtrl.text.trim().isEmpty ? null : _productCtrl.text.trim(),
+        nextDueDate: _nextDueCtrl.text.trim().isEmpty
+            ? null
+            : _nextDueCtrl.text.trim(),
+        withdrawalDays: int.tryParse(_withdrawalDaysCtrl.text),
+        famachaScore: _famachaScore,
+        dagScore: _dagScore,
+      );
+      await ref.read(eventsRepositoryProvider).addHealthEvent(event);
+      ref.invalidate(healthEventsProvider);
+      if (_species != null) {
+        ref.invalidate(healthEventsBySpeciesProvider(_species!));
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Health event recorded'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm)),
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   String _calcWithdrawalEnd() {
@@ -144,18 +179,8 @@ class _AddHealthEventScreenState
               icon: Icons.pets_rounded,
               child: Column(
                 children: [
-                  FarmTextField(
-                    controller: _tagCtrl,
-                    label: 'Animal Tag / ID *',
-                    hint: 'e.g. A-001',
-                    prefixIcon: const Icon(Icons.tag_rounded),
-                    textInputAction: TextInputAction.next,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
                   DropdownButtonFormField<String>(
-                    initialValue: _species,
+                    value: _species,
                     decoration: const InputDecoration(
                       labelText: 'Species',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -168,8 +193,66 @@ class _AddHealthEventScreenState
                               child: Text(s[0].toUpperCase() + s.substring(1)),
                             ))
                         .toList(),
-                    onChanged: (v) => setState(() => _species = v),
+                    onChanged: (v) => setState(() {
+                      _species = v;
+                      _selectedAnimalId = null;
+                    }),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (_species == null)
+                    FarmTextField(
+                      controller: _tagCtrl,
+                      label: 'Animal Tag / ID *',
+                      hint: 'Select species first',
+                      prefixIcon: const Icon(Icons.tag_rounded),
+                      textInputAction: TextInputAction.next,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    )
+                  else
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final animalsAsync =
+                            ref.watch(animalsProvider(_species!));
+                        return animalsAsync.when(
+                          loading: () => const Center(
+                              child: CircularProgressIndicator()),
+                          error: (_, __) => FarmTextField(
+                            controller: _tagCtrl,
+                            label: 'Animal Tag / ID *',
+                            hint: 'e.g. A-001',
+                            prefixIcon: const Icon(Icons.tag_rounded),
+                            textInputAction: TextInputAction.next,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
+                          ),
+                          data: (animals) =>
+                              DropdownButtonFormField<String>(
+                            value: _selectedAnimalId,
+                            decoration: const InputDecoration(
+                              labelText: 'Select Animal *',
+                              prefixIcon: Icon(Icons.tag_rounded),
+                            ),
+                            hint: const Text('Choose animal'),
+                            isExpanded: true,
+                            items: animals
+                                .map((a) => DropdownMenuItem(
+                                      value: a.id,
+                                      child: Text(
+                                          '${a.tagNumber} — ${a.name}'),
+                                    ))
+                                .toList(),
+                            onChanged: (id) => setState(() {
+                              _selectedAnimalId = id;
+                              _tagCtrl.text = id ?? '';
+                            }),
+                            validator: (v) =>
+                                v == null ? 'Select an animal' : null,
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "inc_pieter_disc",
+    "employeeId": "emp_pieter",
+    "type": "disciplinary",
+    "title": "Unauthorised Absence",
+    "description": "Employee was absent without authorisation on 14 February 2026. No prior notice was given and no leave was approved.",
+    "incidentDate": "2026-02-14T00:00:00.000",
+    "status": "resolved",
+    "actionTaken": "Verbal warning issued.",
+    "resolvedAt": "2026-02-20T00:00:00.000",
+    "resolvedByUserId": "usr_manager",
+    "documentPaths": null,
+    "reportedByUserId": "usr_manager",
+    "createdAt": "2026-02-15T00:00:00.000"
+  },
+  {
+    "id": "inc_bongani_griev",
+    "employeeId": "emp_bongani",
+    "type": "grievance",
+    "title": "Dispute over overtime payment",
+    "description": "Employee alleges overtime hours worked during the first week of April 2026 (approx. 6 hours) were not reflected in the April payslip.",
+    "incidentDate": "2026-04-18T00:00:00.000",
+    "status": "underInvestigation",
+    "actionTaken": null,
+    "resolvedAt": null,
+    "resolvedByUserId": null,
+    "documentPaths": null,
+    "reportedByUserId": "emp_bongani",
+    "createdAt": "2026-04-22T00:00:00.000"
+  }
+]

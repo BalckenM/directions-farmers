@@ -27,8 +27,6 @@ class SprayDetailScreen extends ConsumerWidget {
         .firstOrNull ?? record.fieldId;
 
     final dateFmt = DateFormat('dd MMM yyyy');
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
     final now = DateTime.now();
 
     final reEntryPassed = record.reEntryDate.isBefore(now);
@@ -48,6 +46,7 @@ class SprayDetailScreen extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 140,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: AppColors.secondaryDark,
             foregroundColor: AppColors.onPrimary,
             actions: [

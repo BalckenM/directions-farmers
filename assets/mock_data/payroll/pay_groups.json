@@ -1,0 +1,29 @@
+[
+  {
+    "id": "pg_monthly",
+    "name": "Monthly Staff",
+    "frequency": "monthly",
+    "payDayOffset": 25,
+    "description": "All salaried permanent staff — paid on the 25th",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "pg_weekly",
+    "name": "Weekly Casual",
+    "frequency": "weekly",
+    "payDayOffset": 5,
+    "description": "Day-rate and piece-work casual labour — paid every Friday",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "pg_biweekly",
+    "name": "Bi-weekly Seasonal",
+    "frequency": "biweekly",
+    "payDayOffset": 5,
+    "description": "Seasonal harvest workers — inactive off-season",
+    "isActive": false,
+    "createdAt": "2024-01-01T00:00:00.000"
+  }
+]

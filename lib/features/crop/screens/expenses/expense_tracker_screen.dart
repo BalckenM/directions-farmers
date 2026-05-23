@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -60,8 +61,8 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
     final expensesAsync = ref.watch(cropExpensesProvider(null));
 
     return FarmScaffold(
-      appBar: AppBar(
-        title: const Text('Expense Tracker'),
+      appBar: FarmAppBar(
+        title: 'Expense Tracker',
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addCropExpense),
@@ -85,7 +86,14 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
 
           return Stack(
             children: [
-              CustomScrollView(
+              RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(cropExpensesProvider);
+                  ref.invalidate(totalExpensesProvider);
+                  ref.invalidate(grossMarginProvider);
+                  await ref.read(cropExpensesProvider(null).future);
+                },
+                child: CustomScrollView(
                 slivers: [
                   // ── Summary card ───────────────────────────────────────
                   SliverToBoxAdapter(
@@ -166,6 +174,7 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
                       ),
                     ),
                 ],
+              ),
               ),
 
               // ── Fixed total footer ─────────────────────────────────────

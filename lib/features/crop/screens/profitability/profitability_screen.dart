@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -72,6 +73,27 @@ class ProfitabilityScreen extends ConsumerWidget {
                   costs: gm.costs,
                   margin: gm.margin,
                   marginPct: gm.marginPct,
+                ),
+              ),
+            ),
+          ),
+
+          // ── Revenue vs Cost chart ──────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: grossAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+              data: (gm) => Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: _RevenueVsCostChart(
+                  revenue: gm.revenue,
+                  costs: gm.costs,
+                  margin: gm.margin,
                 ),
               ),
             ),
@@ -735,6 +757,190 @@ class _FieldMetric extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+      ],
+    );
+  }
+}
+
+// ── Revenue vs Cost Chart ─────────────────────────────────────────────────────
+
+class _RevenueVsCostChart extends StatelessWidget {
+  const _RevenueVsCostChart({
+    required this.revenue,
+    required this.costs,
+    required this.margin,
+  });
+
+  final double revenue;
+  final double costs;
+  final double margin;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final isPositive = margin >= 0;
+
+    final maxY = [revenue, costs, margin.abs()].fold(0.0, (a, b) => a > b ? a : b);
+    final yMax = maxY == 0 ? 1.0 : maxY * 1.25;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.card),
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Financial Overview',
+                style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: AppSpacing.sm),
+            // Legend
+            Row(
+              children: [
+                _ChartLegendDot(color: AppColors.success, label: 'Revenue'),
+                const SizedBox(width: AppSpacing.md),
+                _ChartLegendDot(color: AppColors.error, label: 'Costs'),
+                const SizedBox(width: AppSpacing.md),
+                _ChartLegendDot(
+                  color: isPositive ? AppColors.tertiary : AppColors.secondary,
+                  label: 'Margin',
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              height: 160,
+              child: BarChart(
+                BarChartData(
+                  maxY: yMax,
+                  minY: 0,
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final value = _zarFmt.format(rod.toY);
+                        final label = switch (groupIndex) {
+                          0 => 'Revenue',
+                          1 => 'Costs',
+                          _ => 'Margin',
+                        };
+                        return BarTooltipItem(
+                          '$label\n$value',
+                          tt.labelSmall!
+                              .copyWith(color: Colors.white),
+                        );
+                      },
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 52,
+                        getTitlesWidget: (v, _) => Text(
+                          'R${(v / 1000).toStringAsFixed(0)}k',
+                          style: tt.labelSmall?.copyWith(
+                              color: cs.onSurfaceVariant, fontSize: 9),
+                        ),
+                      ),
+                    ),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (v, _) {
+                          final label = switch (v.toInt()) {
+                            0 => 'Revenue',
+                            1 => 'Costs',
+                            _ => 'Margin',
+                          };
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(label,
+                                style: tt.labelSmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                    fontSize: 10)),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  gridData: FlGridData(
+                    drawVerticalLine: false,
+                    horizontalInterval: yMax / 4,
+                    getDrawingHorizontalLine: (v) => FlLine(
+                      color: cs.outlineVariant.withAlpha(80),
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barGroups: [
+                    BarChartGroupData(x: 0, barRods: [
+                      BarChartRodData(
+                        toY: revenue,
+                        color: AppColors.success,
+                        width: 28,
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(4)),
+                      ),
+                    ]),
+                    BarChartGroupData(x: 1, barRods: [
+                      BarChartRodData(
+                        toY: costs,
+                        color: AppColors.error,
+                        width: 28,
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(4)),
+                      ),
+                    ]),
+                    BarChartGroupData(x: 2, barRods: [
+                      BarChartRodData(
+                        toY: margin.abs(),
+                        color: isPositive
+                            ? AppColors.tertiary
+                            : AppColors.secondary,
+                        width: 28,
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(4)),
+                      ),
+                    ]),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChartLegendDot extends StatelessWidget {
+  const _ChartLegendDot({required this.color, required this.label});
+
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(label,
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
+                ?.copyWith(color: AppColors.onSurfaceVariant)),
       ],
     );
   }

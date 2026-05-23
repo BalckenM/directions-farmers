@@ -1,14 +1,13 @@
 {
-    "name": "4Directions Farmer",
-    "short_name": "4D Farmer",
-    "start_url": "/",
+    "name": "4Directions Farm",
+    "short_name": "4D Farm",
+    "start_url": ".",
     "display": "standalone",
-    "background_color": "#F1F8E9",
+    "background_color": "#2E7D32",
     "theme_color": "#2E7D32",
-    "description": "Smart farm management for livestock, crops, and compliance.",
-    "orientation": "any",
+    "description": "Smart farming management for South African farmers.",
+    "orientation": "portrait-primary",
     "prefer_related_applications": false,
-    "categories": ["productivity", "utilities"],
     "icons": [
         {
             "src": "icons/Icon-192.png",

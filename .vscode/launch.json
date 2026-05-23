@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "4Directions Farm (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "-d", "chrome",
+        "--web-renderer", "canvaskit"
+      ],
+      "flutterMode": "debug"
+    },
+    {
+      "name": "4Directions Farm (Android)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "4Directions Farm (iOS)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "deviceId": "iPhone"
+    },
+    {
+      "name": "4Directions Farm — Profile (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome"],
+      "flutterMode": "profile"
+    },
+    {
+      "name": "4Directions Farm — Release (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": ["-d", "chrome"],
+      "flutterMode": "release"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Devices",
+      "configurations": [
+        "4Directions Farm (Chrome)",
+        "4Directions Farm (Android)"
+      ]
+    }
+  ]
+}

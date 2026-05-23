@@ -81,6 +81,21 @@ class CropTask {
             : null,
       );
 
+  CropTask copyWith({TaskStatus? status, DateTime? completedAt}) => CropTask(
+        id: id,
+        farmId: farmId,
+        fieldId: fieldId,
+        planId: planId,
+        title: title,
+        description: description,
+        dueDate: dueDate,
+        priority: priority,
+        status: status ?? this.status,
+        assignedTo: assignedTo,
+        createdAt: createdAt,
+        completedAt: completedAt ?? this.completedAt,
+      );
+
   bool get isOverdue =>
       status == TaskStatus.overdue ||
       (status == TaskStatus.pending &&

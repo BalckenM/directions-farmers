@@ -21,6 +21,16 @@ class FinancialRepository {
       throw UnexpectedFailure(e.toString());
     }
   }
+
+  Future<void> addFinancialTransaction(FinancialTransaction transaction) async {
+    try {
+      await _source.addFinancialTransaction(transaction);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw UnexpectedFailure(e.toString());
+    }
+  }
 }
 
 final financialRepositoryProvider = Provider<FinancialRepository>((ref) {

@@ -1,3 +1,9 @@
+# Large files / archives (exceeds GitHub 100 MB limit)
+*.zip
+*.tar.gz
+*.tar.xz
+serviceprovider.zip
+
 # Miscellaneous
 *.class
 *.log

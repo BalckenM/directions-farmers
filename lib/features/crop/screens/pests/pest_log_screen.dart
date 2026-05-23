@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/status_chip.dart';
@@ -57,10 +58,25 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
     return DefaultTabController(
       length: 2,
       child: FarmScaffold(
-        appBar: AppBar(
-          title: const Text('Pest & Disease Log'),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
+        appBar: FarmAppBar(
+          title: 'Pest & Disease Log',
+          actions: [
+            Builder(
+              builder: (ctx) {
+                final tab = DefaultTabController.of(ctx);
+                return AnimatedBuilder(
+                  animation: tab,
+                  builder: (_, __) => tab.index == 1
+                      ? IconButton(
+                          icon: const Icon(Icons.open_in_full_rounded),
+                          tooltip: 'Full Spray List',
+                          onPressed: () => ctx.push(AppRoutes.cropSprayList),
+                        )
+                      : const SizedBox.shrink(),
+                );
+              },
+            ),
+          ],
           bottom: const TabBar(
             labelColor: AppColors.onPrimary,
             unselectedLabelColor: AppColors.onPrimary,
@@ -150,16 +166,34 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
                     ),
                     data: (all) {
                       final filtered = _applyFilters(all);
+                      Future<void> refresh() async {
+                        ref.invalidate(pestObservationsProvider);
+                        await ref.read(pestObservationsProvider(null).future);
+                      }
+
                       if (filtered.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No observations match the selected filters.',
-                            style: TextStyle(
-                                color: AppColors.onSurfaceVariant),
+                        return RefreshIndicator(
+                          onRefresh: refresh,
+                          child: ListView(
+                            children: const [
+                              Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(AppSpacing.xl),
+                                  child: Text(
+                                    'No observations match the selected filters.',
+                                    style: TextStyle(
+                                        color: AppColors.onSurfaceVariant),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }
-                      return ListView.separated(
+                      return RefreshIndicator(
+                        onRefresh: refresh,
+                        child: ListView.separated(
                         padding: const EdgeInsets.fromLTRB(
                           AppSpacing.md,
                           AppSpacing.xs,
@@ -224,6 +258,7 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
                             ),
                           );
                         },
+                      ),
                       );
                     },
                   ),
@@ -242,14 +277,31 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
                     style: const TextStyle(color: AppColors.error)),
               ),
               data: (sprays) {
+                Future<void> refreshSprays() async {
+                  ref.invalidate(sprayRecordsProvider);
+                  await ref.read(sprayRecordsProvider(null).future);
+                }
+
                 if (sprays.isEmpty) {
-                  return const Center(
-                    child: Text('No spray records yet.',
-                        style: TextStyle(
-                            color: AppColors.onSurfaceVariant)),
+                  return RefreshIndicator(
+                    onRefresh: refreshSprays,
+                    child: ListView(
+                      children: const [
+                        Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(AppSpacing.xl),
+                            child: Text('No spray records yet.',
+                                style: TextStyle(
+                                    color: AppColors.onSurfaceVariant)),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 }
-                return ListView.separated(
+                return RefreshIndicator(
+                  onRefresh: refreshSprays,
+                  child: ListView.separated(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md,
                     AppSpacing.md,
@@ -315,7 +367,8 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
                       ),
                     );
                   },
-                );
+                  ),
+                  );
               },
             ),
           ],

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "ps_monthly_salary",
+    "name": "Monthly Salaried",
+    "wageType": "monthlySalary",
+    "baseRate": 18000.0,
+    "nmwaEnforced": true,
+    "overtimeMultiplier": 1.5,
+    "sundayMultiplier": 2.0,
+    "publicHolidayMultiplier": 2.0,
+    "pieceworkUnit": null,
+    "pieceworkMinUnitsPerDay": null,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "ps_nmwa_hourly",
+    "name": "NMWA Hourly (Farm)",
+    "wageType": "hourlyRate",
+    "baseRate": 25.42,
+    "nmwaEnforced": true,
+    "overtimeMultiplier": 1.5,
+    "sundayMultiplier": 2.0,
+    "publicHolidayMultiplier": 2.0,
+    "pieceworkUnit": null,
+    "pieceworkMinUnitsPerDay": null,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "ps_daily_220",
+    "name": "Daily Rate R220",
+    "wageType": "dailyRate",
+    "baseRate": 220.0,
+    "nmwaEnforced": true,
+    "overtimeMultiplier": 1.5,
+    "sundayMultiplier": 2.0,
+    "publicHolidayMultiplier": 2.0,
+    "pieceworkUnit": null,
+    "pieceworkMinUnitsPerDay": null,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "ps_piecework_grape",
+    "name": "Piecework — Grape Picking",
+    "wageType": "piecework",
+    "baseRate": 2.80,
+    "nmwaEnforced": true,
+    "overtimeMultiplier": 1.0,
+    "sundayMultiplier": 2.0,
+    "publicHolidayMultiplier": 2.0,
+    "pieceworkUnit": "kg",
+    "pieceworkMinUnitsPerDay": 30.0,
+    "createdAt": "2024-01-01T00:00:00.000"
+  }
+]

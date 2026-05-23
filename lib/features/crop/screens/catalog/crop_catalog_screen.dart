@@ -6,6 +6,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop.dart';
@@ -31,9 +32,8 @@ class _CropCatalogScreenState extends ConsumerState<CropCatalogScreen> {
     final cropsAsync = ref.watch(cropsProvider(_selectedCategoryId));
 
     return FarmScaffold(
-      appBar: AppBar(
-        elevation: 0,
-        title: const Text('Crop Catalog'),
+      appBar: FarmAppBar(
+        title: 'Crop Catalog',
       ),
       body: Column(
         children: [

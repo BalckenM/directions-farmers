@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -32,7 +33,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
         NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
 
     return FarmScaffold(
-      appBar: AppBar(title: const Text('Crop Sales')),
+      appBar: FarmAppBar(title: 'Crop Sales'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addCropSale),
         icon: const Icon(Icons.add_rounded),
@@ -57,7 +58,14 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
 
           return Stack(
             children: [
-              CustomScrollView(
+              RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(cropSalesProvider);
+                  ref.invalidate(totalRevenueProvider);
+                  ref.invalidate(grossMarginProvider);
+                  await ref.read(cropSalesProvider(null).future);
+                },
+                child: CustomScrollView(
                 slivers: [
                   // ── Summary card ──────────────────────────────────────────
                   SliverToBoxAdapter(
@@ -168,6 +176,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                       ),
                     ),
                 ],
+              ),
               ),
 
               // ── Fixed total footer ─────────────────────────────────────────

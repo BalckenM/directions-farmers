@@ -123,6 +123,7 @@ class _DetailView extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 160,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: catBg,
             foregroundColor: catColor,
             flexibleSpace: FlexibleSpaceBar(

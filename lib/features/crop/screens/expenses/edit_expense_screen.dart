@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_expense.dart';
 import '../../providers/crop_providers.dart';
@@ -106,7 +107,7 @@ class _EditExpenseScreenState extends ConsumerState<EditExpenseScreen> {
 
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: const Text('Edit Expense')),
+      appBar: FarmAppBar(title: 'Edit Expense'),
       body: Form(
         key: _formKey,
         child: ListView(

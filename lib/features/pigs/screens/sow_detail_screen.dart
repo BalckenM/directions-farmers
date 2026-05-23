@@ -18,22 +18,7 @@ class SowDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<SowDetailScreen> createState() => _SowDetailScreenState();
 }
 
-class _SowDetailScreenState extends ConsumerState<SowDetailScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabs = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabs.dispose();
-    super.dispose();
-  }
-
+class _SowDetailScreenState extends ConsumerState<SowDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final sowAsync = ref.watch(sowDetailProvider(widget.sowId));
@@ -46,22 +31,20 @@ class _SowDetailScreenState extends ConsumerState<SowDetailScreen>
         if (sow == null) {
           return const Scaffold(body: Center(child: Text('Sow not found')));
         }
-        return _SowDetailView(sowId: widget.sowId, sow: sow, tabs: _tabs);
+        return DefaultTabController(
+          length: 3,
+          child: _SowDetailView(sowId: widget.sowId, sow: sow),
+        );
       },
     );
   }
 }
 
 class _SowDetailView extends ConsumerWidget {
-  const _SowDetailView({
-    required this.sowId,
-    required this.sow,
-    required this.tabs,
-  });
+  const _SowDetailView({required this.sowId, required this.sow});
 
   final String sowId;
   final Sow sow;
-  final TabController tabs;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,14 +54,11 @@ class _SowDetailView extends ConsumerWidget {
     return FarmScaffold(
       appBar: FarmAppBar(
         title: sow.displayName,
-        subtitle:
-            '${sow.breed} · Parity ${sow.pigSpecific?.parity ?? 0}',
+        subtitle: '${sow.breed} · Parity ${sow.pigSpecific?.parity ?? 0}',
         bottom: TabBar(
-          controller: tabs,
           indicatorColor: AppColors.pigColor,
           labelColor: AppColors.pigColor,
-          unselectedLabelColor:
-              Theme.of(context).colorScheme.onSurfaceVariant,
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
           tabs: const [
             Tab(text: 'Overview'),
             Tab(text: 'Farrowing'),
@@ -87,7 +67,6 @@ class _SowDetailView extends ConsumerWidget {
         ),
       ),
       body: TabBarView(
-        controller: tabs,
         children: [
           _OverviewTab(sow: sow),
           _FarrowingTab(farrowingAsync: farrowingAsync),
@@ -137,21 +116,24 @@ class _OverviewTab extends StatelessWidget {
           _InfoRow(label: 'Parity', value: '${ps?.parity ?? 0}'),
           if (sow.isPregnant) ...[
             _InfoRow(
-                label: 'Expected farrowing',
-                value: ps?.expectedFarrowingDate ?? '—'),
+              label: 'Expected farrowing',
+              value: ps?.expectedFarrowingDate ?? '—',
+            ),
             if (sow.daysToFarrowing != null)
               _InfoRow(
-                  label: 'Days to farrowing',
-                  value: sow.daysToFarrowing! == 0
-                      ? 'Due today'
-                      : '${sow.daysToFarrowing}d'),
+                label: 'Days to farrowing',
+                value: sow.daysToFarrowing! == 0
+                    ? 'Due today'
+                    : '${sow.daysToFarrowing}d',
+              ),
           ],
           if (ps?.lastServiceDate != null)
             _InfoRow(label: 'Last service date', value: ps!.lastServiceDate!),
           if (ps?.weanToServiceDays != null)
             _InfoRow(
-                label: 'Wean-to-service days',
-                value: '${ps!.weanToServiceDays}d'),
+              label: 'Wean-to-service days',
+              value: '${ps!.weanToServiceDays}d',
+            ),
 
           const SizedBox(height: AppSpacing.md),
 
@@ -200,11 +182,11 @@ class _OverviewTab extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           if (sow.bodyConditionScore != null)
             _InfoRow(
-                label: 'BCS (1–5)',
-                value: sow.bodyConditionScore!.toStringAsFixed(1)),
+              label: 'BCS (1–5)',
+              value: sow.bodyConditionScore!.toStringAsFixed(1),
+            ),
           if (ps?.backfatMm != null)
-            _InfoRow(
-                label: 'Backfat (mm)', value: '${ps!.backfatMm} mm'),
+            _InfoRow(label: 'Backfat (mm)', value: '${ps!.backfatMm} mm'),
 
           const SizedBox(height: AppSpacing.md),
 
@@ -212,17 +194,15 @@ class _OverviewTab extends StatelessWidget {
           if (sow.isLactating) ...[
             _SectionTitle('Current Litter'),
             const SizedBox(height: AppSpacing.sm),
+            _InfoRow(label: 'Total born', value: '${ps?.totalBorn ?? 0}'),
+            _InfoRow(label: 'Born alive', value: '${ps?.bornAlive ?? 0}'),
+            _InfoRow(label: 'Born dead', value: '${ps?.bornDead ?? 0}'),
             _InfoRow(
-                label: 'Total born', value: '${ps?.totalBorn ?? 0}'),
-            _InfoRow(
-                label: 'Born alive', value: '${ps?.bornAlive ?? 0}'),
-            _InfoRow(
-                label: 'Born dead', value: '${ps?.bornDead ?? 0}'),
-            _InfoRow(
-                label: 'Avg birth weight',
-                value: ps?.avgBirthWeightKg != null
-                    ? '${ps!.avgBirthWeightKg!.toStringAsFixed(2)} kg'
-                    : '—'),
+              label: 'Avg birth weight',
+              value: ps?.avgBirthWeightKg != null
+                  ? '${ps!.avgBirthWeightKg!.toStringAsFixed(2)} kg'
+                  : '—',
+            ),
           ],
 
           const SizedBox(height: AppSpacing.md),
@@ -235,8 +215,7 @@ class _OverviewTab extends StatelessWidget {
           _InfoRow(label: 'Breed', value: sow.breed),
           if (sow.dateOfBirth != null)
             _InfoRow(label: 'Date of birth', value: sow.dateOfBirth!),
-          if (sow.penId != null)
-            _InfoRow(label: 'Pen', value: sow.penId!),
+          if (sow.penId != null) _InfoRow(label: 'Pen', value: sow.penId!),
 
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -262,10 +241,8 @@ class _FarrowingTab extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: records.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (_, i) =>
-                  _FarrowingCard(record: records[i]),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, i) => _FarrowingCard(record: records[i]),
             ),
     );
   }
@@ -289,13 +266,19 @@ class _FarrowingCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('Parity ${record.parity}',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  'Parity ${record.parity}',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const Spacer(),
-                Text(record.farrowingDate ?? '—',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  record.farrowingDate ?? '—',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -305,28 +288,29 @@ class _FarrowingCard extends StatelessWidget {
               children: [
                 _Stat(label: 'Total born', value: '${record.totalBorn ?? 0}'),
                 _Stat(label: 'Born alive', value: '${record.bornAlive ?? 0}'),
-                _Stat(
-                    label: 'Born dead', value: '${record.bornDead ?? 0}'),
-                _Stat(
-                    label: 'Weaned', value: '${record.weaned ?? 0}'),
+                _Stat(label: 'Born dead', value: '${record.bornDead ?? 0}'),
+                _Stat(label: 'Weaned', value: '${record.weaned ?? 0}'),
                 if (record.preWeanMortalityPct != null)
                   _Stat(
-                      label: 'Pre-wean mort.',
-                      value:
-                          '${record.preWeanMortalityPct!.toStringAsFixed(1)}%',
-                      alert: record.preWeanMortalityPct! > 12),
+                    label: 'Pre-wean mort.',
+                    value: '${record.preWeanMortalityPct!.toStringAsFixed(1)}%',
+                    alert: record.preWeanMortalityPct! > 12,
+                  ),
                 if (record.avgBirthWeightKg != null)
                   _Stat(
-                      label: 'Avg BW',
-                      value:
-                          '${record.avgBirthWeightKg!.toStringAsFixed(2)} kg'),
+                    label: 'Avg BW',
+                    value: '${record.avgBirthWeightKg!.toStringAsFixed(2)} kg',
+                  ),
               ],
             ),
             if (record.weaningDate != null) ...[
               const SizedBox(height: AppSpacing.xs),
-              Text('Weaned: ${record.weaningDate}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
+              Text(
+                'Weaned: ${record.weaningDate}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ],
         ),
@@ -352,10 +336,8 @@ class _ServicesTab extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: records.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (_, i) =>
-                  _ServiceCard(record: records[i]),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, i) => _ServiceCard(record: records[i]),
             ),
     );
   }
@@ -369,9 +351,11 @@ class _ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isConfirmed = record.pregnancyResult?.toLowerCase() == 'pregnant' ||
+    final isConfirmed =
+        record.pregnancyResult?.toLowerCase() == 'pregnant' ||
         record.pregnancyResult?.toLowerCase() == 'confirmed';
-    final isNegative = record.pregnancyResult?.toLowerCase() == 'negative' ||
+    final isNegative =
+        record.pregnancyResult?.toLowerCase() == 'negative' ||
         record.pregnancyResult?.toLowerCase() == 'open';
 
     return Card(
@@ -384,15 +368,19 @@ class _ServiceCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text(record.serviceDate ?? '—',
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  record.serviceDate ?? '—',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const Spacer(),
                 if (record.pregnancyResult != null)
                   _ResultChip(
-                      result: record.pregnancyResult!,
-                      isConfirmed: isConfirmed,
-                      isNegative: isNegative),
+                    result: record.pregnancyResult!,
+                    isConfirmed: isConfirmed,
+                    isNegative: isNegative,
+                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -406,15 +394,19 @@ class _ServiceCard extends StatelessWidget {
                   _Stat(label: 'Method', value: record.serviceMethod!),
                 if (record.weanToServiceDays != null)
                   _Stat(
-                      label: 'W-S days',
-                      value: '${record.weanToServiceDays}d'),
+                    label: 'W-S days',
+                    value: '${record.weanToServiceDays}d',
+                  ),
               ],
             ),
             if (record.expectedFarrowingDate != null) ...[
               const SizedBox(height: AppSpacing.xs),
-              Text('Exp. farrowing: ${record.expectedFarrowingDate}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
+              Text(
+                'Exp. farrowing: ${record.expectedFarrowingDate}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ],
         ),
@@ -439,8 +431,8 @@ class _ResultChip extends StatelessWidget {
     final color = isConfirmed
         ? Colors.green
         : isNegative
-            ? Colors.red
-            : Colors.orange;
+        ? Colors.red
+        : Colors.orange;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -448,9 +440,14 @@ class _ResultChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
-      child: Text(result,
-          style: TextStyle(
-              color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+      child: Text(
+        result,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
@@ -464,9 +461,13 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700, color: AppColors.pigColor));
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.w700,
+        color: AppColors.pigColor,
+      ),
+    );
   }
 }
 
@@ -483,13 +484,19 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant)),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const Spacer(),
-          Text(value,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -530,14 +537,21 @@ class _KpiCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(value,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800, color: color)),
-                Text(label,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 10),
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  value,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -560,13 +574,19 @@ class _Stat extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(value,
-            style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: alert ? AppColors.error : null)),
-        Text(label,
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        Text(
+          value,
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: alert ? AppColors.error : null,
+          ),
+        ),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }
@@ -598,9 +618,14 @@ class _AlertBanner extends StatelessWidget {
           Icon(icon, color: color, size: 18),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(message,
-                style: TextStyle(
-                    color: color, fontSize: 12, fontWeight: FontWeight.w500)),
+            child: Text(
+              message,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

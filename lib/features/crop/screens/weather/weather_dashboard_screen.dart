@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -19,8 +20,8 @@ class WeatherDashboardScreen extends ConsumerWidget {
     final alertsAsync = ref.watch(weatherAlertsProvider(null));
 
     return FarmScaffold(
-      appBar: AppBar(
-        title: const Text('Weather & Alerts'),
+      appBar: FarmAppBar(
+        title: 'Weather & Alerts',
       ),
       body: CustomScrollView(
         slivers: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -9,6 +10,8 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../data/financial_repository.dart';
+import '../models/financial_transaction.dart';
 import 'financial_screen.dart';
 
 class AddFinancialTransactionScreen extends ConsumerStatefulWidget {
@@ -69,18 +72,43 @@ class _AddFinancialTransactionScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_category == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a category')));
+      return;
+    }
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    ref.invalidate(financialTransactionsProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            '${_type == 'income' ? 'Income' : 'Expense'} recorded successfully'),
-        backgroundColor: const Color(0xFF2E7D32),
-      ),
-    );
-    context.pop();
+    try {
+      final tx = FinancialTransaction(
+        id: 'FT-${DateTime.now().millisecondsSinceEpoch}',
+        date: DateFormat('yyyy-MM-dd').format(_date ?? DateTime.now()),
+        type: _type,
+        category: _category!,
+        description: _descriptionCtrl.text.trim(),
+        amountZar: double.tryParse(_amountCtrl.text) ?? 0.0,
+        reference: _referenceCtrl.text.trim().isEmpty
+            ? null
+            : _referenceCtrl.text.trim(),
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      );
+      await ref.read(financialRepositoryProvider).addFinancialTransaction(tx);
+      ref.invalidate(financialTransactionsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${_type == 'income' ? 'Income' : 'Expense'} recorded successfully'),
+          backgroundColor: const Color(0xFF2E7D32),
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override

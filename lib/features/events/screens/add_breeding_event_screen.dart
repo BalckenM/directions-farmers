@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -10,6 +11,10 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../livestock/providers/livestock_providers.dart';
+import '../data/events_repository.dart';
+import '../models/breeding_event.dart';
+import 'breeding_events_screen.dart';
 
 class AddBreedingEventScreen extends ConsumerStatefulWidget {
   const AddBreedingEventScreen({super.key});
@@ -22,14 +27,20 @@ class AddBreedingEventScreen extends ConsumerStatefulWidget {
 class _AddBreedingEventScreenState
     extends ConsumerState<AddBreedingEventScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _animalIdCtrl = TextEditingController();
+  final _tagCtrl = TextEditingController();
   final _sireIdCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
+  String? _species;
+  String? _selectedAnimalId;
   DateTime? _breedingDate;
   DateTime? _expectedBirthDate;
   String? _breedingMethod;
   bool _submitting = false;
+
+  static const _speciesOptions = [
+    'cattle', 'sheep', 'goats', 'pigs', 'horses',
+  ];
 
   static const _methods = [
     'Natural',
@@ -39,7 +50,7 @@ class _AddBreedingEventScreenState
 
   @override
   void dispose() {
-    _animalIdCtrl.dispose();
+    _tagCtrl.dispose();
     _sireIdCtrl.dispose();
     _notesCtrl.dispose();
     super.dispose();
@@ -47,20 +58,52 @@ class _AddBreedingEventScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_breedingDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select a breeding date')));
+      return;
+    }
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Breeding event saved'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.sm)),
-      ),
-    );
-    context.pop();
+    try {
+      final event = BreedingEvent(
+        id: 'BE-${DateTime.now().millisecondsSinceEpoch}',
+        animalId: _selectedAnimalId ?? _tagCtrl.text.trim(),
+        animalType: _species ?? 'cattle',
+        eventType: 'mating',
+        serviceDate: DateFormat('yyyy-MM-dd').format(_breedingDate!),
+        serviceMethod: _breedingMethod,
+        sireName: _sireIdCtrl.text.trim().isEmpty
+            ? null
+            : _sireIdCtrl.text.trim(),
+        expectedBirthDate: _expectedBirthDate == null
+            ? null
+            : DateFormat('yyyy-MM-dd').format(_expectedBirthDate!),
+        notes:
+            _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      );
+      await ref.read(eventsRepositoryProvider).addBreedingEvent(event);
+      ref.invalidate(breedingEventsProvider);
+      if (_species != null) {
+        ref.invalidate(breedingEventsBySpeciesProvider(_species!));
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Breeding event saved'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm)),
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -83,14 +126,84 @@ class _AddBreedingEventScreenState
             _FormCard(
               title: 'Animal',
               icon: Icons.pets_rounded,
-              child: FarmTextField(
-                controller: _animalIdCtrl,
-                label: 'Animal ID *',
-                hint: 'e.g. C-001',
-                prefixIcon: const Icon(Icons.tag_rounded),
-                textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              child: Column(
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: _species,
+                    decoration: const InputDecoration(
+                      labelText: 'Species *',
+                      prefixIcon: Icon(Icons.category_outlined),
+                    ),
+                    hint: const Text('Select species'),
+                    isExpanded: true,
+                    items: _speciesOptions
+                        .map((s) => DropdownMenuItem(
+                              value: s,
+                              child:
+                                  Text(s[0].toUpperCase() + s.substring(1)),
+                            ))
+                        .toList(),
+                    onChanged: (v) => setState(() {
+                      _species = v;
+                      _selectedAnimalId = null;
+                    }),
+                    validator: (v) => v == null ? 'Select species' : null,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (_species == null)
+                    FarmTextField(
+                      controller: _tagCtrl,
+                      label: 'Animal Tag / ID *',
+                      hint: 'Select species first',
+                      prefixIcon: const Icon(Icons.tag_rounded),
+                      textInputAction: TextInputAction.next,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    )
+                  else
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final animalsAsync =
+                            ref.watch(animalsProvider(_species!));
+                        return animalsAsync.when(
+                          loading: () => const Center(
+                              child: CircularProgressIndicator()),
+                          error: (_, __) => FarmTextField(
+                            controller: _tagCtrl,
+                            label: 'Animal Tag / ID *',
+                            hint: 'e.g. A-001',
+                            prefixIcon: const Icon(Icons.tag_rounded),
+                            textInputAction: TextInputAction.next,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
+                          ),
+                          data: (animals) => DropdownButtonFormField<String>(
+                            value: _selectedAnimalId,
+                            decoration: const InputDecoration(
+                              labelText: 'Select Animal *',
+                              prefixIcon: Icon(Icons.tag_rounded),
+                            ),
+                            hint: const Text('Choose animal'),
+                            isExpanded: true,
+                            items: animals
+                                .map((a) => DropdownMenuItem(
+                                      value: a.id,
+                                      child: Text(
+                                          '${a.tagNumber} — ${a.name}'),
+                                    ))
+                                .toList(),
+                            onChanged: (id) => setState(() {
+                              _selectedAnimalId = id;
+                              _tagCtrl.text = id ?? '';
+                            }),
+                            validator: (v) =>
+                                v == null ? 'Select an animal' : null,
+                          ),
+                        );
+                      },
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: AppSpacing.md),

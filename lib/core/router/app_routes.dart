@@ -73,8 +73,16 @@ abstract final class AppRoutes {
   static const String reports = '/insights/reports';
 
   static const String settingsPaddocks = '/settings/paddocks';
+  static const String settingsBreedRegistry = '/settings/breed-registry';
+  static const String settingsActivityLog = '/settings/activity-log';
+  static const String settingsUnits = '/settings/units';
+  static const String settingsSyncBackup = '/settings/sync-backup';
+  static const String settingsExportData = '/settings/export-data';
+  static const String settingsRegulatoryReports = '/settings/regulatory-reports';
+  static const String settingsHelp = '/settings/help';
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String register = '/register';
   static const String onboarding = '/onboarding';
 
   // ── Crop Farming ──────────────────────────────────────────────────────────────
@@ -96,6 +104,7 @@ abstract final class AppRoutes {
   static const String addCropTask    = '/crop/tasks/add';
   static const String cropWeather    = '/crop/weather';
   static const String cropPests      = '/crop/pests';
+  static const String cropSprayList  = '/crop/pests/sprays';
   static const String sprayDetail    = '/crop/pests/spray/detail';
   static const String addPestObs     = '/crop/pests/add';
   static const String addSprayRecord = '/crop/pests/spray/add';
@@ -253,4 +262,70 @@ abstract final class AppRoutes {
 
   static String editAnimalPath(String species, String id) =>
       '/livestock/$species/$id/edit';
+
+  // ── Auth extras ────────────────────────────────────────────────────────────────
+  static const String mfaChallenge = '/auth/mfa';
+  static const String forgotPassword = '/forgot-password';
+  static const String welcome = '/welcome';
+
+  // ── Payroll module ────────────────────────────────────────────────────────────
+  static const String payrollHub             = '/payroll';
+  static const String payrollEmployees       = '/payroll/employees';
+  static const String payrollAddEmployee     = '/payroll/employees/add';
+  static String payrollEmployeeDetail(String id) => '/payroll/employees/$id';
+  static String payrollEditEmployee(String id) => '/payroll/employees/$id/edit';
+  static const String payrollContracts       = '/payroll/contracts';
+  static String payrollContractDetail(String id) => '/payroll/contracts/$id';
+  static const String payrollPayStructures   = '/payroll/pay-structures';
+  static const String payrollAddPayStructure = '/payroll/pay-structures/add';
+  static String payrollEditPayStructure(String id) => '/payroll/pay-structures/$id/edit';
+  static const String payrollPayGroups       = '/payroll/pay-groups';
+  static const String payrollAddPayGroup     = '/payroll/pay-groups/add';
+  static String payrollEditPayGroup(String id) => '/payroll/pay-groups/$id/edit';
+  static const String payrollAttendance      = '/payroll/attendance';
+  static const String payrollClockIn         = '/payroll/attendance/clock-in';
+  static const String payrollPayRuns         = '/payroll/pay-runs';
+  static const String payrollRunPayroll      = '/payroll/pay-runs/new';
+  static String payrollPayRunDetail(String id) => '/payroll/pay-runs/$id';
+  static const String payrollPayslips        = '/payroll/payslips';
+  static String payrollPayslipDetail(String id) => '/payroll/payslips/$id';
+  static const String payrollLeave           = '/payroll/leave';
+  static const String payrollLeaveRequest    = '/payroll/leave/request';
+  static const String payrollLeaveApproval   = '/payroll/leave/approval';
+  static const String payrollLeaveBalances   = '/payroll/leave/balances';
+  static const String payrollDeductions      = '/payroll/deductions';
+  static const String payrollCompliance      = '/payroll/compliance';
+  static const String payrollDisbursements   = '/payroll/disbursements';
+  static const String payrollReports         = '/payroll/reports';
+  static const String payrollAuditLog        = '/payroll/audit';
+  static const String payrollIncidents       = '/payroll/incidents';
+  static const String payrollCommunications  = '/payroll/communications';
+  static const String payrollRoster               = '/payroll/roster';
+  static const String payrollAddShift              = '/payroll/roster/add-shift';
+  static String payrollEditShift(String id)        => '/payroll/roster/$id/edit';
+  static const String payrollTaskSheet             = '/payroll/roster/task-sheet';
+  static const String payrollAddPieceworkLog       = '/payroll/roster/add-piecework-log';
+  static const String payrollAttendanceExceptions  = '/payroll/attendance/exceptions';
+  static String payrollPayRunApproval(String id)   => '/payroll/pay-runs/$id/approval';
+  static const String payrollUifReturns            = '/payroll/compliance/uif';
+  static const String payrollPaye                  = '/payroll/compliance/paye';
+  static const String payrollCoida                 = '/payroll/compliance/coida';
+  static const String payrollPaymentHistory        = '/payroll/disbursements/history';
+  static const String payrollImportEmployees       = '/payroll/employees/import';
+  static const String payrollGenerateContract      = '/payroll/contracts/generate';
+  static String payrollSignContract(String id)     => '/payroll/contracts/$id/sign';
+  static const String payrollComposeMessage        = '/payroll/communications/compose';
+  static const String payrollEmployerConfig        = '/payroll/settings/employer-config';
+
+  // ── Payroll — additional detail / workflow routes ─────────────────────────
+  static const String payrollGarnisheeOrders       = '/payroll/deductions/garnishee';
+  static const String payrollGarnisheeAdd          = '/payroll/deductions/garnishee/add';
+  static String payrollGarnisheeDetail(String id)  => '/payroll/deductions/garnishee/$id';
+  static String payrollGarnisheeEdit(String id)    => '/payroll/deductions/garnishee/$id/edit';
+  static const String payrollIncidentAdd           = '/payroll/incidents/add';
+  static String payrollIncidentDetail(String id)   => '/payroll/incidents/$id';
+  static String payrollIncidentEdit(String id)     => '/payroll/incidents/$id/edit';
+  static String payrollEmployeeTerminate(String id)=> '/payroll/employees/$id/terminate';
+  static String payrollTransactionDetail(String id)=> '/payroll/disbursements/$id';
+  static String payrollComplianceAlertDetail(String id) => '/payroll/compliance/alerts/$id';
 }

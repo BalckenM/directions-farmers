@@ -7,7 +7,6 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -82,6 +81,7 @@ class SeasonDetailScreen extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 160,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: AppColors.cropGreen,
             foregroundColor: AppColors.onPrimary,
             actions: [

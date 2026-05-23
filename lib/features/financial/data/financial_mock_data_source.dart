@@ -6,7 +6,12 @@ class FinancialMockDataSource implements FinancialDataSource {
   Future<List<FinancialTransaction>> getFinancialTransactions() async =>
       _transactions;
 
-  static const _transactions = [
+  @override
+  Future<void> addFinancialTransaction(FinancialTransaction transaction) async =>
+      _transactions.insert(0, transaction);
+
+  // Mutable in-memory seed data
+  final _transactions = <FinancialTransaction>[
     FinancialTransaction(
       id: 'FT-001',
       date: '2024-04-02',

@@ -93,29 +93,34 @@ class StatCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            value,
-                            style: tt.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: cs.onSurface,
-                              height: 1,
-                            ),
-                          ),
-                          if (unit != null) ...[
-                            const SizedBox(width: 4),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Text(
-                                unit!,
-                                style: tt.bodySmall?.copyWith(
-                                    color: cs.onSurfaceVariant),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              value,
+                              style: tt.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: cs.onSurface,
+                                height: 1,
                               ),
                             ),
+                            if (unit != null) ...[
+                              const SizedBox(width: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Text(
+                                  unit!,
+                                  style: tt.bodySmall?.copyWith(
+                                      color: cs.onSurfaceVariant),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                       if (trend != null) ...[
                         const SizedBox(height: AppSpacing.xs),

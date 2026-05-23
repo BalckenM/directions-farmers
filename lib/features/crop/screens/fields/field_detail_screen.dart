@@ -71,8 +71,65 @@ class FieldDetailScreen extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 160,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.onPrimary,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Edit Field',
+                onPressed: () =>
+                    context.push(AppRoutes.editCropFieldPath(fieldId)),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (v) async {
+                  if (v == 'delete') {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Delete Field'),
+                        content: Text(
+                          'Delete "${field.name}"? This will also remove all associated plans and calendar events. This cannot be undone.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.error),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && context.mounted) {
+                      await ref
+                          .read(cropRepositoryProvider)
+                          .deleteField(fieldId);
+                      ref.invalidate(cropFieldsProvider);
+                      ref.invalidate(cropFieldByIdProvider);
+                      if (context.mounted) context.pop();
+                    }
+                  }
+                },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(Icons.delete_outline,
+                          color: AppColors.error),
+                      title: Text('Delete Field',
+                          style: TextStyle(color: AppColors.error)),
+                      dense: true,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 field.name,

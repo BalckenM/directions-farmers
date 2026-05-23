@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop_task.dart';
@@ -19,30 +20,35 @@ class TaskListScreen extends ConsumerStatefulWidget {
   ConsumerState<TaskListScreen> createState() => _TaskListScreenState();
 }
 
-class _TaskListScreenState extends ConsumerState<TaskListScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+class _TaskListScreenState extends ConsumerState<TaskListScreen> {
+  final _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+  bool _showSearch = false;
 
   static const _tabs = ['All', 'Pending', 'Overdue', 'Completed'];
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  List<CropTask> _applySearch(List<CropTask> tasks) {
+    final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) return tasks;
+    return tasks.where((t) {
+      return t.title.toLowerCase().contains(q) ||
+          (t.description?.toLowerCase().contains(q) ?? false) ||
+          (t.assignedTo?.toLowerCase().contains(q) ?? false);
+    }).toList();
   }
 
   List<CropTask> _filter(List<CropTask> tasks, int tabIndex) {
     return switch (tabIndex) {
-      1 => tasks
-          .where((t) =>
-              t.status == TaskStatus.pending && !t.isOverdue)
-          .toList(),
+      1 =>
+        tasks
+            .where((t) => t.status == TaskStatus.pending && !t.isOverdue)
+            .toList(),
       2 => tasks.where((t) => t.isOverdue).toList(),
       3 => tasks.where((t) => t.isCompleted).toList(),
       _ => tasks,
@@ -55,72 +61,131 @@ class _TaskListScreenState extends ConsumerState<TaskListScreen>
 
     return tasksAsync.when(
       loading: () => FarmScaffold(
-        appBar: AppBar(title: const Text('Farm Tasks')),
+        appBar: FarmAppBar(title: 'Farm Tasks'),
         body: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: LoadingShimmer.list(count: 5),
         ),
       ),
       error: (err, _) => FarmScaffold(
-        appBar: AppBar(title: const Text('Farm Tasks')),
+        appBar: FarmAppBar(title: 'Farm Tasks'),
         body: Center(
-          child: Text('Failed to load tasks',
-              style: Theme.of(context).textTheme.bodyLarge),
+          child: Text(
+            'Failed to load tasks',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
       ),
       data: (tasks) {
-        final overdueCount =
-            tasks.where((t) => t.isOverdue).length;
+        final overdueCount = tasks.where((t) => t.isOverdue).length;
+        final searchedTasks = _applySearch(tasks);
 
-        return FarmScaffold(
-          appBar: AppBar(
-            title: const Text('Farm Tasks'),
-            bottom: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              tabs: _tabs.asMap().entries.map((e) {
-                final idx = e.key;
-                final label = e.value;
-                if (idx == 2 && overdueCount > 0) {
-                  return Tab(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(label),
-                        const SizedBox(width: AppSpacing.xs),
-                        _Badge(count: overdueCount),
-                      ],
+        return DefaultTabController(
+          length: _tabs.length,
+          child: FarmScaffold(
+            appBar: FarmAppBar(
+              title: _showSearch ? '' : 'Farm Tasks',
+              actions: [
+                if (_showSearch)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      child: TextField(
+                        controller: _searchCtrl,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: 'Search tasks…',
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xs,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: AppRadius.chip,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              size: AppSpacing.iconSm,
+                            ),
+                            onPressed: () => setState(() {
+                              _showSearch = false;
+                              _searchQuery = '';
+                              _searchCtrl.clear();
+                            }),
+                          ),
+                        ),
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                      ),
                     ),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.search_outlined),
+                    tooltip: 'Search tasks',
+                    onPressed: () => setState(() => _showSearch = true),
+                  ),
+              ],
+              bottom: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                tabs: _tabs.asMap().entries.map((e) {
+                  final idx = e.key;
+                  final label = e.value;
+                  if (idx == 2 && overdueCount > 0) {
+                    return Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(label),
+                          const SizedBox(width: AppSpacing.xs),
+                          _Badge(count: overdueCount),
+                        ],
+                      ),
+                    );
+                  }
+                  return Tab(text: label);
+                }).toList(),
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              heroTag: 'fab_task_list',
+              onPressed: () => context.push(AppRoutes.addCropTask),
+              child: const Icon(Icons.add),
+            ),
+            body: TabBarView(
+              children: List.generate(_tabs.length, (idx) {
+                final filtered = _filter(searchedTasks, idx);
+                if (filtered.isEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(cropTasksProvider);
+                      ref.invalidate(openCropTasksProvider);
+                      ref.invalidate(overdueCropTasksProvider);
+                      await ref.read(cropTasksProvider(null).future);
+                    },
+                    child: ListView(children: [_EmptyTasks(label: _tabs[idx])]),
                   );
                 }
-                return Tab(text: label);
-              }).toList(),
-            ),
-          ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'fab_task_list',
-            onPressed: () => context.push(AppRoutes.addCropTask),
-            child: const Icon(Icons.add),
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            children: List.generate(
-              _tabs.length,
-              (idx) {
-                final filtered = _filter(tasks, idx);
-                if (filtered.isEmpty) {
-                  return _EmptyTasks(label: _tabs[idx]);
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.sm),
-                  itemBuilder: (context, i) =>
-                      _TaskCard(task: filtered[i]),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(cropTasksProvider);
+                    ref.invalidate(openCropTasksProvider);
+                    ref.invalidate(overdueCropTasksProvider);
+                    await ref.read(cropTasksProvider(null).future);
+                  },
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.sm),
+                    itemBuilder: (context, i) => _TaskCard(task: filtered[i]),
+                  ),
                 );
-              },
+              }),
             ),
           ),
         );
@@ -146,8 +211,7 @@ class _TaskCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: AppRadius.card,
         border: isOverdue
-            ? const Border(
-                left: BorderSide(color: AppColors.error, width: 4))
+            ? const Border(left: BorderSide(color: AppColors.error, width: 4))
             : null,
       ),
       child: Card(
@@ -180,8 +244,9 @@ class _TaskCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         task.title,
-                        style: tt.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
@@ -193,14 +258,17 @@ class _TaskCard extends StatelessWidget {
                 // Due date + status
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined,
-                        size: AppSpacing.iconSm,
-                        color: AppColors.onSurfaceVariant),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: AppSpacing.iconSm,
+                      color: AppColors.onSurfaceVariant,
+                    ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       fmt.format(task.dueDate),
-                      style: tt.bodySmall
-                          ?.copyWith(color: AppColors.onSurfaceVariant),
+                      style: tt.bodySmall?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     _StatusChip(status: task.status),
@@ -208,19 +276,21 @@ class _TaskCard extends StatelessWidget {
                 ),
 
                 // Assigned to
-                if (task.assignedTo != null &&
-                    task.assignedTo!.isNotEmpty) ...[
+                if (task.assignedTo != null && task.assignedTo!.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      const Icon(Icons.person_outline,
-                          size: AppSpacing.iconSm,
-                          color: AppColors.onSurfaceVariant),
+                      const Icon(
+                        Icons.person_outline,
+                        size: AppSpacing.iconSm,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
                         task.assignedTo!,
-                        style: tt.bodySmall
-                            ?.copyWith(color: AppColors.onSurfaceVariant),
+                        style: tt.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -242,34 +312,30 @@ class _PriorityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (priority) {
-      TaskPriority.urgent => (AppColors.errorContainer, AppColors.onErrorContainer),
-      TaskPriority.high => (
-          const Color(0xFFFFE0B2),
-          const Color(0xFF2D1600)
-        ),
-      TaskPriority.medium => (
-          const Color(0xFFFFF8E1),
-          const Color(0xFF4A3800)
-        ),
+      TaskPriority.urgent => (
+        AppColors.errorContainer,
+        AppColors.onErrorContainer,
+      ),
+      TaskPriority.high => (const Color(0xFFFFE0B2), const Color(0xFF2D1600)),
+      TaskPriority.medium => (const Color(0xFFFFF8E1), const Color(0xFF4A3800)),
       TaskPriority.low => (
-          AppColors.surfaceContainerHighest,
-          AppColors.onSurfaceVariant
-        ),
+        AppColors.surfaceContainerHighest,
+        AppColors.onSurfaceVariant,
+      ),
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.chip,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
       ),
+      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.chip),
       child: Text(
         priority.label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: fg,
-              fontWeight: FontWeight.w600,
-            ),
+          color: fg,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -284,37 +350,36 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg) = switch (status) {
       TaskStatus.completed => (
-          AppColors.successContainer,
-          AppColors.onSuccessContainer
-        ),
+        AppColors.successContainer,
+        AppColors.onSuccessContainer,
+      ),
       TaskStatus.overdue => (
-          AppColors.errorContainer,
-          AppColors.onErrorContainer
-        ),
+        AppColors.errorContainer,
+        AppColors.onErrorContainer,
+      ),
       TaskStatus.inProgress => (
-          AppColors.tertiaryContainer,
-          AppColors.onTertiaryContainer
-        ),
+        AppColors.tertiaryContainer,
+        AppColors.onTertiaryContainer,
+      ),
       TaskStatus.delayed => (
-          AppColors.warningContainer,
-          AppColors.onWarningContainer
-        ),
+        AppColors.warningContainer,
+        AppColors.onWarningContainer,
+      ),
       _ => (AppColors.surfaceContainerHighest, AppColors.onSurfaceVariant),
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.chip,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
       ),
+      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.chip),
       child: Text(
         status.label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: fg,
-              fontWeight: FontWeight.w600,
-            ),
+          color: fg,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -329,7 +394,9 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xs, vertical: 2),
+        horizontal: AppSpacing.xs,
+        vertical: 2,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.error,
         borderRadius: AppRadius.chip,
@@ -337,9 +404,9 @@ class _Badge extends StatelessWidget {
       child: Text(
         '$count',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.onError,
-              fontWeight: FontWeight.w700,
-            ),
+          color: AppColors.onError,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -356,15 +423,17 @@ class _EmptyTasks extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.task_alt_outlined,
-              size: AppSpacing.iconXl, color: AppColors.onSurfaceVariant),
+          const Icon(
+            Icons.task_alt_outlined,
+            size: AppSpacing.iconXl,
+            color: AppColors.onSurfaceVariant,
+          ),
           const SizedBox(height: AppSpacing.md),
           Text(
             'No $label tasks',
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: AppColors.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.onSurfaceVariant),
           ),
         ],
       ),

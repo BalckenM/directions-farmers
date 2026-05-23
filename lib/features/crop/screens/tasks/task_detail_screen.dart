@@ -83,6 +83,7 @@ class _TaskDetailView extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 120,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: cs.primaryContainer,
             foregroundColor: cs.onPrimaryContainer,
             flexibleSpace: FlexibleSpaceBar(
@@ -123,10 +124,58 @@ class _TaskDetailView extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Edit Task',
-        onPressed: () => context.push(AppRoutes.addCropTask),
-        child: const Icon(Icons.edit_outlined),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Delete button
+          Consumer(
+            builder: (context, ref, _) => FloatingActionButton(
+              heroTag: 'fab_task_delete',
+              tooltip: 'Delete Task',
+              backgroundColor: AppColors.errorContainer,
+              foregroundColor: AppColors.onErrorContainer,
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Delete Task'),
+                    content: Text(
+                        'Delete "${task.title}"? This cannot be undone.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.error),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true && context.mounted) {
+                  await ref.read(cropRepositoryProvider).deleteTask(task.id);
+                  ref.invalidate(cropTasksProvider);
+                  ref.invalidate(openCropTasksProvider);
+                  ref.invalidate(overdueCropTasksProvider);
+                  if (context.mounted) context.pop();
+                }
+              },
+              child: const Icon(Icons.delete_outline),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          // Edit button
+          FloatingActionButton(
+            heroTag: 'fab_task_edit',
+            tooltip: 'Edit Task',
+            onPressed: () =>
+                context.push(AppRoutes.cropTaskDetailPath(task.id) + '/edit'),
+            child: const Icon(Icons.edit_outlined),
+          ),
+        ],
       ),
     );
   }
@@ -134,13 +183,13 @@ class _TaskDetailView extends StatelessWidget {
 
 // ── Status Card ───────────────────────────────────────────────────────────────
 
-class _StatusCard extends StatelessWidget {
+class _StatusCard extends ConsumerWidget {
   const _StatusCard({required this.task});
 
   final CropTask task;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tt = Theme.of(context).textTheme;
 
     final statuses = [
@@ -193,14 +242,27 @@ class _StatusCard extends StatelessWidget {
                           borderRadius: AppRadius.button,
                         ),
                       ),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Status updated to ${s.label}'),
-                          ),
-                        );
-                      },
+                      onPressed: isActive
+                          ? null
+                          : () async {
+                              final updated = task.copyWith(
+                                status: s,
+                                completedAt: s == TaskStatus.completed
+                                    ? DateTime.now()
+                                    : task.completedAt,
+                              );
+                              await ref
+                                  .read(cropRepositoryProvider)
+                                  .updateTask(updated);
+                              ref.invalidate(cropTasksProvider);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Status updated to ${s.label}')),
+                                );
+                              }
+                            },
                       child: Text(
                         s.label,
                         style: tt.labelSmall,

@@ -1,0 +1,42 @@
+# Firebase App Hosting — configuration for 4Directions Flutter web app
+#
+# Firebase App Hosting's CI/CD clones this repo on every push to the
+# connected branch, runs `scripts.buildCommand`, then starts the server
+# with `scripts.runCommand` on Cloud Run.
+#
+# Because Flutter is not pre-installed in the Cloud Build environment,
+# the buildCommand downloads the SDK before building.
+
+runConfig:
+  runtime: nodejs22
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+  minInstances: 0 # scale to zero when idle (cost-efficient)
+  maxInstances: 10
+
+scripts:
+  # Runs once during deployment build in Cloud Build (Ubuntu).
+  buildCommand: |
+    # ── 1. Download Flutter SDK ──────────────────────────────────────────────
+    curl -fsSLo /tmp/flutter.tar.xz \
+      https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.0-stable.tar.xz
+    mkdir -p "$HOME/flutter-sdk"
+    tar xf /tmp/flutter.tar.xz -C "$HOME/flutter-sdk" --strip-components=1
+    export PATH="$HOME/flutter-sdk/bin:$PATH"
+
+    # ── 2. Disable analytics / telemetry ─────────────────────────────────────
+    flutter config --no-analytics --no-cli-animations
+
+    # ── 3. Install pub dependencies ──────────────────────────────────────────
+    flutter pub get
+
+    # ── 4. Build web release ─────────────────────────────────────────────────
+    #   --release            production mode (minified + tree-shaken)
+    #   --tree-shake-icons   strips unused icon glyphs
+    #   -O4                  dart2js maximum optimisation
+    flutter build web --release --tree-shake-icons -O4
+
+  # Runs at container startup on Cloud Run.
+  # server.js serves the static output from build/web.
+  runCommand: node server.js

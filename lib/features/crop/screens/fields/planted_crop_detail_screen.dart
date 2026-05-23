@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -12,8 +14,6 @@ import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../models/calendar_event.dart';
 import '../../models/crop.dart';
-import '../../models/crop_expense.dart';
-import '../../models/harvest_record.dart';
 import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
 import '../../widgets/crop_illustration.dart';
@@ -114,8 +114,63 @@ class _PlantedCropView extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: AppColors.cropGreen,
             foregroundColor: AppColors.onPrimary,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Edit Plan',
+                onPressed: () =>
+                    context.push(AppRoutes.editPlantingPlan, extra: plan),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (v) async {
+                  if (v == 'delete') {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Delete Planting Plan'),
+                        content: const Text(
+                            'Delete this planting plan? This cannot be undone.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.error),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && context.mounted) {
+                      await ref
+                          .read(cropRepositoryProvider)
+                          .deletePlantingPlan(plan.id);
+                      ref.invalidate(plantingPlansProvider);
+                      if (context.mounted) context.pop();
+                    }
+                  }
+                },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(Icons.delete_outline,
+                          color: AppColors.error),
+                      title: Text('Delete Plan',
+                          style: TextStyle(color: AppColors.error)),
+                      dense: true,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 cropName,

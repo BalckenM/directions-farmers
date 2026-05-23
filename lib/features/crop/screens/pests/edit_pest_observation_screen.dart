@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/date_picker_field.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/pest_observation.dart';
 import '../../providers/crop_providers.dart';
@@ -92,7 +93,7 @@ class _EditPestObservationScreenState
     final fields = fieldsAsync.value ?? [];
 
     return FarmScaffold(
-      appBar: AppBar(title: const Text('Edit Observation')),
+      appBar: FarmAppBar(title: 'Edit Observation'),
       body: Form(
         key: _formKey,
         child: ListView(

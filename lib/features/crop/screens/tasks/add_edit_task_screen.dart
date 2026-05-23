@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/date_picker_field.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_task.dart';
 import '../../providers/crop_providers.dart';
@@ -64,9 +65,10 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     final now = DateTime.now();
     final id = widget.taskId ?? 'task-${now.millisecondsSinceEpoch}';
 
+    final farmId = ref.read(currentFarmIdProvider);
     final task = CropTask(
       id: id,
-      farmId: 'farm-001',
+      farmId: farmId,
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim().isEmpty
           ? null
@@ -101,8 +103,8 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return FarmScaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Task' : 'Add Task'),
+      appBar: FarmAppBar(
+        title: _isEditing ? 'Edit Task' : 'Add Task',
       ),
       body: Form(
         key: _formKey,

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "dr_uif_ee",
+    "code": "UIF_EE",
+    "label": "UIF (Employee)",
+    "type": "statutory",
+    "basis": "percentage",
+    "value": 1.0,
+    "cappedAt": 177.4746,
+    "employeeIds": null,
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "dr_uif_er",
+    "code": "UIF_ER",
+    "label": "UIF (Employer)",
+    "type": "statutory",
+    "basis": "percentage",
+    "value": 1.0,
+    "cappedAt": 177.4746,
+    "employeeIds": null,
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "dr_paye",
+    "code": "PAYE",
+    "label": "PAYE Income Tax",
+    "type": "statutory",
+    "basis": "percentage",
+    "value": 18.0,
+    "cappedAt": null,
+    "employeeIds": null,
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "dr_housing",
+    "code": "HOUSING",
+    "label": "Housing Benefit Deduction",
+    "type": "benefit",
+    "basis": "fixedAmount",
+    "value": 800.0,
+    "cappedAt": null,
+    "employeeIds": ["emp_sipho"],
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000"
+  },
+  {
+    "id": "dr_loan_pieter",
+    "code": "LOAN_01",
+    "label": "Personal Loan Repayment",
+    "type": "voluntary",
+    "basis": "fixedAmount",
+    "value": 500.0,
+    "cappedAt": null,
+    "employeeIds": ["emp_pieter"],
+    "isActive": true,
+    "createdAt": "2026-03-01T00:00:00.000"
+  }
+]

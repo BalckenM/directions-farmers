@@ -21,6 +21,16 @@ class RecordRepository {
       throw UnexpectedFailure(e.toString());
     }
   }
+
+  Future<void> addFeedLog(FeedLog log) async {
+    try {
+      await _source.addFeedLog(log);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw UnexpectedFailure(e.toString());
+    }
+  }
 }
 
 final recordRepositoryProvider = Provider<RecordRepository>((ref) {

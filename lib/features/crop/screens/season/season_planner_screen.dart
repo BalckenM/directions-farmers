@@ -7,10 +7,10 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop_season.dart';
-import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
 
 class SeasonPlannerScreen extends ConsumerStatefulWidget {
@@ -29,8 +29,8 @@ class _SeasonPlannerScreenState extends ConsumerState<SeasonPlannerScreen> {
     final allPlans = plansAsync.value ?? [];
 
     return FarmScaffold(
-      appBar: AppBar(
-        title: const Text('Season Planner'),
+      appBar: FarmAppBar(
+        title: 'Season Planner',
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'fab_season_planner',
@@ -62,33 +62,48 @@ class _SeasonPlannerScreenState extends ConsumerState<SeasonPlannerScreen> {
         ),
         data: (seasons) {
           if (seasons.isEmpty) {
-            return _EmptySeasons(
-              onAdd: () => context.push(AppRoutes.addCropSeason),
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(seasonsProvider);
+                await ref.read(seasonsProvider(null).future);
+              },
+              child: ListView(
+                children: [
+                  _EmptySeasons(onAdd: () => context.push(AppRoutes.addCropSeason)),
+                ],
+              ),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            itemCount: seasons.length,
-            separatorBuilder: (_, _) =>
-                const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final season = seasons[index];
-              final seasonPlans = allPlans
-                  .where((p) => p.seasonId == season.id)
-                  .toList();
-              final fieldCount = seasonPlans.map((p) => p.fieldId).toSet().length;
-              final cropCount = seasonPlans.map((p) => p.cropId).toSet().length;
-              return _SeasonCard(
-                season: season,
-                fieldCount: fieldCount,
-                cropCount: cropCount,
-                onTap: () => context.push(
-                    AppRoutes.cropSeasonDetail, extra: season),
-                onEdit: () =>
-                    context.push(AppRoutes.editCropSeason, extra: season),
-                onDelete: () => _confirmDelete(context, season),
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(seasonsProvider);
+              ref.invalidate(plantingPlansProvider);
+              await ref.read(seasonsProvider(null).future);
             },
+            child: ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              itemCount: seasons.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (context, index) {
+                final season = seasons[index];
+                final seasonPlans = allPlans
+                    .where((p) => p.seasonId == season.id)
+                    .toList();
+                final fieldCount = seasonPlans.map((p) => p.fieldId).toSet().length;
+                final cropCount = seasonPlans.map((p) => p.cropId).toSet().length;
+                return _SeasonCard(
+                  season: season,
+                  fieldCount: fieldCount,
+                  cropCount: cropCount,
+                  onTap: () => context.push(
+                      AppRoutes.cropSeasonDetail, extra: season),
+                  onEdit: () =>
+                      context.push(AppRoutes.editCropSeason, extra: season),
+                  onDelete: () => _confirmDelete(context, season),
+                );
+              },
+            ),
           );
         },
       ),

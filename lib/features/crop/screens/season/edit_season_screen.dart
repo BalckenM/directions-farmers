@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/date_picker_field.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_season.dart';
 import '../../providers/crop_providers.dart';
@@ -85,7 +86,7 @@ class _EditSeasonScreenState extends ConsumerState<EditSeasonScreen> {
     final tt = Theme.of(context).textTheme;
 
     return FarmScaffold(
-      appBar: AppBar(title: const Text('Edit Season')),
+      appBar: FarmAppBar(title: 'Edit Season'),
       body: Form(
         key: _formKey,
         child: ListView(

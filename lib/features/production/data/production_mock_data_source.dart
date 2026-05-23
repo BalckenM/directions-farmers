@@ -14,7 +14,20 @@ class ProductionMockDataSource implements ProductionDataSource {
   @override
   Future<List<WoolRecord>> getWoolRecords() async => _woolRecords;
 
-  static const _milkRecords = [
+  @override
+  Future<void> addMilkRecord(MilkRecord record) async =>
+      _milkRecords.insert(0, record);
+
+  @override
+  Future<void> addEggRecord(EggRecord record) async =>
+      _eggRecords.insert(0, record);
+
+  @override
+  Future<void> addWoolRecord(WoolRecord record) async =>
+      _woolRecords.insert(0, record);
+
+  // Mutable in-memory seed data
+  final _milkRecords = <MilkRecord>[
     MilkRecord(
       id: 'MR-001',
       animalId: 'C-001',
@@ -71,7 +84,8 @@ class ProductionMockDataSource implements ProductionDataSource {
     ),
   ];
 
-  static const _eggRecords = [
+
+  final _eggRecords = <EggRecord>[
     EggRecord(
       id: 'ER-001',
       flockId: 'FL-001',
@@ -110,7 +124,9 @@ class ProductionMockDataSource implements ProductionDataSource {
     ),
   ];
 
-  static const _woolRecords = [
+
+
+  final _woolRecords = <WoolRecord>[
     WoolRecord(
       id: 'WOL-001',
       farmId: 'FARM-001',

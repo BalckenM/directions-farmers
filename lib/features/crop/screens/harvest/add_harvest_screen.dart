@@ -72,9 +72,12 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
     final yield_ = double.parse(_yieldCtrl.text.trim());
     final area = double.parse(_areaCtrl.text.trim());
 
+    // Resolve planId from the active planting plan on the selected field (if any).
+    final allPlans = ref.read(plantingPlansProvider(_selectedField)).value ?? [];
+    final activePlan = allPlans.where((p) => p.isActive).firstOrNull;
     final record = HarvestRecord(
       id: 'harv-${DateTime.now().millisecondsSinceEpoch}',
-      planId: 'plan-unknown',
+      planId: activePlan?.id ?? '',
       fieldId: _selectedField ?? 'fld-unknown',
       cropId: _selectedCrop ?? 'crop-unknown',
       harvestDate: _harvestDate!,

@@ -16,4 +16,16 @@ class EventsRemoteDataSource implements EventsDataSource {
   @override
   Future<List<BreedingEvent>> getBreedingEvents() =>
       throw UnimplementedError('EventsRemoteDataSource.getBreedingEvents not implemented');
+
+  @override
+  Future<void> addHealthEvent(HealthEvent event) =>
+      throw UnimplementedError('EventsRemoteDataSource.addHealthEvent not implemented');
+
+  @override
+  Future<void> addWeightRecord(WeightRecord record) =>
+      throw UnimplementedError('EventsRemoteDataSource.addWeightRecord not implemented');
+
+  @override
+  Future<void> addBreedingEvent(BreedingEvent event) =>
+      throw UnimplementedError('EventsRemoteDataSource.addBreedingEvent not implemented');
 }

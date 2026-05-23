@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop.dart';
@@ -28,20 +29,14 @@ class CropDetailScreen extends ConsumerWidget {
 
     return cropAsync.when(
       loading: () => FarmScaffold(
-        appBar: AppBar(
-          elevation: 0,
-          title: const Text('Loading…'),
-        ),
+        appBar: FarmAppBar(title: 'Loading…'),
         body: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: LoadingShimmer.list(count: 5, itemHeight: 80),
         ),
       ),
       error: (e, _) => FarmScaffold(
-        appBar: AppBar(
-          elevation: 0,
-          title: const Text('Error'),
-        ),
+        appBar: FarmAppBar(title: 'Error'),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -66,10 +61,7 @@ class CropDetailScreen extends ConsumerWidget {
       data: (crop) {
         if (crop == null) {
           return FarmScaffold(
-            appBar: AppBar(
-              elevation: 0,
-              title: const Text('Not Found'),
-            ),
+            appBar: FarmAppBar(title: 'Not Found'),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),

@@ -18,38 +18,30 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="4Directions Farmer — Smart farm management for livestock, crops, and compliance.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2E7D32" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1B5E20" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Smart farming management for South African farmers.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="4D Farmer">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="4Directions Farm">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Open Graph -->
-  <meta property="og:title" content="4Directions Farmer">
-  <meta property="og:description" content="Smart farm management for livestock, crops, and compliance.">
-  <meta property="og:type" content="website">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>4Directions Farmer</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Performance: preload critical resources and warm up CDN connections -->
+  <link rel="preload" href="flutter_bootstrap.js" as="script">
+  <link rel="preload" href="main.dart.js" as="script">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

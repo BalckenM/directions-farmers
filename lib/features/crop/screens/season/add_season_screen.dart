@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/date_picker_field.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop.dart';
@@ -75,8 +76,6 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
     setState(() => _step++);
   }
 
-  void _prevStep() => setState(() => _step--);
-
   Future<void> _save() async {
     final hasAllCrops =
         _selectedFieldIds.every((id) => _fieldCropMap[id] != null);
@@ -95,7 +94,7 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
 
     final season = CropSeason(
       id: seasonId,
-      farmId: 'farm-001',
+      farmId: ref.read(currentFarmIdProvider),
       name: _nameController.text.trim(),
       seasonType: _seasonType,
       startDate: _startDate!,
@@ -145,14 +144,8 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
     final tt = Theme.of(context).textTheme;
 
     return FarmScaffold(
-      appBar: AppBar(
-        title: const Text('New Season'),
-        leading: _step == 0
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _prevStep,
-              ),
+      appBar: FarmAppBar(
+        title: 'New Season',
       ),
       body: Column(
         children: [

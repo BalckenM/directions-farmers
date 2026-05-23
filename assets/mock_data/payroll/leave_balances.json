@@ -1,0 +1,36 @@
+[
+  { "id": "lb_emp_sipho_ANNUAL",   "employeeId": "emp_sipho",   "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 5.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_sipho_SICK",     "employeeId": "emp_sipho",   "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_sipho_MATERNITY","employeeId": "emp_sipho",   "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_sipho_FAMILY",   "employeeId": "emp_sipho",   "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+
+  { "id": "lb_emp_maria_ANNUAL",   "employeeId": "emp_maria",   "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_maria_SICK",     "employeeId": "emp_maria",   "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 3.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_maria_MATERNITY","employeeId": "emp_maria",   "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_maria_FAMILY",   "employeeId": "emp_maria",   "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+
+  { "id": "lb_emp_thabo_ANNUAL",   "employeeId": "emp_thabo",   "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_thabo_SICK",     "employeeId": "emp_thabo",   "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_thabo_MATERNITY","employeeId": "emp_thabo",   "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_thabo_FAMILY",   "employeeId": "emp_thabo",   "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+
+  { "id": "lb_emp_nomsa_ANNUAL",   "employeeId": "emp_nomsa",   "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 0.0, "pending": 2.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_nomsa_SICK",     "employeeId": "emp_nomsa",   "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_nomsa_MATERNITY","employeeId": "emp_nomsa",   "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_nomsa_FAMILY",   "employeeId": "emp_nomsa",   "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+
+  { "id": "lb_emp_bongani_ANNUAL",   "employeeId": "emp_bongani", "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_bongani_SICK",     "employeeId": "emp_bongani", "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_bongani_MATERNITY","employeeId": "emp_bongani", "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_bongani_FAMILY",   "employeeId": "emp_bongani", "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+
+  { "id": "lb_emp_ayanda_ANNUAL",   "employeeId": "emp_ayanda",  "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_ayanda_SICK",     "employeeId": "emp_ayanda",  "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_ayanda_MATERNITY","employeeId": "emp_ayanda",  "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_ayanda_FAMILY",   "employeeId": "emp_ayanda",  "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+
+  { "id": "lb_emp_lindiwe_ANNUAL",   "employeeId": "emp_lindiwe", "leaveTypeId": "lt_annual",   "leaveTypeCode": "ANNUAL",   "leaveTypeName": "Annual Leave",          "totalEntitled": 15.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_lindiwe_SICK",     "employeeId": "emp_lindiwe", "leaveTypeId": "lt_sick",     "leaveTypeCode": "SICK",     "leaveTypeName": "Sick Leave",            "totalEntitled": 30.0, "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_lindiwe_MATERNITY","employeeId": "emp_lindiwe", "leaveTypeId": "lt_maternity","leaveTypeCode": "MATERNITY","leaveTypeName": "Maternity Leave",       "totalEntitled": 120.0,"taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" },
+  { "id": "lb_emp_lindiwe_FAMILY",   "employeeId": "emp_lindiwe", "leaveTypeId": "lt_family",   "leaveTypeCode": "FAMILY",   "leaveTypeName": "Family Responsibility", "totalEntitled": 3.0,  "taken": 0.0, "pending": 0.0, "asOfDate": "2026-05-01T00:00:00.000" }
+]

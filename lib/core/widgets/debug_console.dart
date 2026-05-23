@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../utils/logger.dart';
 
 /// In-app debug console — only rendered in [kDebugMode].
@@ -10,9 +12,14 @@ import '../utils/logger.dart';
 /// A floating bug-icon FAB appears in the bottom-right. Tap to open a full
 /// log viewer sheet with colour-coded entries and tap-to-expand detail.
 class DebugConsoleOverlay extends StatefulWidget {
-  const DebugConsoleOverlay({super.key, required this.child});
+  const DebugConsoleOverlay({
+    super.key,
+    required this.child,
+    required this.navigatorKey,
+  });
 
   final Widget child;
+  final GlobalKey<NavigatorState> navigatorKey;
 
   @override
   State<DebugConsoleOverlay> createState() => _DebugConsoleOverlayState();
@@ -28,7 +35,9 @@ class _DebugConsoleOverlayState extends State<DebugConsoleOverlay> {
     _errorCount = AppLogger.errorCount;
     _sub = AppLogger.stream.listen((entry) {
       if (entry.level == LogLevel.error) {
-        if (mounted) setState(() => _errorCount = AppLogger.errorCount);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _errorCount = AppLogger.errorCount);
+        });
       }
     });
   }
@@ -39,10 +48,12 @@ class _DebugConsoleOverlayState extends State<DebugConsoleOverlay> {
     super.dispose();
   }
 
-  void _openConsole(BuildContext navigatorContext) {
+  void _openConsole() {
     setState(() => _errorCount = 0); // reset badge when opened
+    final ctx = widget.navigatorKey.currentContext;
+    if (ctx == null) return;
     showModalBottomSheet(
-      context: navigatorContext,
+      context: ctx,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
@@ -57,17 +68,13 @@ class _DebugConsoleOverlayState extends State<DebugConsoleOverlay> {
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Stack(
+        fit: StackFit.expand,
         children: [
           widget.child,
           Positioned(
             right: 16,
             bottom: 80, // above bottom nav
-            child: Builder(
-              builder: (ctx) => _DebugFab(
-                errorCount: _errorCount,
-                onTap: () => _openConsole(ctx),
-              ),
-            ),
+            child: _DebugFab(errorCount: _errorCount, onTap: _openConsole),
           ),
         ],
       ),
@@ -166,15 +173,16 @@ class _LogSheetState extends State<_LogSheet> {
     super.dispose();
   }
 
-  List<LogEntry> get _filtered =>
-      _filter == null ? _entries : _entries.where((e) => e.level == _filter).toList();
+  List<LogEntry> get _filtered => _filter == null
+      ? _entries
+      : _entries.where((e) => e.level == _filter).toList();
 
   Color _levelColor(LogLevel l) => switch (l) {
-        LogLevel.debug => Colors.grey.shade400,
-        LogLevel.info => Colors.lightBlueAccent,
-        LogLevel.warning => Colors.orange,
-        LogLevel.error => Colors.redAccent,
-      };
+    LogLevel.debug => Colors.grey.shade400,
+    LogLevel.info => Colors.lightBlueAccent,
+    LogLevel.warning => Colors.orange,
+    LogLevel.error => Colors.redAccent,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -219,23 +227,35 @@ class _LogSheetState extends State<_LogSheet> {
                   const Spacer(),
                   // Copy all errors
                   IconButton(
-                    icon: const Icon(Icons.copy_all, color: Colors.white54, size: 18),
+                    icon: const Icon(
+                      Icons.copy_all,
+                      color: Colors.white54,
+                      size: 18,
+                    ),
                     tooltip: 'Copy errors',
                     onPressed: () {
                       final errors = _entries
                           .where((e) => e.level == LogLevel.error)
-                          .map((e) =>
-                              '[${e.timeStr}][${e.tag ?? '?'}] ${e.message}\n${e.error ?? ''}\n${e.stackTrace ?? ''}')
+                          .map(
+                            (e) =>
+                                '[${e.timeStr}][${e.tag ?? '?'}] ${e.message}\n${e.error ?? ''}\n${e.stackTrace ?? ''}',
+                          )
                           .join('\n---\n');
                       Clipboard.setData(ClipboardData(text: errors));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Errors copied to clipboard')),
+                        const SnackBar(
+                          content: Text('Errors copied to clipboard'),
+                        ),
                       );
                     },
                   ),
                   // Clear
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.white54, size: 18),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.white54,
+                      size: 18,
+                    ),
                     tooltip: 'Clear logs',
                     onPressed: () {
                       AppLogger.clear();
@@ -252,20 +272,36 @@ class _LogSheetState extends State<_LogSheet> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
-                  _FilterChip(label: 'All', selected: _filter == null, color: Colors.white70,
-                      onTap: () => setState(() => _filter = null)),
-                  _FilterChip(label: '🔍 Debug', selected: _filter == LogLevel.debug,
-                      color: _levelColor(LogLevel.debug),
-                      onTap: () => setState(() => _filter = LogLevel.debug)),
-                  _FilterChip(label: 'ℹ️ Info', selected: _filter == LogLevel.info,
-                      color: _levelColor(LogLevel.info),
-                      onTap: () => setState(() => _filter = LogLevel.info)),
-                  _FilterChip(label: '⚠️ Warn', selected: _filter == LogLevel.warning,
-                      color: _levelColor(LogLevel.warning),
-                      onTap: () => setState(() => _filter = LogLevel.warning)),
-                  _FilterChip(label: '🔴 Error', selected: _filter == LogLevel.error,
-                      color: _levelColor(LogLevel.error),
-                      onTap: () => setState(() => _filter = LogLevel.error)),
+                  _FilterChip(
+                    label: 'All',
+                    selected: _filter == null,
+                    color: Colors.white70,
+                    onTap: () => setState(() => _filter = null),
+                  ),
+                  _FilterChip(
+                    label: '🔍 Debug',
+                    selected: _filter == LogLevel.debug,
+                    color: _levelColor(LogLevel.debug),
+                    onTap: () => setState(() => _filter = LogLevel.debug),
+                  ),
+                  _FilterChip(
+                    label: 'ℹ️ Info',
+                    selected: _filter == LogLevel.info,
+                    color: _levelColor(LogLevel.info),
+                    onTap: () => setState(() => _filter = LogLevel.info),
+                  ),
+                  _FilterChip(
+                    label: '⚠️ Warn',
+                    selected: _filter == LogLevel.warning,
+                    color: _levelColor(LogLevel.warning),
+                    onTap: () => setState(() => _filter = LogLevel.warning),
+                  ),
+                  _FilterChip(
+                    label: '🔴 Error',
+                    selected: _filter == LogLevel.error,
+                    color: _levelColor(LogLevel.error),
+                    onTap: () => setState(() => _filter = LogLevel.error),
+                  ),
                 ],
               ),
             ),
@@ -319,10 +355,10 @@ class _LogTileState extends State<_LogTile> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: widget.levelColor, width: 3),
-          ),
-          color: _expanded ? Colors.white.withValues(alpha: 0.04) : Colors.transparent,
+          border: Border(left: BorderSide(color: widget.levelColor, width: 3)),
+          color: _expanded
+              ? Colors.white.withValues(alpha: 0.04)
+              : Colors.transparent,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +377,10 @@ class _LogTileState extends State<_LogTile> {
                 if (e.tag != null) ...[
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
                       color: widget.levelColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),

@@ -117,7 +117,7 @@ class _HerdCategory {
 
 const _kCategories = [
   _HerdCategory(
-    label: 'Ruminants',
+    label: 'Herd Cattle',
     description: 'Grazing & browsing livestock',
     emoji: '🐄',
     species: ['cattle', 'sheep', 'goats'],

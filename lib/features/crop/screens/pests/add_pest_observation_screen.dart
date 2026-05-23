@@ -1,10 +1,14 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/date_picker_field.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/pest_observation.dart';
 import '../../providers/crop_providers.dart';
@@ -29,7 +33,48 @@ class _AddPestObservationScreenState
   String _category = 'pest';
   String _severity = 'moderate';
   DateTime? _followUpDate;
+  File? _pickedImage;
   bool _saving = false;
+
+  final _imagePicker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picked = await _imagePicker.pickImage(
+      source: source,
+      maxWidth: 1600,
+      imageQuality: 85,
+    );
+    if (picked != null) setState(() => _pickedImage = File(picked.path));
+  }
+
+  void _showImageSourceSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   static const _categories = ['pest', 'disease', 'weed'];
   static const _severities = ['low', 'moderate', 'high', 'critical'];
@@ -68,6 +113,7 @@ class _AddPestObservationScreenState
           : _recommendedActionController.text.trim(),
       followUpDate: _followUpDate,
       status: 'open',
+      imageUrl: _pickedImage?.path,
     );
 
     try {
@@ -88,8 +134,8 @@ class _AddPestObservationScreenState
     final fieldsAsync = ref.watch(cropFieldsProvider(null));
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text('Log Observation'),
+      appBar: FarmAppBar(
+        title: 'Log Observation',
       ),
       body: Form(
         key: _formKey,
@@ -177,6 +223,14 @@ class _AddPestObservationScreenState
             ),
             const SizedBox(height: AppSpacing.md),
 
+            // ── Photo evidence ───────────────────────────────────────────
+            _ImagePickerCard(
+              image: _pickedImage,
+              onTap: _showImageSourceSheet,
+              onRemove: () => setState(() => _pickedImage = null),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
             // ── Recommended action ───────────────────────────────────────
             TextFormField(
               controller: _recommendedActionController,
@@ -254,5 +308,83 @@ class _AddPestObservationScreenState
         'high' => 'High',
         _ => 'Critical',
       };
+}
+
+// ── Image Picker Card ─────────────────────────────────────────────────────────
+
+class _ImagePickerCard extends StatelessWidget {
+  const _ImagePickerCard({
+    required this.image,
+    required this.onTap,
+    required this.onRemove,
+  });
+
+  final File? image;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    if (image != null) {
+      return Stack(
+        children: [
+          ClipRRect(
+            borderRadius: AppRadius.card,
+            child: Image.file(
+              image!,
+              height: 180,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: AppSpacing.xs,
+            right: AppSpacing.xs,
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.error,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.close,
+                    size: 16, color: AppColors.onError),
+                onPressed: onRemove,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.card,
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: AppRadius.card,
+          border: Border.all(
+            color: cs.outlineVariant,
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo_outlined,
+                size: AppSpacing.iconLg, color: cs.onSurfaceVariant),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Add Photo Evidence (optional)',
+              style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 

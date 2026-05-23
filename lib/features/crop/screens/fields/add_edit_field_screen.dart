@@ -90,9 +90,10 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
     final repo = ref.read(cropRepositoryProvider);
     final id = widget.fieldId ?? 'fld-${DateTime.now().millisecondsSinceEpoch}';
 
+    final farmId = ref.read(currentFarmIdProvider);
     final field = CropField(
       id: id,
-      farmId: 'farm-001',
+      farmId: farmId,
       name: _nameCtrl.text.trim(),
       sizeHectares: double.parse(_sizeCtrl.text.trim()),
       soilType: _soilType!,

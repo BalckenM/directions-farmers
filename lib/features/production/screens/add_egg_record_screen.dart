@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -11,6 +12,10 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../livestock/providers/groups_provider.dart';
+import '../data/production_repository.dart';
+import '../models/egg_record.dart';
+import 'egg_records_screen.dart';
 
 class AddEggRecordScreen extends ConsumerStatefulWidget {
   const AddEggRecordScreen({super.key});
@@ -22,11 +27,11 @@ class AddEggRecordScreen extends ConsumerStatefulWidget {
 
 class _AddEggRecordScreenState extends ConsumerState<AddEggRecordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _flockCtrl = TextEditingController();
   final _collectedCtrl = TextEditingController();
   final _brokenCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
+  String? _selectedGroupId;
   DateTime? _collectionDate;
   String? _session;
   String? _grade;
@@ -37,7 +42,6 @@ class _AddEggRecordScreenState extends ConsumerState<AddEggRecordScreen> {
 
   @override
   void dispose() {
-    _flockCtrl.dispose();
     _collectedCtrl.dispose();
     _brokenCtrl.dispose();
     _notesCtrl.dispose();
@@ -46,20 +50,43 @@ class _AddEggRecordScreenState extends ConsumerState<AddEggRecordScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_collectionDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Select a collection date')));
+      return;
+    }
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Egg record saved'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.sm)),
-      ),
-    );
-    context.pop();
+    try {
+      final record = EggRecord(
+        id: 'ER-${DateTime.now().millisecondsSinceEpoch}',
+        flockId: _selectedGroupId ?? '',
+        collectionDate: DateFormat('yyyy-MM-dd').format(_collectionDate!),
+        collectionSession: _session ?? 'Morning',
+        eggsCollected: int.tryParse(_collectedCtrl.text) ?? 0,
+        eggsBroken: _brokenCtrl.text.trim().isEmpty
+            ? null
+            : int.tryParse(_brokenCtrl.text),
+      );
+      await ref.read(productionRepositoryProvider).addEggRecord(record);
+      ref.invalidate(eggRecordsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Egg record saved'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.sm)),
+        ),
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -82,14 +109,40 @@ class _AddEggRecordScreenState extends ConsumerState<AddEggRecordScreen> {
             _FormCard(
               title: 'Flock',
               icon: Icons.egg_outlined,
-              child: FarmTextField(
-                controller: _flockCtrl,
-                label: 'Flock / Tag ID *',
-                hint: 'e.g. P-001',
-                prefixIcon: const Icon(Icons.tag_rounded),
-                textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final groupsAsync = ref.watch(groupsProvider);
+                  return groupsAsync.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (groups) {
+                      final flocks = groups
+                          .where((g) =>
+                              g.species.toLowerCase() == 'poultry')
+                          .toList();
+                      return DropdownButtonFormField<String>(
+                        value: _selectedGroupId,
+                        decoration: const InputDecoration(
+                          labelText: 'Select Flock *',
+                          prefixIcon: Icon(Icons.group_outlined),
+                        ),
+                        hint: const Text('Choose flock'),
+                        isExpanded: true,
+                        items: (flocks.isEmpty ? groups : flocks)
+                            .map((g) => DropdownMenuItem(
+                                  value: g.id,
+                                  child: Text(g.name),
+                                ))
+                            .toList(),
+                        onChanged: (id) =>
+                            setState(() => _selectedGroupId = id),
+                        validator: (v) =>
+                            v == null ? 'Select a flock' : null,
+                      );
+                    },
+                  );
+                },
               ),
             ),
             const SizedBox(height: AppSpacing.md),

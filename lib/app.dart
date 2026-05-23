@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'core/providers/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/services/notification_service.dart';
@@ -49,9 +50,11 @@ class _AppState extends ConsumerState<App> {
       themeMode: themeMode,
       routerConfig: router,
       builder: kDebugMode
-          ? (context, child) => DebugConsoleOverlay(child: child!)
+          ? (context, child) => DebugConsoleOverlay(
+              navigatorKey: router.routerDelegate.navigatorKey,
+              child: child!,
+            )
           : null,
     );
   }
 }
-

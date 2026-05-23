@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
@@ -8,18 +12,19 @@ import '../providers/auth_provider.dart';
 /// Shown on cold start for ~1.8 s, then routes based on auth state.
 /// If logged in  → Dashboard
 /// If not logged in → Onboarding (first use) / Login (returning)
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen>
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animCtrl;
   late final Animation<double> _scaleAnim;
   late final Animation<double> _fadeAnim;
+  Timer? _navTimer;
 
   @override
   void initState() {
@@ -29,9 +34,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _scaleAnim = Tween<double>(begin: 0.72, end: 1.0).animate(
-      CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutBack),
-    );
+    _scaleAnim = Tween<double>(
+      begin: 0.72,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutBack));
     _fadeAnim = CurvedAnimation(
       parent: _animCtrl,
       curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
@@ -39,21 +45,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _animCtrl.forward();
 
-    // After animation settle, check auth and navigate
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      if (!mounted) return;
-      final isLoggedIn = ref.read(authProvider);
-      if (isLoggedIn) {
-        context.go(AppRoutes.dashboard);
-      } else {
-        final hasOnboarded = ref.read(onboardingDoneProvider);
-        context.go(hasOnboarded ? AppRoutes.login : AppRoutes.onboarding);
-      }
-    });
+    // On web the HTML splash already covered the branding — navigate as soon
+    // as auth resolves (no extra delay).  On mobile keep the 1800 ms for UX.
+    final delay = kIsWeb ? Duration.zero : const Duration(milliseconds: 1800);
+    _navTimer = Timer(delay, _navigateAfterSplash);
+  }
+
+  Future<void> _navigateAfterSplash() async {
+    if (!mounted) return;
+    final container = ProviderScope.containerOf(context);
+    final authState = await container.read(authProvider.future);
+    if (!mounted) return;
+    if (authState.isAuthenticated) {
+      context.go(AppRoutes.dashboard);
+    } else {
+      final hasOnboarded = container.read(onboardingDoneProvider);
+      context.go(hasOnboarded ? AppRoutes.login : AppRoutes.onboarding);
+    }
   }
 
   @override
   void dispose() {
+    _navTimer?.cancel();
     _animCtrl.dispose();
     super.dispose();
   }

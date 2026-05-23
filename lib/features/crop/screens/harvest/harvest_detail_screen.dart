@@ -32,8 +32,6 @@ class HarvestDetailScreen extends ConsumerWidget {
         .firstOrNull ?? record.fieldId;
 
     final dateFmt     = DateFormat('dd MMM yyyy');
-    final currencyFmt =
-        NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 0);
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
 
@@ -49,6 +47,7 @@ class HarvestDetailScreen extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 140,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: AppColors.success,
             foregroundColor: AppColors.onPrimary,
             actions: [

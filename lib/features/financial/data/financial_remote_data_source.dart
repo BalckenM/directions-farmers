@@ -5,4 +5,8 @@ class FinancialRemoteDataSource implements FinancialDataSource {
   @override
   Future<List<FinancialTransaction>> getFinancialTransactions() =>
       throw UnimplementedError('FinancialRemoteDataSource.getFinancialTransactions not implemented');
+
+  @override
+  Future<void> addFinancialTransaction(FinancialTransaction transaction) =>
+      throw UnimplementedError('FinancialRemoteDataSource.addFinancialTransaction not implemented');
 }

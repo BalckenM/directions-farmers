@@ -79,7 +79,7 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
 
     final sale = CropSale(
       id: 'sale-${DateTime.now().millisecondsSinceEpoch}',
-      farmId: 'farm-001',
+      farmId: ref.read(currentFarmIdProvider),
       cropId: _selectedCrop!,
       saleDate: _saleDate,
       quantityTons: qty,

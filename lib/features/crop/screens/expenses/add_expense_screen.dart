@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_expense.dart';
 import '../../providers/crop_providers.dart';
@@ -56,7 +57,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     final repo = ref.read(cropRepositoryProvider);
     final expense = CropExpense(
       id: 'exp-${DateTime.now().millisecondsSinceEpoch}',
-      farmId: 'farm-001',
+      farmId: ref.read(currentFarmIdProvider),
       category: _category,
       description: _descriptionController.text.trim(),
       amountZar: double.parse(_amountController.text.trim()),
@@ -90,8 +91,8 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text('Add Expense'),
+      appBar: FarmAppBar(
+        title: 'Add Expense',
       ),
       body: Form(
         key: _formKey,

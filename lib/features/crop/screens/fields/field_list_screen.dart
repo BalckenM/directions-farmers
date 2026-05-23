@@ -60,27 +60,45 @@ class FieldListScreen extends ConsumerWidget {
         ),
         data: (fields) {
           if (fields.isEmpty) {
-            return _EmptyFieldsState(
-              onAddField: () => context.push(AppRoutes.addCropField),
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(cropFieldsProvider);
+                ref.invalidate(plantingPlansProvider);
+                await ref.read(cropFieldsProvider(null).future);
+              },
+              child: ListView(
+                children: [
+                  _EmptyFieldsState(
+                    onAddField: () => context.push(AppRoutes.addCropField),
+                  ),
+                ],
+              ),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.md,
-            ),
-            itemCount: fields.length,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) {
-              final field = fields[index];
-              return _FieldCard(
-                field: field,
-                activePlans: fieldPlans[field.id] ?? [],
-                cropNames: cropNames,
-                onTap: () =>
-                    context.push(AppRoutes.cropFieldDetailPath(field.id)),
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(cropFieldsProvider);
+              ref.invalidate(plantingPlansProvider);
+              await ref.read(cropFieldsProvider(null).future);
             },
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.md,
+              ),
+              itemCount: fields.length,
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (context, index) {
+                final field = fields[index];
+                return _FieldCard(
+                  field: field,
+                  activePlans: fieldPlans[field.id] ?? [],
+                  cropNames: cropNames,
+                  onTap: () =>
+                      context.push(AppRoutes.cropFieldDetailPath(field.id)),
+                );
+              },
+            ),
           );
         },
       ),

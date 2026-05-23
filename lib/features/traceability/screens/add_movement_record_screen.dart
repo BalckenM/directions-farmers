@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -11,7 +12,9 @@ import '../../../shared/widgets/farm_dropdown.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../data/traceability_repository.dart';
 import '../models/movement_record.dart';
+import 'movement_records_screen.dart';
 
 class AddMovementRecordScreen extends ConsumerStatefulWidget {
   const AddMovementRecordScreen({super.key});
@@ -80,20 +83,59 @@ class _AddMovementRecordScreenState
       return;
     }
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('B313 movement record saved'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    try {
+      final record = MovementRecord(
+        id: 'MR-${DateTime.now().millisecondsSinceEpoch}',
+        farmId: 'FARM-001',
+        movementDate: DateFormat('yyyy-MM-dd').format(_movementDate!),
+        species: _species ?? 'cattle',
+        animalIds: const [],
+        movementType: _movementType!,
+        fromLocation: _fromLocationCtrl.text.trim(),
+        toLocation: _toLocationCtrl.text.trim(),
+        fromFarmRegistrationNo: _fromRegNoCtrl.text.trim().isEmpty
+            ? null
+            : _fromRegNoCtrl.text.trim(),
+        toFarmRegistrationNo:
+            _toRegNoCtrl.text.trim().isEmpty ? null : _toRegNoCtrl.text.trim(),
+        transporterName: _transporterCtrl.text.trim().isEmpty
+            ? null
+            : _transporterCtrl.text.trim(),
+        vehicleRegNo: _vehicleRegCtrl.text.trim().isEmpty
+            ? null
+            : _vehicleRegCtrl.text.trim(),
+        permitNumber: _permitNoCtrl.text.trim().isEmpty
+            ? null
+            : _permitNoCtrl.text.trim(),
+        veterinaryHealthCertRef: _vetCertCtrl.text.trim().isEmpty
+            ? null
+            : _vetCertCtrl.text.trim(),
+        rmisSubmitted: _rmisSubmitted,
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      );
+      await ref
+          .read(traceabilityRepositoryProvider)
+          .addMovementRecord(record);
+      ref.invalidate(movementRecordsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('B313 movement record saved'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
-      ),
-    );
-    context.pop();
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override

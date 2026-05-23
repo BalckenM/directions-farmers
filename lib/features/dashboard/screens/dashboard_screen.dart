@@ -642,7 +642,15 @@ class _QuickActionsSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              const Expanded(child: SizedBox()),
+              Expanded(
+                child: _QuickActionTile(
+                  icon: Icons.payments_rounded,
+                  label: 'Payroll',
+                  sublabel: 'Employees & wages',
+                  color: const Color(0xFF7B1FA2),
+                  onTap: () => context.push(AppRoutes.payrollHub),
+                ),
+              ),
             ],
           ),
         ],

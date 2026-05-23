@@ -7,6 +7,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -30,8 +31,8 @@ class _HarvestLogScreenState extends ConsumerState<HarvestLogScreen> {
     final fieldNames = <String, String>{for (final f in fieldsAsync.value ?? []) f.id: f.name};
 
     return FarmScaffold(
-      appBar: AppBar(
-        title: const Text('Harvest Records'),
+      appBar: FarmAppBar(
+        title: 'Harvest Records',
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addCropHarvest),
@@ -60,7 +61,12 @@ class _HarvestLogScreenState extends ConsumerState<HarvestLogScreen> {
                   records.length;
           final seasons = records.map((r) => r.planId).toSet().length;
 
-          return CustomScrollView(
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(harvestRecordsProvider);
+              await ref.read(harvestRecordsProvider(null).future);
+            },
+            child: CustomScrollView(
             slivers: [
               // ── Summary card ───────────────────────────────────────────
               SliverToBoxAdapter(
@@ -169,6 +175,7 @@ class _HarvestLogScreenState extends ConsumerState<HarvestLogScreen> {
                   ),
                 ),
             ],
+            ),
           );
         },
       ),

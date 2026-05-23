@@ -1,0 +1,44 @@
+[
+  {
+    "id": "ca_nmwa_ayanda",
+    "code": "NMWA_BREACH",
+    "title": "NMWA Potential Breach — Ayanda Cele",
+    "description": "Daily rate of R220 equates to R27.50/hr (÷8hrs). This is above NMWA (R25.42/hr). Verify actual hours worked — ensure total hours do not inflate effective hourly rate below NMWA.",
+    "severity": "warning",
+    "employeeId": "emp_ayanda",
+    "payRunId": null,
+    "isResolved": false,
+    "resolvedByUserId": null,
+    "resolvedAt": null,
+    "resolution": null,
+    "raisedAt": "2026-05-20T00:00:00.000"
+  },
+  {
+    "id": "ca_contract_bongani",
+    "code": "CONTRACT_EXPIRED",
+    "title": "Expired Contract — Bongani Khumalo",
+    "description": "Contract ct_bongani expired on 31 July 2024. Employee is still active. A new or renewed contract is required.",
+    "severity": "critical",
+    "employeeId": "emp_bongani",
+    "payRunId": null,
+    "isResolved": false,
+    "resolvedByUserId": null,
+    "resolvedAt": null,
+    "resolution": null,
+    "raisedAt": "2024-08-01T00:00:00.000"
+  },
+  {
+    "id": "ca_uif_lindiwe",
+    "code": "UIF_MISSING_BANK",
+    "title": "Missing Bank Details — Lindiwe Mokoena",
+    "description": "UIF registration requires a bank account number. Lindiwe Mokoena has no bank details on file.",
+    "severity": "warning",
+    "employeeId": "emp_lindiwe",
+    "payRunId": null,
+    "isResolved": false,
+    "resolvedByUserId": null,
+    "resolvedAt": null,
+    "resolution": null,
+    "raisedAt": "2026-03-15T00:00:00.000"
+  }
+]

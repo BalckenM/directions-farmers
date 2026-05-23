@@ -70,7 +70,33 @@ class FarmAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       title: titleWidget,
-      leading: leading ?? (context.canPop() ? BackButton(onPressed: context.pop) : null),
+      leading: leading ?? Builder(
+        builder: (ctx) {
+          final hasDrawer = Scaffold.maybeOf(ctx)?.hasDrawer ?? false;
+          // Use Navigator.canPop — reliable for both GoRouter push and
+          // standard Navigator pushes. GoRouter's ctx.canPop() returns false
+          // for top-level routes even when pushed on top of the shell.
+          if (Navigator.canPop(ctx)) {
+            return BackButton(
+              onPressed: () {
+                if (ctx.canPop()) {
+                  ctx.pop();
+                } else {
+                  Navigator.of(ctx).pop();
+                }
+              },
+            );
+          }
+          if (hasDrawer) {
+            return IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              tooltip: 'Open menu',
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
       centerTitle: centerTitle,
       actions: resolvedActions.isEmpty ? null : resolvedActions,
       bottom: bottom,

@@ -43,6 +43,36 @@ class EventsRepository {
       throw Failure.fromException(UnexpectedException(e.toString()));
     }
   }
+
+  Future<void> addHealthEvent(HealthEvent event) async {
+    try {
+      await _source.addHealthEvent(event);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
+
+  Future<void> addWeightRecord(WeightRecord record) async {
+    try {
+      await _source.addWeightRecord(record);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
+
+  Future<void> addBreedingEvent(BreedingEvent event) async {
+    try {
+      await _source.addBreedingEvent(event);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw Failure.fromException(UnexpectedException(e.toString()));
+    }
+  }
 }
 
 final eventsRepositoryProvider = Provider<EventsRepository>((ref) {

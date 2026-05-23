@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -11,7 +12,10 @@ import '../../../shared/widgets/farm_dropdown.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../livestock/providers/livestock_providers.dart';
+import '../data/production_repository.dart';
 import '../models/wool_record.dart';
+import 'wool_records_screen.dart';
 
 class AddWoolRecordScreen extends ConsumerStatefulWidget {
   const AddWoolRecordScreen({super.key});
@@ -39,11 +43,15 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
   final _notesCtrl = TextEditingController();
 
   // State
+  String? _species;
+  String? _selectedAnimalId;
   DateTime? _shearingDate;
   WoolColorGrade? _colorGrade;
   WoolBuyer? _woolBuyer;
   bool _isMohair = false;
   bool _submitting = false;
+
+  static const _speciesOptions = ['sheep', 'goats'];
 
   @override
   void dispose() {
@@ -71,21 +79,69 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
       return;
     }
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text(_isMohair ? 'Mohair record saved' : 'Wool record saved'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    try {
+      final record = WoolRecord(
+        id: 'WR-${DateTime.now().millisecondsSinceEpoch}',
+        farmId: 'FARM-001',
+        shearingDate: DateFormat('yyyy-MM-dd').format(_shearingDate!),
+        greasyFleeceWeightKg: double.tryParse(_gfwCtrl.text) ?? 0.0,
+        animalId: _selectedAnimalId ?? (_animalIdCtrl.text.trim().isEmpty
+            ? null
+            : _animalIdCtrl.text.trim()),
+        animalType: _species,
+        skirtedWeightKg: _skirtedCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_skirtedCtrl.text),
+        woolMicron: _micronCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_micronCtrl.text),
+        stapleLengthMm: _stapleLenCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_stapleLenCtrl.text),
+        stapleStrengthNktex: _stapleStrCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_stapleStrCtrl.text),
+        vegetableMatterPct: _vmCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_vmCtrl.text),
+        yieldPct: _yieldCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_yieldCtrl.text),
+        colorGrade: _colorGrade,
+        woolBuyer: _woolBuyer,
+        pricePerKgZar: _priceCtrl.text.trim().isEmpty
+            ? null
+            : double.tryParse(_priceCtrl.text),
+        baleNumber: _baleCtrl.text.trim().isEmpty
+            ? null
+            : _baleCtrl.text.trim(),
+        isMohair: _isMohair,
+        notes: _notesCtrl.text.trim().isEmpty
+            ? null
+            : _notesCtrl.text.trim(),
+      );
+      await ref.read(productionRepositoryProvider).addWoolRecord(record);
+      ref.invalidate(woolRecordsProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              _isMohair ? 'Mohair record saved' : 'Wool record saved'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
-      ),
-    );
-    context.pop();
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -132,13 +188,77 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
               icon: Icons.pets_rounded,
               child: Column(
                 children: [
-                  FarmTextField(
-                    controller: _animalIdCtrl,
-                    label: 'Animal Tag / ID',
-                    hint: 'e.g. S-042 or leave blank for group',
-                    prefixIcon: const Icon(Icons.tag_rounded),
-                    textInputAction: TextInputAction.next,
+                  DropdownButtonFormField<String>(
+                    value: _species,
+                    decoration: const InputDecoration(
+                      labelText: 'Species',
+                      prefixIcon: Icon(Icons.category_outlined),
+                    ),
+                    hint: const Text('Select species'),
+                    isExpanded: true,
+                    items: _speciesOptions
+                        .map((s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(
+                                  s[0].toUpperCase() + s.substring(1)),
+                            ))
+                        .toList(),
+                    onChanged: (v) => setState(() {
+                      _species = v;
+                      _selectedAnimalId = null;
+                    }),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (_species == null)
+                    FarmTextField(
+                      controller: _animalIdCtrl,
+                      label: 'Animal Tag / ID',
+                      hint: 'e.g. S-042 or leave blank for group',
+                      prefixIcon: const Icon(Icons.tag_rounded),
+                      textInputAction: TextInputAction.next,
+                    )
+                  else
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final animalsAsync =
+                            ref.watch(animalsProvider(_species!));
+                        return animalsAsync.when(
+                          loading: () => const Center(
+                              child: CircularProgressIndicator()),
+                          error: (_, __) => FarmTextField(
+                            controller: _animalIdCtrl,
+                            label: 'Animal Tag / ID',
+                            hint: 'e.g. S-042 or leave blank for group',
+                            prefixIcon: const Icon(Icons.tag_rounded),
+                            textInputAction: TextInputAction.next,
+                          ),
+                          data: (animals) =>
+                              DropdownButtonFormField<String>(
+                            value: _selectedAnimalId,
+                            decoration: const InputDecoration(
+                              labelText: 'Select Animal (optional)',
+                              prefixIcon: Icon(Icons.tag_rounded),
+                            ),
+                            hint: const Text('Choose animal or leave blank'),
+                            isExpanded: true,
+                            items: [
+                              const DropdownMenuItem(
+                                  value: null,
+                                  child: Text('— Group shearing —')),
+                              ...animals.map((a) => DropdownMenuItem(
+                                    value: a.id,
+                                    child: Text(
+                                        '${a.tagNumber} — ${a.name}'),
+                                  )),
+                            ],
+                            onChanged: (id) => setState(() {
+                              _selectedAnimalId = id;
+                              _animalIdCtrl.text = id ?? '';
+                            }),
+                          ),
+                        );
+                      },
+                    ),
                   const SizedBox(height: AppSpacing.md),
                   DatePickerField(
                     label: 'Shearing Date *',

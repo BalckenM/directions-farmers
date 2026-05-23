@@ -50,4 +50,9 @@ abstract final class AppConstants {
   static const Duration animSlow = Duration(milliseconds: 500);
   static const Duration animShimmer = Duration(milliseconds: 1200);
   static const Duration animCounter = Duration(milliseconds: 800);
+
+
+  // ── Feature slug constants ────────────────────────────────────────────────────
+  static const String featureAgriculture = 'agriculture';
+  static const String featureLeave = 'leave';
 }

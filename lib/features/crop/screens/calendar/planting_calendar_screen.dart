@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -22,22 +24,7 @@ class PlantingCalendarScreen extends ConsumerStatefulWidget {
 }
 
 class _PlantingCalendarScreenState
-    extends ConsumerState<PlantingCalendarScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+    extends ConsumerState<PlantingCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final eventsAsync = ref.watch(calendarEventsProvider(null));
@@ -46,58 +33,73 @@ class _PlantingCalendarScreenState
       for (final f in fieldsAsync.value ?? []) f.id: f.name,
     };
 
-    return FarmScaffold(
-      appBar: AppBar(
-        title: const Text('Planting Calendar'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.calendar_view_month_rounded, size: 18), text: 'Seasons'),
-            Tab(icon: Icon(Icons.upcoming_rounded, size: 18), text: 'Upcoming'),
-            Tab(icon: Icon(Icons.list_alt_rounded, size: 18), text: 'Activities'),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          useSafeArea: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (_) => const _AddEventSheet(),
-        ),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Activity'),
-      ),
-      body: eventsAsync.when(
-        loading: () => Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: LoadingShimmer.list(count: 6),
-        ),
-        error: (err, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline,
-                  size: AppSpacing.iconXl, color: AppColors.error),
-              const SizedBox(height: AppSpacing.sm),
-              Text('Failed to load calendar events',
-                  style: Theme.of(context).textTheme.bodyLarge),
+    return DefaultTabController(
+      length: 3,
+      child: FarmScaffold(
+        appBar: FarmAppBar(
+          title: 'Planting Calendar',
+          bottom: TabBar(
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.calendar_view_month_rounded, size: 18),
+                text: 'Seasons',
+              ),
+              Tab(
+                icon: Icon(Icons.upcoming_rounded, size: 18),
+                text: 'Upcoming',
+              ),
+              Tab(
+                icon: Icon(Icons.list_alt_rounded, size: 18),
+                text: 'Activities',
+              ),
             ],
           ),
         ),
-        data: (events) {
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              const _SeasonalGanttTab(),
-              _UpcomingTab(events: events, fieldNames: fieldNames),
-              _AllActivitiesTab(events: events, fieldNames: fieldNames),
-            ],
-          );
-        },
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (_) => const _AddEventSheet(),
+          ),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add Activity'),
+        ),
+        body: eventsAsync.when(
+          loading: () => Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: LoadingShimmer.list(count: 6),
+          ),
+          error: (err, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: AppSpacing.iconXl,
+                  color: AppColors.error,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Failed to load calendar events',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ],
+            ),
+          ),
+          data: (events) {
+            return TabBarView(
+              children: [
+                const _SeasonalGanttTab(),
+                _UpcomingTab(events: events, fieldNames: fieldNames),
+                _AllActivitiesTab(events: events, fieldNames: fieldNames),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -112,13 +114,26 @@ class _SeasonalGanttTab extends ConsumerWidget {
 
   // SA Season bands (month 1=Jan) — these are fixed SA calendar constants.
   static final List<_Season> _seasons = [
-    _Season('Summer',  [12, 1, 2],   const Color(0xFFFF7043)),
-    _Season('Autumn',  [3, 4, 5],    const Color(0xFFFFA726)),
-    _Season('Winter',  [6, 7, 8],    const Color(0xFF42A5F5)),
-    _Season('Spring',  [9, 10, 11],  const Color(0xFF66BB6A)),
+    _Season('Summer', [12, 1, 2], const Color(0xFFFF7043)),
+    _Season('Autumn', [3, 4, 5], const Color(0xFFFFA726)),
+    _Season('Winter', [6, 7, 8], const Color(0xFF42A5F5)),
+    _Season('Spring', [9, 10, 11], const Color(0xFF66BB6A)),
   ];
 
-  static const _months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
 
   // ── Derive start/end month from a list of individual months ──────────────
   // Finds the longest consecutive run (handling year-wrap) and returns
@@ -143,50 +158,50 @@ class _SeasonalGanttTab extends ConsumerWidget {
 
   // ── Material icon lookup by crop name ────────────────────────────────────
   static const Map<String, IconData> _iconMap = {
-    'maize':       Icons.grain,
-    'corn':        Icons.grain,
-    'wheat':       Icons.grain,
-    'grain':       Icons.grain,
-    'barley':      Icons.grain,
-    'sorghum':     Icons.grain,
-    'rice':        Icons.grain,
-    'tomato':      Icons.eco,
-    'tomatoes':    Icons.eco,
-    'pepper':      Icons.eco,
-    'chilli':      Icons.eco,
-    'cucumber':    Icons.eco,
-    'squash':      Icons.eco,
-    'pumpkin':     Icons.eco,
-    'potato':      Icons.spa,
-    'potatoes':    Icons.spa,
-    'sweet potato':Icons.spa,
-    'carrot':      Icons.spa,
-    'carrots':     Icons.spa,
-    'onion':       Icons.spa,
-    'onions':      Icons.spa,
-    'beetroot':    Icons.spa,
-    'cabbage':     Icons.local_florist,
-    'kale':        Icons.local_florist,
-    'spinach':     Icons.local_florist,
-    'lettuce':     Icons.local_florist,
-    'leafy':       Icons.local_florist,
-    'sunflower':   Icons.filter_vintage,
-    'soybean':     Icons.filter_vintage,
-    'soybeans':    Icons.filter_vintage,
-    'bean':        Icons.filter_vintage,
-    'beans':       Icons.filter_vintage,
-    'sugar cane':  Icons.grass,
-    'sugarcane':   Icons.grass,
-    'mango':       Icons.park,
-    'avocado':     Icons.park,
-    'citrus':      Icons.park,
-    'orange':      Icons.park,
-    'lemon':       Icons.park,
-    'banana':      Icons.park,
-    'grape':       Icons.park,
-    'apple':       Icons.park,
-    'watermelon':  Icons.eco_outlined,
-    'melon':       Icons.eco_outlined,
+    'maize': Icons.grain,
+    'corn': Icons.grain,
+    'wheat': Icons.grain,
+    'grain': Icons.grain,
+    'barley': Icons.grain,
+    'sorghum': Icons.grain,
+    'rice': Icons.grain,
+    'tomato': Icons.eco,
+    'tomatoes': Icons.eco,
+    'pepper': Icons.eco,
+    'chilli': Icons.eco,
+    'cucumber': Icons.eco,
+    'squash': Icons.eco,
+    'pumpkin': Icons.eco,
+    'potato': Icons.spa,
+    'potatoes': Icons.spa,
+    'sweet potato': Icons.spa,
+    'carrot': Icons.spa,
+    'carrots': Icons.spa,
+    'onion': Icons.spa,
+    'onions': Icons.spa,
+    'beetroot': Icons.spa,
+    'cabbage': Icons.local_florist,
+    'kale': Icons.local_florist,
+    'spinach': Icons.local_florist,
+    'lettuce': Icons.local_florist,
+    'leafy': Icons.local_florist,
+    'sunflower': Icons.filter_vintage,
+    'soybean': Icons.filter_vintage,
+    'soybeans': Icons.filter_vintage,
+    'bean': Icons.filter_vintage,
+    'beans': Icons.filter_vintage,
+    'sugar cane': Icons.grass,
+    'sugarcane': Icons.grass,
+    'mango': Icons.park,
+    'avocado': Icons.park,
+    'citrus': Icons.park,
+    'orange': Icons.park,
+    'lemon': Icons.park,
+    'banana': Icons.park,
+    'grape': Icons.park,
+    'apple': Icons.park,
+    'watermelon': Icons.eco_outlined,
+    'melon': Icons.eco_outlined,
   };
 
   static IconData _iconFor(String cropName) {
@@ -208,9 +223,8 @@ class _SeasonalGanttTab extends ConsumerWidget {
 
     return cropsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: Text('Failed to load crop data', style: tt.bodyLarge),
-      ),
+      error: (e, _) =>
+          Center(child: Text('Failed to load crop data', style: tt.bodyLarge)),
       data: (crops) {
         // Build Gantt rows from API crops
         final rows = crops.map((crop) {
@@ -231,15 +245,31 @@ class _SeasonalGanttTab extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('SA Planting Calendar', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text(
+                      'SA Planting Calendar',
+                      style: tt.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     Wrap(
                       spacing: AppSpacing.md,
                       runSpacing: AppSpacing.xs,
                       children: [
-                        _LegendDot(color: const Color(0xFF2196F3), label: 'Planting window'),
-                        _LegendDot(color: const Color(0xFFFF9800), label: 'Harvest window'),
-                        ..._seasons.map((s) => _LegendDot(color: s.color.withAlpha(160), label: s.name)),
+                        _LegendDot(
+                          color: const Color(0xFF2196F3),
+                          label: 'Planting window',
+                        ),
+                        _LegendDot(
+                          color: const Color(0xFFFF9800),
+                          label: 'Harvest window',
+                        ),
+                        ..._seasons.map(
+                          (s) => _LegendDot(
+                            color: s.color.withAlpha(160),
+                            label: s.name,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -264,20 +294,34 @@ class _SeasonalGanttTab extends ConsumerWidget {
               // ── Crop illustration strip ───────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: Text('Crops in Season Now', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+                child: Text(
+                  'Crops in Season Now',
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 height: 140,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
                   itemCount: rows.length,
-                  separatorBuilder: (_, i) => const SizedBox(width: AppSpacing.sm),
+                  separatorBuilder: (_, i) =>
+                      const SizedBox(width: AppSpacing.sm),
                   itemBuilder: (context, i) {
                     final row = rows[i];
-                    final inPlanting = _GanttChart._monthInRange(currentMonth, row.plantStart, row.plantEnd);
-                    final inHarvest  = _GanttChart._monthInRange(currentMonth, row.harvestStart, row.harvestEnd);
+                    final inPlanting = _GanttChart._monthInRange(
+                      currentMonth,
+                      row.plantStart,
+                      row.plantEnd,
+                    );
+                    final inHarvest = _GanttChart._monthInRange(
+                      currentMonth,
+                      row.harvestStart,
+                      row.harvestEnd,
+                    );
                     final active = inPlanting || inHarvest;
                     return _CropSeasonCard(
                       row: row,
@@ -314,9 +358,9 @@ class _GanttChart extends StatelessWidget {
   final int currentMonth;
   final ColorScheme cs;
 
-  static const double _labelW  = 120.0;
-  static const double _monthW  = 46.0;
-  static const double _rowH    = 44.0;
+  static const double _labelW = 120.0;
+  static const double _monthW = 46.0;
+  static const double _rowH = 44.0;
   static const double _headerH = 52.0;
 
   double get _totalW => _labelW + _monthW * 12;
@@ -331,7 +375,9 @@ class _GanttChart extends StatelessWidget {
           // Month + season header
           _buildHeader(context),
           // Crop rows
-          ...rows.asMap().entries.map((e) => _buildRow(context, e.value, e.key.isOdd)),
+          ...rows.asMap().entries.map(
+            (e) => _buildRow(context, e.value, e.key.isOdd),
+          ),
           // Current month indicator line
           _buildCurrentMonthLine(),
         ],
@@ -360,7 +406,10 @@ class _GanttChart extends StatelessWidget {
               decoration: BoxDecoration(
                 color: season.color.withAlpha(isCurrent ? 80 : 40),
                 border: Border(
-                  bottom: BorderSide(color: season.color.withAlpha(120), width: 2),
+                  bottom: BorderSide(
+                    color: season.color.withAlpha(120),
+                    width: 2,
+                  ),
                   right: BorderSide(color: cs.outlineVariant.withAlpha(60)),
                 ),
               ),
@@ -372,7 +421,10 @@ class _GanttChart extends StatelessWidget {
                       width: 6,
                       height: 6,
                       margin: const EdgeInsets.only(bottom: 2),
-                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),
@@ -380,8 +432,12 @@ class _GanttChart extends StatelessWidget {
                       months[i],
                       style: TextStyle(
                         fontSize: 10.5,
-                        fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w500,
-                        color: isCurrent ? Colors.red : season.color.withAlpha(220),
+                        fontWeight: isCurrent
+                            ? FontWeight.w800
+                            : FontWeight.w500,
+                        color: isCurrent
+                            ? Colors.red
+                            : season.color.withAlpha(220),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -398,7 +454,9 @@ class _GanttChart extends StatelessWidget {
   Widget _buildRow(BuildContext context, _CropCalRow row, bool shaded) {
     return Container(
       height: _rowH,
-      color: shaded ? cs.surfaceContainerLow.withAlpha(120) : Colors.transparent,
+      color: shaded
+          ? cs.surfaceContainerLow.withAlpha(120)
+          : Colors.transparent,
       child: Row(
         children: [
           // Crop label
@@ -413,7 +471,10 @@ class _GanttChart extends StatelessWidget {
                   Expanded(
                     child: Text(
                       row.name.split(' /').first,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -425,8 +486,12 @@ class _GanttChart extends StatelessWidget {
           // Month cells
           ...List.generate(12, (i) {
             final month = i + 1;
-            final inPlant   = _monthInRange(month, row.plantStart,  row.plantEnd);
-            final inHarvest = _monthInRange(month, row.harvestStart, row.harvestEnd);
+            final inPlant = _monthInRange(month, row.plantStart, row.plantEnd);
+            final inHarvest = _monthInRange(
+              month,
+              row.harvestStart,
+              row.harvestEnd,
+            );
             final isCurrent = month == currentMonth;
 
             Color? fill;
@@ -444,8 +509,12 @@ class _GanttChart extends StatelessWidget {
               decoration: BoxDecoration(
                 color: fill,
                 border: Border(
-                  left: fill != null ? BorderSide(color: Colors.white.withAlpha(40), width: 1) : BorderSide.none,
-                  right: isCurrent ? const BorderSide(color: Colors.red, width: 1.5) : BorderSide(color: cs.outlineVariant.withAlpha(40)),
+                  left: fill != null
+                      ? BorderSide(color: Colors.white.withAlpha(40), width: 1)
+                      : BorderSide.none,
+                  right: isCurrent
+                      ? const BorderSide(color: Colors.red, width: 1.5)
+                      : BorderSide(color: cs.outlineVariant.withAlpha(40)),
                 ),
               ),
               child: fill != null
@@ -453,7 +522,9 @@ class _GanttChart extends StatelessWidget {
                       child: Icon(
                         inHarvest && inPlant
                             ? Icons.agriculture_rounded
-                            : (inHarvest ? Icons.agriculture_rounded : Icons.spa_outlined),
+                            : (inHarvest
+                                  ? Icons.agriculture_rounded
+                                  : Icons.spa_outlined),
                         size: 13,
                         color: Colors.white.withAlpha(220),
                       ),
@@ -513,8 +584,14 @@ class _CropSeasonCard extends StatelessWidget {
 
     Color borderColor = cs.outlineVariant;
     Color bgColor = cs.surfaceContainerLow;
-    if (inHarvest) { borderColor = const Color(0xFFFF9800); bgColor = const Color(0xFFFF9800).withAlpha(20); }
-    if (inPlanting) { borderColor = const Color(0xFF2196F3); bgColor = const Color(0xFF2196F3).withAlpha(20); }
+    if (inHarvest) {
+      borderColor = const Color(0xFFFF9800);
+      bgColor = const Color(0xFFFF9800).withAlpha(20);
+    }
+    if (inPlanting) {
+      borderColor = const Color(0xFF2196F3);
+      bgColor = const Color(0xFF2196F3).withAlpha(20);
+    }
 
     return Container(
       width: 100,
@@ -522,7 +599,15 @@ class _CropSeasonCard extends StatelessWidget {
         color: bgColor,
         borderRadius: AppRadius.card,
         border: Border.all(color: borderColor, width: active ? 2 : 1),
-        boxShadow: active ? [BoxShadow(color: borderColor.withAlpha(60), blurRadius: 6, offset: const Offset(0, 2))] : null,
+        boxShadow: active
+            ? [
+                BoxShadow(
+                  color: borderColor.withAlpha(60),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -545,7 +630,11 @@ class _CropSeasonCard extends StatelessWidget {
               ),
               child: Text(
                 inHarvest ? 'Harvest' : 'Planting',
-                style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -567,7 +656,14 @@ class _LegendDot extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
         const SizedBox(width: 4),
         Text(label, style: const TextStyle(fontSize: 11)),
       ],
@@ -578,7 +674,14 @@ class _LegendDot extends StatelessWidget {
 // ── Data classes ──────────────────────────────────────────────────────────────
 
 class _CropCalRow {
-  _CropCalRow(this.name, this.icon, this.plantStart, this.plantEnd, this.harvestStart, this.harvestEnd);
+  _CropCalRow(
+    this.name,
+    this.icon,
+    this.plantStart,
+    this.plantEnd,
+    this.harvestStart,
+    this.harvestEnd,
+  );
 
   final String name;
   final IconData icon;
@@ -605,9 +708,7 @@ class _UpcomingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final upcoming = events
-        .where((e) => e.isPending || e.isOverdue)
-        .toList()
+    final upcoming = events.where((e) => e.isPending || e.isOverdue).toList()
       ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
 
     if (upcoming.isEmpty) {
@@ -625,15 +726,16 @@ class _UpcomingTab extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.only(
-          bottom: AppSpacing.xl, top: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl, top: AppSpacing.sm),
       children: [
         for (final entry in grouped.entries) ...[
           SectionHeader(title: entry.key),
           ...entry.value.map(
             (e) => Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               child: _EventCard(event: e, fieldNames: fieldNames),
             ),
           ),
@@ -665,15 +767,16 @@ class _AllActivitiesTab extends StatelessWidget {
     final completed = events.where((e) => e.isCompleted).toList();
 
     return ListView(
-      padding: const EdgeInsets.only(
-          bottom: AppSpacing.xl, top: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl, top: AppSpacing.sm),
       children: [
         if (overdue.isNotEmpty) ...[
           SectionHeader(title: 'Overdue'),
           ...overdue.map(
             (e) => Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               child: _EventCard(event: e, fieldNames: fieldNames),
             ),
           ),
@@ -683,7 +786,9 @@ class _AllActivitiesTab extends StatelessWidget {
           ...pending.map(
             (e) => Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               child: _EventCard(event: e, fieldNames: fieldNames),
             ),
           ),
@@ -693,7 +798,9 @@ class _AllActivitiesTab extends StatelessWidget {
           ...completed.map(
             (e) => Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               child: _EventCard(event: e, fieldNames: fieldNames),
             ),
           ),
@@ -712,18 +819,18 @@ class _EventCard extends StatelessWidget {
   final Map<String, String> fieldNames;
 
   IconData _iconForType(CalendarActivityType type) => switch (type) {
-        CalendarActivityType.planting => Icons.spa_outlined,
-        CalendarActivityType.scouting => Icons.search_outlined,
-        CalendarActivityType.harvest => Icons.agriculture_outlined,
-        CalendarActivityType.spraying => Icons.opacity_outlined,
-        CalendarActivityType.fertilizerApplication => Icons.science_outlined,
-        CalendarActivityType.landPrep => Icons.construction_outlined,
-        CalendarActivityType.weeding => Icons.grass_outlined,
-        CalendarActivityType.irrigation => Icons.water_drop_outlined,
-        CalendarActivityType.germinationCheck => Icons.eco_outlined,
-        CalendarActivityType.inputPurchase => Icons.shopping_cart_outlined,
-        CalendarActivityType.postHarvest => Icons.inventory_2_outlined,
-      };
+    CalendarActivityType.planting => Icons.spa_outlined,
+    CalendarActivityType.scouting => Icons.search_outlined,
+    CalendarActivityType.harvest => Icons.agriculture_outlined,
+    CalendarActivityType.spraying => Icons.opacity_outlined,
+    CalendarActivityType.fertilizerApplication => Icons.science_outlined,
+    CalendarActivityType.landPrep => Icons.construction_outlined,
+    CalendarActivityType.weeding => Icons.grass_outlined,
+    CalendarActivityType.irrigation => Icons.water_drop_outlined,
+    CalendarActivityType.germinationCheck => Icons.eco_outlined,
+    CalendarActivityType.inputPurchase => Icons.shopping_cart_outlined,
+    CalendarActivityType.postHarvest => Icons.inventory_2_outlined,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -732,27 +839,29 @@ class _EventCard extends StatelessWidget {
 
     final (statusLabel, statusBg, statusFg) = switch (event.status) {
       'completed' => (
-          'Completed',
-          AppColors.successContainer,
-          AppColors.onSuccessContainer
-        ),
+        'Completed',
+        AppColors.successContainer,
+        AppColors.onSuccessContainer,
+      ),
       'overdue' => (
-          'Overdue',
-          AppColors.errorContainer,
-          AppColors.onErrorContainer
-        ),
+        'Overdue',
+        AppColors.errorContainer,
+        AppColors.onErrorContainer,
+      ),
       _ => (
-          'Pending',
-          AppColors.tertiaryContainer,
-          AppColors.onTertiaryContainer
-        ),
+        'Pending',
+        AppColors.tertiaryContainer,
+        AppColors.onTertiaryContainer,
+      ),
     };
 
     return Card(
       shape: const RoundedRectangleBorder(borderRadius: AppRadius.card),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         child: Row(
           children: [
             // Activity icon
@@ -776,25 +885,31 @@ class _EventCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.title,
-                      style: tt.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    event.title,
+                    style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_outlined,
-                          size: AppSpacing.iconSm,
-                          color: AppColors.onSurfaceVariant),
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: AppSpacing.iconSm,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
                         fmt.format(event.scheduledDate),
-                        style: tt.bodySmall
-                            ?.copyWith(color: AppColors.onSurfaceVariant),
+                        style: tt.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xs, vertical: 2),
+                          horizontal: AppSpacing.xs,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: statusBg,
                           borderRadius: AppRadius.chip,
@@ -802,7 +917,9 @@ class _EventCard extends StatelessWidget {
                         child: Text(
                           statusLabel,
                           style: tt.labelSmall?.copyWith(
-                              color: statusFg, fontWeight: FontWeight.w600),
+                            color: statusFg,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -810,14 +927,17 @@ class _EventCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      const Icon(Icons.grid_view_outlined,
-                          size: AppSpacing.iconSm,
-                          color: AppColors.onSurfaceVariant),
+                      const Icon(
+                        Icons.grid_view_outlined,
+                        size: AppSpacing.iconSm,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
                         fieldNames[event.fieldId] ?? event.fieldId,
-                        style: tt.bodySmall
-                            ?.copyWith(color: AppColors.onSurfaceVariant),
+                        style: tt.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -830,6 +950,8 @@ class _EventCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               _MarkDoneButton(event: event),
             ],
+            // Edit / Delete context menu
+            _EventMenuButton(event: event),
           ],
         ),
       ),
@@ -883,7 +1005,9 @@ class _MarkDoneButtonState extends ConsumerState<_MarkDoneButton> {
       style: TextButton.styleFrom(
         foregroundColor: AppColors.success,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
         minimumSize: Size.zero,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
@@ -892,7 +1016,9 @@ class _MarkDoneButtonState extends ConsumerState<_MarkDoneButton> {
               width: AppSpacing.iconMd,
               height: AppSpacing.iconMd,
               child: CircularProgressIndicator(
-                  strokeWidth: 2, color: AppColors.success),
+                strokeWidth: 2,
+                color: AppColors.success,
+              ),
             )
           : const Column(
               mainAxisSize: MainAxisSize.min,
@@ -947,9 +1073,9 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedField == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a field')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a field')));
       return;
     }
 
@@ -973,9 +1099,9 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -1040,7 +1166,7 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
                 prefixIcon: Icon(Icons.grid_view_outlined),
                 border: OutlineInputBorder(),
               ),
-              value: _selectedField,
+              initialValue: _selectedField,
               items: fields
                   .map((f) => DropdownMenuItem(value: f, child: Text(f.name)))
                   .toList(),
@@ -1059,10 +1185,12 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
                 prefixIcon: Icon(Icons.spa_outlined),
                 border: OutlineInputBorder(),
               ),
-              value: _selectedPlan,
+              initialValue: _selectedPlan,
               items: [
                 const DropdownMenuItem<PlantingPlan?>(
-                    value: null, child: Text('None')),
+                  value: null,
+                  child: Text('None'),
+                ),
                 ...fieldPlans.map(
                   (p) => DropdownMenuItem<PlantingPlan?>(
                     value: p,
@@ -1081,7 +1209,7 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
                 prefixIcon: Icon(Icons.category_outlined),
                 border: OutlineInputBorder(),
               ),
-              value: _activityType,
+              initialValue: _activityType,
               items: CalendarActivityType.values
                   .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
                   .toList(),
@@ -1136,8 +1264,11 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
             // Reminder days
             Row(
               children: [
-                const Icon(Icons.notifications_outlined,
-                    size: AppSpacing.iconMd, color: AppColors.onSurfaceVariant),
+                const Icon(
+                  Icons.notifications_outlined,
+                  size: AppSpacing.iconMd,
+                  color: AppColors.onSurfaceVariant,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Text('Remind me', style: tt.bodyMedium),
                 const Spacer(),
@@ -1168,10 +1299,305 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.check_rounded),
                 label: Text(_saving ? 'Saving…' : 'Save Activity'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Event Menu (Edit / Delete) ────────────────────────────────────────────────
+
+class _EventMenuButton extends ConsumerWidget {
+  const _EventMenuButton({required this.event});
+
+  final CalendarEvent event;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      icon: const Icon(
+        Icons.more_vert,
+        size: AppSpacing.iconSm,
+        color: AppColors.onSurfaceVariant,
+      ),
+      onSelected: (v) async {
+        if (v == 'edit') {
+          await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (_) => _EditEventSheet(event: event),
+          );
+        } else if (v == 'delete') {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Delete Activity'),
+              content: Text('Delete "${event.title}"? This cannot be undone.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                  ),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          );
+          if (confirmed == true && context.mounted) {
+            await ref
+                .read(cropRepositoryProvider)
+                .deleteCalendarEvent(event.id);
+            ref.invalidate(calendarEventsProvider);
+            ref.invalidate(upcomingCalendarEventsProvider);
+          }
+        }
+      },
+      itemBuilder: (_) => [
+        const PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: Icon(Icons.edit_outlined),
+            title: Text('Edit'),
+            dense: true,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(Icons.delete_outline, color: AppColors.error),
+            title: Text('Delete', style: TextStyle(color: AppColors.error)),
+            dense: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Edit Event Sheet ──────────────────────────────────────────────────────────
+
+class _EditEventSheet extends ConsumerStatefulWidget {
+  const _EditEventSheet({required this.event});
+
+  final CalendarEvent event;
+
+  @override
+  ConsumerState<_EditEventSheet> createState() => _EditEventSheetState();
+}
+
+class _EditEventSheetState extends ConsumerState<_EditEventSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _notesCtrl;
+
+  late CalendarActivityType _activityType;
+  late DateTime _scheduledDate;
+  late int _reminderDays;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleCtrl = TextEditingController(text: widget.event.title);
+    _notesCtrl = TextEditingController(text: widget.event.notes ?? '');
+    _activityType = widget.event.activityType;
+    _scheduledDate = widget.event.scheduledDate;
+    _reminderDays = widget.event.reminderDaysBefore ?? 1;
+  }
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _scheduledDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+    );
+    if (picked != null) setState(() => _scheduledDate = picked);
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    final updated = CalendarEvent(
+      id: widget.event.id,
+      planId: widget.event.planId,
+      fieldId: widget.event.fieldId,
+      activityType: _activityType,
+      title: _titleCtrl.text.trim(),
+      scheduledDate: _scheduledDate,
+      completedDate: widget.event.completedDate,
+      status: widget.event.status,
+      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      reminderDaysBefore: _reminderDays,
+    );
+    try {
+      await ref.read(cropRepositoryProvider).updateCalendarEvent(updated);
+      ref.invalidate(calendarEventsProvider);
+      ref.invalidate(upcomingCalendarEventsProvider);
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final dateFmt = DateFormat('dd MMM yyyy');
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.md,
+        right: AppSpacing.md,
+        top: AppSpacing.md,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Edit Activity',
+              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            DropdownButtonFormField<CalendarActivityType>(
+              decoration: const InputDecoration(
+                labelText: 'Activity Type *',
+                prefixIcon: Icon(Icons.category_outlined),
+                border: OutlineInputBorder(),
+              ),
+              initialValue: _activityType,
+              items: CalendarActivityType.values
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t.label)))
+                  .toList(),
+              onChanged: (t) {
+                if (t != null) setState(() => _activityType = t);
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextFormField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Title *',
+                prefixIcon: Icon(Icons.title_outlined),
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.sentences,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            InkWell(
+              onTap: _pickDate,
+              borderRadius: AppRadius.card,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Scheduled Date *',
+                  prefixIcon: Icon(Icons.calendar_today_outlined),
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(dateFmt.format(_scheduledDate)),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextFormField(
+              controller: _notesCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                prefixIcon: Icon(Icons.notes_outlined),
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                const Icon(
+                  Icons.notifications_outlined,
+                  size: AppSpacing.iconMd,
+                  color: AppColors.onSurfaceVariant,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text('Remind me', style: tt.bodyMedium),
+                const Spacer(),
+                DropdownButton<int>(
+                  value: _reminderDays,
+                  underline: const SizedBox(),
+                  items: const [
+                    DropdownMenuItem(value: 0, child: Text('Same day')),
+                    DropdownMenuItem(value: 1, child: Text('1 day before')),
+                    DropdownMenuItem(value: 3, child: Text('3 days before')),
+                    DropdownMenuItem(value: 7, child: Text('1 week before')),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setState(() => _reminderDays = v);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _saving ? null : _save,
+                icon: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.check_rounded),
+                label: Text(_saving ? 'Saving…' : 'Save Changes'),
               ),
             ),
           ],
@@ -1195,14 +1621,17 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: AppSpacing.iconXl, color: AppColors.onSurfaceVariant),
+          Icon(
+            icon,
+            size: AppSpacing.iconXl,
+            color: AppColors.onSurfaceVariant,
+          ),
           const SizedBox(height: AppSpacing.md),
           Text(
             message,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: AppColors.onSurfaceVariant),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.onSurfaceVariant),
           ),
         ],
       ),

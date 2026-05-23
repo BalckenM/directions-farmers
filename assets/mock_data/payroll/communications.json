@@ -1,0 +1,74 @@
+[
+  {
+    "id": "comm_mar_payslips",
+    "channel": "sms",
+    "templateCode": "PAYSLIP_READY",
+    "subject": "March 2026 Payslip Ready",
+    "body": "Your March 2026 payslip is available. Please log in to view your payslip.",
+    "recipientEmployeeIds": ["emp_sipho", "emp_maria", "emp_pieter"],
+    "sentByUserId": "usr_manager",
+    "deliveredCount": 3,
+    "failedCount": 0,
+    "sentAt": "2026-03-25T10:00:00.000"
+  },
+  {
+    "id": "comm_apr_payslips",
+    "channel": "whatsapp",
+    "templateCode": "PAYSLIP_READY",
+    "subject": "April 2026 Payslip Ready",
+    "body": "Your April 2026 payslip is available. Please log in to view your payslip.",
+    "recipientEmployeeIds": ["emp_sipho", "emp_maria", "emp_pieter"],
+    "sentByUserId": "usr_manager",
+    "deliveredCount": 2,
+    "failedCount": 1,
+    "sentAt": "2026-04-25T10:30:00.000"
+  },
+  {
+    "id": "comm_nmwa_notice",
+    "channel": "inApp",
+    "templateCode": "COMPLIANCE_NOTICE",
+    "subject": "National Minimum Wage Update 2025/26",
+    "body": "The National Minimum Wage has been updated to R25.42/hr effective 1 March 2025. Please ensure all pay structures are compliant.",
+    "recipientEmployeeIds": ["emp_sipho", "emp_maria", "emp_thabo", "emp_nomsa", "emp_bongani", "emp_pieter", "emp_ayanda", "emp_lindiwe"],
+    "sentByUserId": "usr_manager",
+    "deliveredCount": 7,
+    "failedCount": 1,
+    "sentAt": "2026-05-05T09:00:00.000"
+  },
+  {
+    "id": "comm_leave_sipho",
+    "channel": "sms",
+    "templateCode": "LEAVE_APPROVED",
+    "subject": "Leave Request Approved",
+    "body": "Your leave request for 7–11 April 2026 has been approved.",
+    "recipientEmployeeIds": ["emp_sipho"],
+    "sentByUserId": "usr_manager",
+    "deliveredCount": 1,
+    "failedCount": 0,
+    "sentAt": "2026-05-04T11:15:00.000"
+  },
+  {
+    "id": "comm_leave_pieter_rej",
+    "channel": "sms",
+    "templateCode": "LEAVE_REJECTED",
+    "subject": "Leave Request Not Approved",
+    "body": "Your leave request for 1–5 June 2026 could not be approved. Reason: Peak harvest period — insufficient cover.",
+    "recipientEmployeeIds": ["emp_pieter"],
+    "sentByUserId": "usr_manager",
+    "deliveredCount": 1,
+    "failedCount": 0,
+    "sentAt": "2026-05-02T14:30:00.000"
+  },
+  {
+    "id": "comm_contract_exp",
+    "channel": "inApp",
+    "templateCode": "CONTRACT_EXPIRY_REMINDER",
+    "subject": "Contract Expiry Reminder",
+    "body": "Reminder: Bongani Khumalo's fixed-term contract expired on 31 July 2024. Please renew or terminate the contract.",
+    "recipientEmployeeIds": ["emp_sipho"],
+    "sentByUserId": "usr_system",
+    "deliveredCount": 1,
+    "failedCount": 0,
+    "sentAt": "2026-04-01T08:00:00.000"
+  }
+]

@@ -29,8 +29,6 @@ class SaleDetailScreen extends ConsumerWidget {
     final dateFmt     = DateFormat('dd MMM yyyy');
     final currencyFmt =
         NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
 
     final statusColor = sale.isPaid ? AppColors.success : AppColors.warning;
 
@@ -41,6 +39,7 @@ class SaleDetailScreen extends ConsumerWidget {
           SliverAppBar(
             expandedHeight: 140,
             pinned: true,
+            leading: const BackButton(),
             backgroundColor: AppColors.tertiary,
             foregroundColor: AppColors.onPrimary,
             actions: [

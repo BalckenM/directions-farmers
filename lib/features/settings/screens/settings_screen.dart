@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -10,6 +12,8 @@ import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/profile_image_provider.dart';
+import 'upgrade_plan_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -62,8 +66,7 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.tertiary,
                       label: 'Breed Registry',
                       subtitle: 'Registered breeds and standards',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsBreedRegistry),
                     ),
                   ],
                 ),
@@ -83,8 +86,7 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.tertiary,
                       label: 'Activity Log',
                       subtitle: 'Audit trail of all actions',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsActivityLog),
                     ),
                   ],
                 ),
@@ -105,8 +107,7 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.info,
                       label: 'Units & Measurements',
                       subtitle: 'Metric or imperial',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsUnits),
                     ),
                     _SettingsTile(
                       icon: Icons.palette_rounded,
@@ -126,24 +127,21 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.tertiary,
                       label: 'Sync & Backup',
                       subtitle: 'Cloud data management',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsSyncBackup),
                     ),
                     _SettingsTile(
                       icon: Icons.download_rounded,
                       iconColor: AppColors.success,
                       label: 'Export Data',
                       subtitle: 'CSV / PDF reports',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsExportData),
                     ),
                     _SettingsTile(
                       icon: Icons.verified_user_rounded,
                       iconColor: AppColors.info,
                       label: 'Regulatory Reports',
                       subtitle: 'Compliance documentation',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsRegulatoryReports),
                     ),
                   ],
                 ),
@@ -156,8 +154,7 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.tertiary,
                       label: 'Help & Support',
                       subtitle: 'Documentation and contact',
-                      badge: 'Soon',
-                      onTap: () => _showComingSoon(context),
+                      onTap: () => context.push(AppRoutes.settingsHelp),
                     ),
                     _SettingsTile(
                       icon: Icons.info_outline_rounded,
@@ -170,13 +167,55 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.privacy_tip_rounded,
                       iconColor: AppColors.onSurfaceVariant,
                       label: 'Privacy Policy',
-                      onTap: () {},
+                      onTap: () => showDialog<void>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Privacy Policy'),
+                          content: const SingleChildScrollView(
+                            child: Text(
+                              '4Directions Farm Manager collects only the data you enter directly into the app, '
+                              'including farm details, livestock records, payroll information, and financial data. '
+                              'This data is stored securely on your device and optionally backed up to encrypted cloud storage. '
+                              'We do not sell or share your personal information with third parties. '
+                              'You may request deletion of your data at any time by contacting support@4directions.co.za. '
+                              'Compliance with South Africa\'s POPIA (Protection of Personal Information Act) is our priority.',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     _SettingsTile(
                       icon: Icons.description_rounded,
                       iconColor: AppColors.onSurfaceVariant,
                       label: 'Terms of Service',
-                      onTap: () {},
+                      onTap: () => showDialog<void>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Terms of Service'),
+                          content: const SingleChildScrollView(
+                            child: Text(
+                              'By using 4Directions Farm Manager you agree to use the app solely for lawful farm '
+                              'management purposes. The app is provided as-is without warranty of any kind. '
+                              '4Directions is not liable for any loss of data or business arising from use of the app. '
+                              'You are responsible for maintaining the confidentiality of your account credentials. '
+                              'Payroll calculations are provided as a guide only — consult a registered payroll '
+                              'practitioner or accountant to confirm statutory obligations.',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -214,27 +253,73 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Coming soon'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).colorScheme.inverseSurface,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
 }
 
 // ── Farm profile header ───────────────────────────────────────────────────────
 
-class _FarmProfileHeader extends StatelessWidget {
+class _FarmProfileHeader extends ConsumerStatefulWidget {
   const _FarmProfileHeader();
+
+  @override
+  ConsumerState<_FarmProfileHeader> createState() => _FarmProfileHeaderState();
+}
+
+class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
+  final _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final choice = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_rounded),
+              title: const Text('Take photo'),
+              onTap: () => Navigator.of(context).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+            ),
+            if (ref.read(profileImageProvider) != null)
+              ListTile(
+                leading: const Icon(Icons.delete_rounded, color: Colors.red),
+                title: const Text('Remove photo',
+                    style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ref.read(profileImageProvider.notifier).clearImage();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null) return;
+    final file = await _picker.pickImage(
+      source: choice,
+      imageQuality: 80,
+      maxWidth: 512,
+    );
+    if (file != null) {
+      ref.read(profileImageProvider.notifier).setImage(file.path);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final user = ref.watch(currentUserProvider);
+    final imagePath = ref.watch(profileImageProvider);
+
+    final farmName = user?.farmName ?? 'Your Farm';
+    final location = (user != null && user.province.isNotEmpty)
+        ? '${user.province}, ${user.country}'
+        : 'Location not set';
 
     return Container(
       margin: const EdgeInsets.all(AppSpacing.pagePaddingHorizontal),
@@ -259,13 +344,45 @@ class _FarmProfileHeader extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: AppColors.primary.withAlpha(20),
-                child: const Icon(
-                  Icons.agriculture_rounded,
-                  color: AppColors.primary,
-                  size: 28,
+              // ── tappable avatar ───────────────────────────────────────────
+              GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: AppColors.primary.withAlpha(20),
+                      backgroundImage: imagePath != null
+                          ? FileImage(File(imagePath))
+                          : null,
+                      child: imagePath == null
+                          ? const Icon(
+                              Icons.agriculture_rounded,
+                              color: AppColors.primary,
+                              size: 30,
+                            )
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: cs.surface, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -274,7 +391,7 @@ class _FarmProfileHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Thornhill Cattle Farm',
+                      farmName,
                       style: tt.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
@@ -282,7 +399,7 @@ class _FarmProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Limpopo Province, South Africa',
+                      location,
                       style: tt.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
                       ),
@@ -437,7 +554,7 @@ class _QuickActionsRow extends StatelessWidget {
               icon: Icons.star_rounded,
               label: 'Upgrade',
               accent: AppColors.secondary,
-              onTap: () {},
+              onTap: () => showUpgradePlanSheet(context),
             ),
           ),
         ],
@@ -559,7 +676,6 @@ class _SettingsTile extends StatelessWidget {
     required this.label,
     this.iconColor,
     this.subtitle,
-    this.badge,
     this.onTap,
   });
 
@@ -567,13 +683,11 @@ class _SettingsTile extends StatelessWidget {
   final String label;
   final Color? iconColor;
   final String? subtitle;
-  final String? badge;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     final color = iconColor ?? AppColors.primary;
 
     return ListTile(
@@ -591,26 +705,6 @@ class _SettingsTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (badge != null) ...[
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withAlpha(18),
-                borderRadius:
-                    BorderRadius.circular(AppRadius.full),
-              ),
-              child: Text(
-                badge!,
-                style: tt.labelSmall?.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 9,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-          ],
           Icon(
             Icons.chevron_right_rounded,
             color: cs.onSurfaceVariant,

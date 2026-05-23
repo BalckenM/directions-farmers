@@ -1,0 +1,42 @@
+[
+  {
+    "id": "lt_annual",
+    "code": "ANNUAL",
+    "name": "Annual Leave",
+    "annualEntitlementDays": 15.0,
+    "isPaid": true,
+    "requiresApproval": true,
+    "colorHex": "#2E7D32",
+    "description": null
+  },
+  {
+    "id": "lt_sick",
+    "code": "SICK",
+    "name": "Sick Leave",
+    "annualEntitlementDays": 30.0,
+    "isPaid": true,
+    "requiresApproval": false,
+    "colorHex": "#F57F17",
+    "description": "30 days in a 36-month cycle (BCEA)"
+  },
+  {
+    "id": "lt_maternity",
+    "code": "MATERNITY",
+    "name": "Maternity Leave",
+    "annualEntitlementDays": 120.0,
+    "isPaid": false,
+    "requiresApproval": true,
+    "colorHex": "#9C27B0",
+    "description": "4 consecutive months — unpaid (BCEA s25)"
+  },
+  {
+    "id": "lt_family",
+    "code": "FAMILY",
+    "name": "Family Responsibility",
+    "annualEntitlementDays": 3.0,
+    "isPaid": true,
+    "requiresApproval": true,
+    "colorHex": "#1565C0",
+    "description": "3 days per year (BCEA s27)"
+  }
+]

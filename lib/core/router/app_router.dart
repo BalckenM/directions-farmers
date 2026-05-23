@@ -1,171 +1,234 @@
-﻿import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_shadows.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/events/screens/add_breeding_event_screen.dart';
-import '../../features/events/screens/add_weight_record_screen.dart';
-import '../../features/events/screens/breeding_events_screen.dart';
-import '../../features/events/screens/add_health_event_screen.dart';
-import '../../features/events/screens/health_events_screen.dart';
-import '../../features/events/screens/weight_records_screen.dart';
-import '../../features/livestock/screens/livestock_hub_screen.dart';
-import '../../features/livestock/screens/add_edit_animal_screen.dart';
-import '../../features/livestock/screens/animal_detail_screen.dart';
-import '../../features/livestock/screens/livestock_screen.dart';
-import '../../features/production/screens/egg_records_screen.dart';
-import '../../features/production/screens/milk_records_screen.dart';
-import '../../features/livestock/screens/groups_screen.dart';
-import '../../features/livestock/screens/group_detail_screen.dart';
-import '../../features/livestock/screens/add_edit_group_screen.dart';
-import '../../features/production/screens/add_milk_record_screen.dart';
-import '../../features/production/screens/add_egg_record_screen.dart';
-import '../../features/production/screens/wool_records_screen.dart';
-import '../../features/production/screens/add_wool_record_screen.dart';
-import '../../features/traceability/screens/movement_records_screen.dart';
-import '../../features/traceability/screens/add_movement_record_screen.dart';
-import '../../features/settings/screens/settings_screen.dart';
-import '../../features/settings/screens/farm_settings_screen.dart';
-import '../../features/settings/screens/account_settings_screen.dart';
-import '../../features/settings/screens/notification_settings_screen.dart';
-import '../../features/settings/screens/theme_settings_screen.dart';
-import '../../features/auth/screens/login_screen.dart';
-import '../../features/auth/screens/onboarding_screen.dart';
-import '../../features/auth/screens/splash_screen.dart';
-import '../../features/auth/providers/auth_provider.dart';
-import '../../features/events/screens/alerts_screen.dart';
-import '../../features/financial/screens/financial_screen.dart';
-import '../../features/financial/screens/add_financial_transaction_screen.dart';
-import '../../features/record/screens/record_screen.dart';
-import '../../features/poultry/screens/poultry_screen.dart';
-import '../../features/poultry/screens/flock_detail_screen.dart';
-import '../../features/poultry/screens/add_flock_screen.dart';
-import '../../features/poultry/screens/add_daily_record_screen.dart';
-import '../../features/poultry/screens/feed_phases_screen.dart';
-import '../../features/poultry/screens/harvest_record_screen.dart';
-import '../../features/poultry/screens/add_medication_screen.dart';
-import '../../features/poultry/screens/flock_financial_screen.dart';
-import '../../features/poultry/screens/add_feed_phase_screen.dart';
-import '../../features/poultry/screens/add_disease_event_screen.dart';
-import '../../features/poultry/screens/add_egg_sale_screen.dart';
-import '../../features/poultry/screens/inventory_screen.dart';
-import '../../features/poultry/screens/add_delivery_screen.dart';
-import '../../features/poultry/screens/invoice_screen.dart';
-import '../../features/poultry/screens/house_allocation_screen.dart';
-import '../../features/poultry/screens/biosecurity_log_screen.dart';
-import '../../features/poultry/screens/litter_management_screen.dart';
-import '../../features/poultry/screens/molt_management_screen.dart';
-import '../../features/poultry/screens/add_chick_sale_screen.dart';
-import '../../features/poultry/screens/breeder_records_screen.dart';
-import '../../features/poultry/screens/edit_flock_screen.dart';
-import '../../features/poultry/screens/cross_batch_comparison_screen.dart';
-import '../../features/poultry/screens/vaccination_hub_screen.dart';
-import '../../features/poultry/screens/poultry_flock_picker_screen.dart';
-import '../../features/poultry/screens/health_events_hub_screen.dart';
-import '../../features/poultry/screens/poultry_reports_screen.dart';
-import '../../features/aquaculture/screens/aquaculture_screen.dart';
-import '../../features/aquaculture/screens/aquaculture_unit_detail_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mobile_app/features/payroll/screens/attendance/attendance_log_screen.dart';
+import 'package:mobile_app/features/payroll/screens/communications/compose_message_screen.dart';
+import 'package:mobile_app/features/payroll/screens/leave/leave_request_screen.dart';
+
 import '../../features/apiculture/screens/apiculture_screen.dart';
 import '../../features/apiculture/screens/hive_detail_screen.dart';
-import '../../features/cattle/screens/cattle_screen.dart';
-import '../../features/cattle/screens/cattle_breed_screen.dart';
-import '../../features/cattle/screens/cattle_detail_screen.dart';
-import '../../features/cattle/screens/add_cattle_screen.dart';
-import '../../features/cattle/screens/edit_cattle_screen.dart';
+import '../../features/aquaculture/screens/aquaculture_screen.dart';
+import '../../features/aquaculture/screens/aquaculture_unit_detail_screen.dart';
+import '../../features/auth/models/auth_state.dart';
+import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/mfa_challenge_screen.dart';
+import '../../features/auth/screens/onboarding_screen.dart';
+import '../../features/auth/screens/registration_screen.dart';
+import '../../features/auth/screens/splash_screen.dart';
 import '../../features/cattle/screens/add_calf_screen.dart';
-import '../../features/cattle/screens/calving_screen.dart';
-import '../../features/cattle/screens/breeding_screen.dart';
-import '../../features/cattle/screens/pregnancy_check_screen.dart' as cattle_pregnancy;
-import '../../features/cattle/screens/milk_records_screen.dart' as cattle_milk;
-import '../../features/cattle/screens/weight_records_screen.dart' as cattle_weight;
-import '../../features/cattle/screens/health_events_screen.dart' as cattle_health;
-import '../../features/cattle/screens/vaccination_screen.dart' as cattle_vaccination;
+import '../../features/cattle/screens/add_cattle_screen.dart';
 import '../../features/cattle/screens/add_medication_screen.dart' as cattle_medication;
 import '../../features/cattle/screens/body_condition_screen.dart' as cattle_bcs;
-import '../../features/cattle/screens/dipping_screen.dart' as cattle_dipping;
+import '../../features/cattle/screens/breeding_screen.dart';
+import '../../features/cattle/screens/calving_screen.dart';
+import '../../features/cattle/screens/cattle_breed_screen.dart';
+import '../../features/cattle/screens/cattle_detail_screen.dart';
 import '../../features/cattle/screens/cattle_financials_screen.dart';
 import '../../features/cattle/screens/cattle_reports_screen.dart';
-import '../../features/cattle/screens/sales_screen.dart' show CattleSalesScreen;
-import '../../features/cattle/screens/inventory_screen.dart' show CattleInventoryScreen;
-import '../../features/cattle/screens/pasture_screen.dart' as cattle_pasture;
+import '../../features/cattle/screens/cattle_screen.dart';
 import '../../features/cattle/screens/cross_herd_comparison_screen.dart' as cattle_comparison;
-import '../../features/goat/screens/goat_screen.dart';
-import '../../features/goat/screens/goat_breed_screen.dart';
-import '../../features/goat/screens/goat_detail_screen.dart';
-import '../../features/goat/screens/add_goat_screen.dart';
-import '../../features/goat/screens/edit_goat_screen.dart';
-import '../../features/goat/screens/add_kid_screen.dart';
-import '../../features/goat/screens/kidding_screen.dart';
-import '../../features/goat/screens/breeding_screen.dart';
-import '../../features/goat/screens/pregnancy_check_screen.dart';
-import '../../features/goat/screens/milk_records_screen.dart';
-import '../../features/goat/screens/shearing_screen.dart';
-import '../../features/goat/screens/weight_records_screen.dart';
-import '../../features/goat/screens/health_events_screen.dart';
-import '../../features/goat/screens/vaccination_screen.dart';
-import '../../features/goat/screens/body_condition_screen.dart';
-import '../../features/goat/screens/add_medication_screen.dart';
-import '../../features/goat/screens/goat_financials_screen.dart';
-import '../../features/goat/screens/goat_reports_screen.dart';
-import '../../features/goat/screens/sales_screen.dart';
-import '../../features/goat/screens/inventory_screen.dart';
-import '../../features/goat/screens/pasture_screen.dart';
-import '../../features/goat/screens/cross_herd_comparison_screen.dart';
-import '../../features/goat/screens/famacha_screen.dart';
-import '../../features/pigs/screens/pigs_screen.dart';
-import '../../features/pigs/screens/sow_detail_screen.dart';
-import '../../features/record/screens/feed_log_screen.dart';
-import '../../features/record/screens/add_feed_log_screen.dart';
-import '../../features/insights/screens/insights_screen.dart';
-import '../../features/insights/screens/market_prices_screen.dart';
-import '../../features/reports/screens/reports_screen.dart';
-import '../../features/settings/screens/paddocks_screen.dart';
-import '../../features/crop/screens/crop_hub_screen.dart';
+import '../../features/cattle/screens/dipping_screen.dart' as cattle_dipping;
+import '../../features/cattle/screens/edit_cattle_screen.dart';
+import '../../features/cattle/screens/health_events_screen.dart' as cattle_health;
+import '../../features/cattle/screens/inventory_screen.dart' show CattleInventoryScreen;
+import '../../features/cattle/screens/milk_records_screen.dart' as cattle_milk;
+import '../../features/cattle/screens/pasture_screen.dart' as cattle_pasture;
+import '../../features/cattle/screens/pregnancy_check_screen.dart' as cattle_pregnancy;
+import '../../features/cattle/screens/sales_screen.dart' show CattleSalesScreen;
+import '../../features/cattle/screens/vaccination_screen.dart' as cattle_vaccination;
+import '../../features/cattle/screens/weight_records_screen.dart' as cattle_weight;
+import '../../features/crop/models/crop_expense.dart';
+import '../../features/crop/models/crop_sale.dart';
+import '../../features/crop/models/crop_season.dart';
+import '../../features/crop/models/harvest_record.dart';
+import '../../features/crop/models/pest_observation.dart';
+import '../../features/crop/models/planting_plan.dart';
+import '../../features/crop/models/spray_record.dart';
+import '../../features/crop/screens/advisory/advisory_detail_screen.dart';
+import '../../features/crop/screens/advisory/advisory_hub_screen.dart';
+import '../../features/crop/screens/calendar/planting_calendar_screen.dart';
 import '../../features/crop/screens/catalog/crop_catalog_screen.dart';
 import '../../features/crop/screens/catalog/crop_detail_screen.dart';
-import '../../features/crop/screens/fields/field_list_screen.dart';
-import '../../features/crop/screens/fields/field_detail_screen.dart';
+import '../../features/crop/screens/crop_hub_screen.dart';
+import '../../features/crop/screens/expenses/add_expense_screen.dart';
+import '../../features/crop/screens/expenses/edit_expense_screen.dart';
+import '../../features/crop/screens/expenses/expense_tracker_screen.dart';
 import '../../features/crop/screens/fields/add_edit_field_screen.dart';
+import '../../features/crop/screens/fields/add_planting_plan_screen.dart';
+import '../../features/crop/screens/fields/edit_planting_plan_screen.dart';
+import '../../features/crop/screens/fields/field_detail_screen.dart';
+import '../../features/crop/screens/fields/field_list_screen.dart';
 import '../../features/crop/screens/fields/planted_crop_detail_screen.dart';
-import '../../features/crop/screens/season/season_planner_screen.dart';
-import '../../features/crop/screens/season/add_season_screen.dart';
-import '../../features/crop/screens/calendar/planting_calendar_screen.dart';
-import '../../features/crop/screens/tasks/task_list_screen.dart';
-import '../../features/crop/screens/tasks/task_detail_screen.dart';
-import '../../features/crop/screens/tasks/add_edit_task_screen.dart';
-import '../../features/crop/screens/weather/weather_dashboard_screen.dart';
-import '../../features/crop/screens/pests/pest_log_screen.dart';
+import '../../features/crop/screens/harvest/add_harvest_screen.dart';
+import '../../features/crop/screens/harvest/edit_harvest_screen.dart';
+import '../../features/crop/screens/harvest/harvest_detail_screen.dart';
+import '../../features/crop/screens/harvest/harvest_log_screen.dart';
 import '../../features/crop/screens/pests/add_pest_observation_screen.dart';
 import '../../features/crop/screens/pests/add_spray_record_screen.dart';
-import '../../features/crop/screens/sales/sales_screen.dart';
-import '../../features/crop/screens/sales/add_sale_screen.dart';
-import '../../features/crop/screens/fields/add_planting_plan_screen.dart';
-import '../../features/crop/screens/expenses/expense_tracker_screen.dart';
-import '../../features/crop/screens/expenses/add_expense_screen.dart';
-import '../../features/crop/screens/harvest/harvest_log_screen.dart';
-import '../../features/crop/screens/harvest/add_harvest_screen.dart';
-import '../../features/crop/screens/profitability/profitability_screen.dart';
-import '../../features/crop/screens/advisory/advisory_hub_screen.dart';
-import '../../features/crop/screens/advisory/advisory_detail_screen.dart';
-import '../../features/crop/screens/season/edit_season_screen.dart';
-import '../../features/crop/screens/season/season_detail_screen.dart';
-import '../../features/crop/screens/fields/edit_planting_plan_screen.dart';
 import '../../features/crop/screens/pests/edit_pest_observation_screen.dart';
 import '../../features/crop/screens/pests/edit_spray_record_screen.dart';
-import '../../features/crop/screens/harvest/edit_harvest_screen.dart';
-import '../../features/crop/screens/sales/edit_sale_screen.dart';
-import '../../features/crop/screens/expenses/edit_expense_screen.dart';
-import '../../features/crop/screens/harvest/harvest_detail_screen.dart';
-import '../../features/crop/screens/sales/sale_detail_screen.dart';
+import '../../features/crop/screens/pests/pest_log_screen.dart';
 import '../../features/crop/screens/pests/spray_detail_screen.dart';
-import '../../features/crop/models/crop_expense.dart';
-import '../../features/crop/models/crop_season.dart';
-import '../../features/crop/models/planting_plan.dart';
-import '../../features/crop/models/pest_observation.dart';
-import '../../features/crop/models/spray_record.dart';
-import '../../features/crop/models/harvest_record.dart';
-import '../../features/crop/models/crop_sale.dart';
+import '../../features/crop/screens/pests/spray_list_screen.dart';
+import '../../features/crop/screens/profitability/profitability_screen.dart';
+import '../../features/crop/screens/sales/add_sale_screen.dart';
+import '../../features/crop/screens/sales/edit_sale_screen.dart';
+import '../../features/crop/screens/sales/sale_detail_screen.dart';
+import '../../features/crop/screens/sales/sales_screen.dart';
+import '../../features/crop/screens/season/add_season_screen.dart';
+import '../../features/crop/screens/season/edit_season_screen.dart';
+import '../../features/crop/screens/season/season_detail_screen.dart';
+import '../../features/crop/screens/season/season_planner_screen.dart';
+import '../../features/crop/screens/tasks/add_edit_task_screen.dart';
+import '../../features/crop/screens/tasks/task_detail_screen.dart';
+import '../../features/crop/screens/tasks/task_list_screen.dart';
+import '../../features/crop/screens/weather/weather_dashboard_screen.dart';
+import '../../features/dashboard/screens/dashboard_screen.dart';
+import '../../features/events/screens/add_breeding_event_screen.dart';
+import '../../features/events/screens/add_health_event_screen.dart';
+import '../../features/events/screens/add_weight_record_screen.dart';
+import '../../features/events/screens/alerts_screen.dart';
+import '../../features/events/screens/breeding_events_screen.dart';
+import '../../features/events/screens/health_events_screen.dart';
+import '../../features/events/screens/weight_records_screen.dart';
+import '../../features/financial/screens/add_financial_transaction_screen.dart';
+import '../../features/financial/screens/financial_screen.dart';
+import '../../features/goat/screens/add_goat_screen.dart';
+import '../../features/goat/screens/add_kid_screen.dart';
+import '../../features/goat/screens/add_medication_screen.dart';
+import '../../features/goat/screens/body_condition_screen.dart';
+import '../../features/goat/screens/breeding_screen.dart';
+import '../../features/goat/screens/cross_herd_comparison_screen.dart';
+import '../../features/goat/screens/edit_goat_screen.dart';
+import '../../features/goat/screens/famacha_screen.dart';
+import '../../features/goat/screens/goat_breed_screen.dart';
+import '../../features/goat/screens/goat_detail_screen.dart';
+import '../../features/goat/screens/goat_financials_screen.dart';
+import '../../features/goat/screens/goat_reports_screen.dart';
+import '../../features/goat/screens/goat_screen.dart';
+import '../../features/goat/screens/health_events_screen.dart';
+import '../../features/goat/screens/inventory_screen.dart';
+import '../../features/goat/screens/kidding_screen.dart';
+import '../../features/goat/screens/milk_records_screen.dart';
+import '../../features/goat/screens/pasture_screen.dart';
+import '../../features/goat/screens/pregnancy_check_screen.dart';
+import '../../features/goat/screens/sales_screen.dart';
+import '../../features/goat/screens/shearing_screen.dart';
+import '../../features/goat/screens/vaccination_screen.dart';
+import '../../features/goat/screens/weight_records_screen.dart';
+import '../../features/insights/screens/insights_screen.dart';
+import '../../features/insights/screens/market_prices_screen.dart';
+import '../../features/livestock/screens/add_edit_animal_screen.dart';
+import '../../features/livestock/screens/add_edit_group_screen.dart';
+import '../../features/livestock/screens/animal_detail_screen.dart';
+import '../../features/livestock/screens/group_detail_screen.dart';
+import '../../features/livestock/screens/groups_screen.dart';
+import '../../features/livestock/screens/livestock_hub_screen.dart';
+import '../../features/livestock/screens/livestock_screen.dart';
+import '../../features/payroll/models/shift.dart';
+import '../../features/payroll/screens/attendance/attendance_exceptions_screen.dart';
+import '../../features/payroll/screens/attendance/clock_in_screen.dart';
+import '../../features/payroll/screens/audit/audit_log_screen.dart';
+import '../../features/payroll/screens/communications/communications_screen.dart';
+import '../../features/payroll/screens/compliance/coida_screen.dart';
+import '../../features/payroll/screens/compliance/compliance_alert_detail_screen.dart';
+import '../../features/payroll/screens/compliance/compliance_screen.dart';
+import '../../features/payroll/screens/compliance/paye_screen.dart';
+import '../../features/payroll/screens/compliance/uif_returns_screen.dart';
+import '../../features/payroll/screens/contracts/contract_detail_screen.dart';
+import '../../features/payroll/screens/contracts/contract_list_screen.dart';
+import '../../features/payroll/screens/contracts/contract_sign_screen.dart';
+import '../../features/payroll/screens/contracts/generate_contract_screen.dart';
+import '../../features/payroll/screens/deductions/add_edit_garnishee_screen.dart';
+import '../../features/payroll/screens/deductions/deductions_screen.dart';
+import '../../features/payroll/screens/deductions/garnishee_orders_screen.dart';
+import '../../features/payroll/screens/disbursements/disbursements_screen.dart';
+import '../../features/payroll/screens/disbursements/payment_history_screen.dart';
+import '../../features/payroll/screens/disbursements/transaction_detail_screen.dart';
+import '../../features/payroll/screens/employees/add_edit_employee_screen.dart';
+import '../../features/payroll/screens/employees/employee_detail_screen.dart';
+import '../../features/payroll/screens/employees/employee_import_screen.dart';
+import '../../features/payroll/screens/employees/employee_list_screen.dart';
+import '../../features/payroll/screens/employees/termination_screen.dart';
+import '../../features/payroll/screens/incidents/incidents_screen.dart'
+    show IncidentsScreen, IncidentDetailScreen;
+import '../../features/payroll/screens/leave/leave_approval_screen.dart';
+import '../../features/payroll/screens/leave/leave_balance_screen.dart';
+import '../../features/payroll/screens/leave/leave_dashboard_screen.dart';
+import '../../features/payroll/screens/pay_groups/add_edit_pay_group_screen.dart';
+import '../../features/payroll/screens/pay_groups/pay_groups_screen.dart';
+import '../../features/payroll/screens/pay_runs/pay_run_detail_screen.dart';
+import '../../features/payroll/screens/pay_runs/pay_run_list_screen.dart';
+import '../../features/payroll/screens/pay_runs/payroll_approval_screen.dart';
+import '../../features/payroll/screens/pay_runs/run_payroll_screen.dart';
+import '../../features/payroll/screens/pay_structures/add_edit_pay_structure_screen.dart';
+import '../../features/payroll/screens/pay_structures/pay_structures_screen.dart';
+import '../../features/payroll/screens/payroll_hub_screen.dart';
+import '../../features/payroll/screens/payslips/payslip_detail_screen.dart';
+import '../../features/payroll/screens/payslips/payslip_list_screen.dart';
+import '../../features/payroll/screens/reports/payroll_reports_screen.dart';
+import '../../features/payroll/screens/roster/add_piecework_log_screen.dart';
+import '../../features/payroll/screens/roster/add_shift_screen.dart';
+import '../../features/payroll/screens/roster/roster_board_screen.dart';
+import '../../features/payroll/screens/roster/task_sheet_screen.dart';
+import '../../features/payroll/screens/settings/employer_config_screen.dart';
+import '../../features/pigs/screens/pigs_screen.dart';
+import '../../features/pigs/screens/sow_detail_screen.dart';
+import '../../features/poultry/screens/add_chick_sale_screen.dart';
+import '../../features/poultry/screens/add_daily_record_screen.dart';
+import '../../features/poultry/screens/add_delivery_screen.dart';
+import '../../features/poultry/screens/add_disease_event_screen.dart';
+import '../../features/poultry/screens/add_egg_sale_screen.dart';
+import '../../features/poultry/screens/add_feed_phase_screen.dart';
+import '../../features/poultry/screens/add_flock_screen.dart';
+import '../../features/poultry/screens/add_medication_screen.dart';
+import '../../features/poultry/screens/biosecurity_log_screen.dart';
+import '../../features/poultry/screens/breeder_records_screen.dart';
+import '../../features/poultry/screens/cross_batch_comparison_screen.dart';
+import '../../features/poultry/screens/edit_flock_screen.dart';
+import '../../features/poultry/screens/feed_phases_screen.dart';
+import '../../features/poultry/screens/flock_detail_screen.dart';
+import '../../features/poultry/screens/flock_financial_screen.dart';
+import '../../features/poultry/screens/harvest_record_screen.dart';
+import '../../features/poultry/screens/health_events_hub_screen.dart';
+import '../../features/poultry/screens/house_allocation_screen.dart';
+import '../../features/poultry/screens/inventory_screen.dart';
+import '../../features/poultry/screens/invoice_screen.dart';
+import '../../features/poultry/screens/litter_management_screen.dart';
+import '../../features/poultry/screens/molt_management_screen.dart';
+import '../../features/poultry/screens/poultry_flock_picker_screen.dart';
+import '../../features/poultry/screens/poultry_reports_screen.dart';
+import '../../features/poultry/screens/poultry_screen.dart';
+import '../../features/poultry/screens/vaccination_hub_screen.dart';
+import '../../features/production/screens/add_egg_record_screen.dart';
+import '../../features/production/screens/add_milk_record_screen.dart';
+import '../../features/production/screens/add_wool_record_screen.dart';
+import '../../features/production/screens/egg_records_screen.dart';
+import '../../features/production/screens/milk_records_screen.dart';
+import '../../features/production/screens/wool_records_screen.dart';
+import '../../features/record/screens/add_feed_log_screen.dart';
+import '../../features/record/screens/feed_log_screen.dart';
+import '../../features/record/screens/record_screen.dart';
+import '../../features/reports/screens/reports_screen.dart';
+import '../../features/settings/screens/account_settings_screen.dart';
+import '../../features/settings/screens/activity_log_screen.dart';
+import '../../features/settings/screens/breed_registry_screen.dart';
+import '../../features/settings/screens/export_data_screen.dart';
+import '../../features/settings/screens/farm_settings_screen.dart';
+import '../../features/settings/screens/help_support_screen.dart';
+import '../../features/settings/screens/notification_settings_screen.dart';
+import '../../features/settings/screens/paddocks_screen.dart';
+import '../../features/settings/screens/regulatory_reports_screen.dart';
+import '../../features/settings/screens/settings_screen.dart';
+import '../../features/settings/screens/sync_backup_screen.dart';
+import '../../features/settings/screens/theme_settings_screen.dart';
+import '../../features/settings/screens/units_settings_screen.dart';
+import '../../features/traceability/screens/add_movement_record_screen.dart';
+import '../../features/traceability/screens/movement_records_screen.dart';
+import '../theme/app_colors.dart';
 import 'app_routes.dart';
 
 // ── Placeholder screens ───────────────────────────────────────────────────────
@@ -191,6 +254,7 @@ class _AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
       bottomNavigationBar: _FloatingNavBar(
         selectedIndex: navigationShell.currentIndex,
@@ -216,69 +280,80 @@ class _FloatingNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: cs.outlineVariant.withAlpha(60),
-              width: 1,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? cs.surface.withAlpha(210)
+                    : cs.surface.withAlpha(238),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withAlpha(18)
+                      : cs.outlineVariant.withAlpha(65),
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(isDark ? 0x50000000 : 0x16000000),
+                    blurRadius: 40,
+                    spreadRadius: -4,
+                    offset: const Offset(0, 16),
+                  ),
+                  BoxShadow(
+                    color: Color(isDark ? 0x20000000 : 0x08000000),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _NavItem(
+                    icon: Icons.home_outlined,
+                    filledIcon: Icons.home_rounded,
+                    label: 'Home',
+                    selected: selectedIndex == 0,
+                    onTap: () => onTap(0),
+                  ),
+                  _NavItem(
+                    icon: Icons.pets_outlined,
+                    filledIcon: Icons.pets_rounded,
+                    label: 'Herd',
+                    selected: selectedIndex == 1,
+                    onTap: () => onTap(1),
+                  ),
+                  _CenterFabButton(
+                    selected: selectedIndex == 2,
+                    onTap: () => onTap(2),
+                  ),
+                  _NavItem(
+                    icon: Icons.bar_chart_outlined,
+                    filledIcon: Icons.bar_chart_rounded,
+                    label: 'Insights',
+                    selected: selectedIndex == 3,
+                    onTap: () => onTap(3),
+                  ),
+                  _NavItem(
+                    icon: Icons.storefront_outlined,
+                    filledIcon: Icons.storefront_rounded,
+                    label: 'Farm',
+                    selected: selectedIndex == 4,
+                    onTap: () => onTap(4),
+                  ),
+                ],
+              ),
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1E000000),
-                blurRadius: 24,
-                spreadRadius: -2,
-                offset: Offset(0, 8),
-              ),
-              BoxShadow(
-                color: Color(0x08000000),
-                blurRadius: 4,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_outlined,
-                filledIcon: Icons.home_rounded,
-                label: 'Home',
-                selected: selectedIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: Icons.pets_outlined,
-                filledIcon: Icons.pets_rounded,
-                label: 'Herd',
-                selected: selectedIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _CenterFabButton(
-                selected: selectedIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.bar_chart_outlined,
-                filledIcon: Icons.bar_chart_rounded,
-                label: 'Insights',
-                selected: selectedIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              _NavItem(
-                icon: Icons.storefront_outlined,
-                filledIcon: Icons.storefront_rounded,
-                label: 'Farm',
-                selected: selectedIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ],
           ),
         ),
       ),
@@ -298,38 +373,59 @@ class _CenterFabButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeInOut,
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: selected ? const Color(0xFF1A5E20) : AppColors.primary,
-              shape: BoxShape.circle,
-              boxShadow: selected ? AppShadows.level2 : AppShadows.level3,
+      child: Transform.translate(
+        offset: const Offset(0, -10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOutCubic,
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: selected
+                      ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
+                      : [AppColors.primary, const Color(0xFF43A047)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withAlpha(selected ? 60 : 110),
+                    blurRadius: selected ? 10 : 20,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Icon(
+                  selected ? Icons.edit_note_rounded : Icons.add_rounded,
+                  key: ValueKey(selected),
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
             ),
-            child: Icon(
-              selected ? Icons.edit_note_rounded : Icons.add_rounded,
-              color: Colors.white,
-              size: 26,
+            const SizedBox(height: 4),
+            Text(
+              'Record',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? AppColors.primary : cs.onSurfaceVariant,
+                letterSpacing: 0,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            'Record',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color:
-                  selected ? AppColors.primary : cs.onSurfaceVariant,
-              letterSpacing: 0,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -357,41 +453,49 @@ class _NavItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 54,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeInOut,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.primary.withAlpha(22)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(18),
+      child: AnimatedScale(
+        scale: selected ? 1.06 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOutCubic,
+        child: SizedBox(
+          width: 54,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.primary.withAlpha(20)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  selected ? filledIcon : icon,
+                  size: 22,
+                  color: selected ? AppColors.primary : cs.onSurfaceVariant,
+                ),
               ),
-              child: Icon(
-                selected ? filledIcon : icon,
-                size: 22,
-                color: selected ? AppColors.primary : cs.onSurfaceVariant,
+              const SizedBox(height: 2),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: (tt.labelSmall ?? const TextStyle()).copyWith(
+                  fontSize: 9,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                  color: selected ? AppColors.primary : cs.onSurfaceVariant,
+                  letterSpacing: 0,
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: tt.labelSmall?.copyWith(
-                fontSize: 9,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                color: selected ? AppColors.primary : cs.onSurfaceVariant,
-                letterSpacing: 0,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -406,14 +510,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      final isLoggedIn = ref.read(authProvider);
+      final isLoggedIn = ref.read(isAuthenticatedProvider);
       final loc = state.matchedLocation;
 
       // Routes that are always accessible (auth + splash)
       const openRoutes = {
         AppRoutes.splash,
         AppRoutes.login,
+        AppRoutes.register,
         AppRoutes.onboarding,
+        AppRoutes.mfaChallenge,
       };
       final isOpen = openRoutes.contains(loc);
 
@@ -434,221 +540,13 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 
   // Refresh router whenever auth state changes so redirect is re-evaluated.
-  ref.listen(authProvider, (_, _) => router.refresh());
+  ref.listen(isAuthenticatedProvider, (_, _) => router.refresh());
 
   return router;
 });
 
 List<RouteBase> _buildRoutes() {
   return [
-      // ── Crop Farming routes ──────────────────────────────────────────────────
-      GoRoute(
-        path: AppRoutes.crop,
-        builder: (_, _) => const CropHubScreen(),
-        routes: [
-          GoRoute(
-            path: 'catalog',
-            builder: (_, _) => const CropCatalogScreen(),
-            routes: [
-              GoRoute(
-                path: ':cropId',
-                builder: (_, state) => CropDetailScreen(
-                    cropId: state.pathParameters['cropId']!),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'fields',
-            builder: (_, _) => const FieldListScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddEditFieldScreen(),
-              ),
-              GoRoute(
-                path: 'plan/add',
-                builder: (_, state) => AddPlantingPlanScreen(
-                    preselectedFieldId:
-                        state.uri.queryParameters['fieldId']),
-              ),
-              GoRoute(
-                path: 'plan/edit',
-                builder: (_, state) =>
-                    EditPlantingPlanScreen(plan: state.extra! as PlantingPlan),
-              ),
-              GoRoute(
-                path: ':fieldId',
-                builder: (_, state) => FieldDetailScreen(
-                    fieldId: state.pathParameters['fieldId']!),
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    builder: (_, state) => AddEditFieldScreen(
-                        fieldId: state.pathParameters['fieldId']!),
-                  ),
-                  GoRoute(
-                    path: 'plan/:planId',
-                    builder: (_, state) => PlantedCropDetailScreen(
-                        planId: state.pathParameters['planId']!),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'seasons',
-            builder: (_, _) => const SeasonPlannerScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddSeasonScreen(),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (_, state) =>
-                    EditSeasonScreen(season: state.extra! as CropSeason),
-              ),
-              GoRoute(
-                path: 'detail',
-                builder: (_, state) =>
-                    SeasonDetailScreen(season: state.extra! as CropSeason),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'calendar',
-            builder: (_, _) => const PlantingCalendarScreen(),
-          ),
-          GoRoute(
-            path: 'tasks',
-            builder: (_, _) => const TaskListScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddEditTaskScreen(),
-              ),
-              GoRoute(
-                path: ':taskId',
-                builder: (_, state) => TaskDetailScreen(
-                    taskId: state.pathParameters['taskId']!),
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    builder: (_, state) => AddEditTaskScreen(
-                        taskId: state.pathParameters['taskId']!),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'weather',
-            builder: (_, _) => const WeatherDashboardScreen(),
-          ),
-          GoRoute(
-            path: 'pests',
-            builder: (_, _) => const PestLogScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddPestObservationScreen(),
-              ),
-              GoRoute(
-                path: 'spray/add',
-                builder: (_, state) => AddSprayRecordScreen(
-                    pestObservationId:
-                        state.uri.queryParameters['obsId']),
-              ),
-              GoRoute(
-                path: 'spray/detail',
-                builder: (_, state) =>
-                    SprayDetailScreen(record: state.extra! as SprayRecord),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (_, state) => EditPestObservationScreen(
-                    observation: state.extra! as PestObservation),
-              ),
-              GoRoute(
-                path: 'spray/edit',
-                builder: (_, state) =>
-                    EditSprayRecordScreen(record: state.extra! as SprayRecord),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'sales',
-            builder: (_, _) => const SalesScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddSaleScreen(),
-              ),
-              GoRoute(
-                path: 'detail',
-                builder: (_, state) =>
-                    SaleDetailScreen(sale: state.extra! as CropSale),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (_, state) =>
-                    EditSaleScreen(sale: state.extra! as CropSale),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'expenses',
-            builder: (_, _) => const ExpenseTrackerScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddExpenseScreen(),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (_, state) =>
-                    EditExpenseScreen(expense: state.extra! as CropExpense),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'harvest',
-            builder: (_, _) => const HarvestLogScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                builder: (_, _) => const AddHarvestScreen(),
-              ),
-              GoRoute(
-                path: 'detail',
-                builder: (_, state) =>
-                    HarvestDetailScreen(record: state.extra! as HarvestRecord),
-              ),
-              GoRoute(
-                path: 'edit',
-                builder: (_, state) =>
-                    EditHarvestScreen(record: state.extra! as HarvestRecord),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'profitability',
-            builder: (_, _) => const ProfitabilityScreen(),
-          ),
-          GoRoute(
-            path: 'advisory',
-            builder: (_, _) => const AdvisoryHubScreen(),
-            routes: [
-              GoRoute(
-                path: ':articleId',
-                builder: (_, state) => AdvisoryDetailScreen(
-                    articleId: state.pathParameters['articleId']!),
-              ),
-            ],
-          ),
-        ],
-      ),
-
       // ── Splash ───────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.splash,
@@ -662,6 +560,10 @@ List<RouteBase> _buildRoutes() {
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (_, _) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        builder: (_, _) => const RegistrationScreen(),
       ),
 
       // ── Shell with bottom nav ────────────────────────────────────────────────
@@ -1326,10 +1228,6 @@ List<RouteBase> _buildRoutes() {
             ),
           ]),
 
-          // ── Branch 3b: Crop Farming (accessible via drawer from any branch) ──
-          // Note: Crop routes are added as top-level GoRoutes outside the shell
-          // so they can be pushed from any tab via context.push().
-
           // ── Branch 4: Farm (Settings) ────────────────────────────────────────
           StatefulShellBranch(routes: [
             GoRoute(
@@ -1356,10 +1254,524 @@ List<RouteBase> _buildRoutes() {
                   path: 'paddocks',
                   builder: (_, _) => const PaddocksScreen(),
                 ),
+                GoRoute(
+                  path: 'breed-registry',
+                  builder: (_, _) => const BreedRegistryScreen(),
+                ),
+                GoRoute(
+                  path: 'activity-log',
+                  builder: (_, _) => const ActivityLogScreen(),
+                ),
+                GoRoute(
+                  path: 'units',
+                  builder: (_, _) => const UnitsSettingsScreen(),
+                ),
+                GoRoute(
+                  path: 'sync-backup',
+                  builder: (_, _) => const SyncBackupScreen(),
+                ),
+                GoRoute(
+                  path: 'export-data',
+                  builder: (_, _) => const ExportDataScreen(),
+                ),
+                GoRoute(
+                  path: 'regulatory-reports',
+                  builder: (_, _) => const RegulatoryReportsScreen(),
+                ),
+                GoRoute(
+                  path: 'help',
+                  builder: (_, _) => const HelpSupportScreen(),
+                ),
+              ],
+            ),
+          ]),
+
+          // ── Branch 5: Crop Farming (drawer-only, no bottom nav tab) ─────────
+          // Placing crop inside the shell ensures the bottom nav bar and
+          // FarmAppBar back-button work correctly on every crop screen.
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: AppRoutes.crop,
+              builder: (_, _) => const CropHubScreen(),
+              routes: [
+                GoRoute(
+                  path: 'catalog',
+                  builder: (_, _) => const CropCatalogScreen(),
+                  routes: [
+                    GoRoute(
+                      path: ':cropId',
+                      builder: (_, state) => CropDetailScreen(
+                          cropId: state.pathParameters['cropId']!),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'fields',
+                  builder: (_, _) => const FieldListScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddEditFieldScreen(),
+                    ),
+                    GoRoute(
+                      path: 'plan/add',
+                      builder: (_, state) => AddPlantingPlanScreen(
+                          preselectedFieldId:
+                              state.uri.queryParameters['fieldId']),
+                    ),
+                    GoRoute(
+                      path: 'plan/edit',
+                      builder: (_, state) =>
+                          EditPlantingPlanScreen(plan: state.extra! as PlantingPlan),
+                    ),
+                    GoRoute(
+                      path: ':fieldId',
+                      builder: (_, state) => FieldDetailScreen(
+                          fieldId: state.pathParameters['fieldId']!),
+                      routes: [
+                        GoRoute(
+                          path: 'edit',
+                          builder: (_, state) => AddEditFieldScreen(
+                              fieldId: state.pathParameters['fieldId']!),
+                        ),
+                        GoRoute(
+                          path: 'plan/:planId',
+                          builder: (_, state) => PlantedCropDetailScreen(
+                              planId: state.pathParameters['planId']!),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'seasons',
+                  builder: (_, _) => const SeasonPlannerScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddSeasonScreen(),
+                    ),
+                    GoRoute(
+                      path: 'edit',
+                      builder: (_, state) =>
+                          EditSeasonScreen(season: state.extra! as CropSeason),
+                    ),
+                    GoRoute(
+                      path: 'detail',
+                      builder: (_, state) =>
+                          SeasonDetailScreen(season: state.extra! as CropSeason),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'calendar',
+                  builder: (_, _) => const PlantingCalendarScreen(),
+                ),
+                GoRoute(
+                  path: 'tasks',
+                  builder: (_, _) => const TaskListScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddEditTaskScreen(),
+                    ),
+                    GoRoute(
+                      path: ':taskId',
+                      builder: (_, state) => TaskDetailScreen(
+                          taskId: state.pathParameters['taskId']!),
+                      routes: [
+                        GoRoute(
+                          path: 'edit',
+                          builder: (_, state) => AddEditTaskScreen(
+                              taskId: state.pathParameters['taskId']!),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'weather',
+                  builder: (_, _) => const WeatherDashboardScreen(),
+                ),
+                GoRoute(
+                  path: 'pests',
+                  builder: (_, _) => const PestLogScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddPestObservationScreen(),
+                    ),
+                    GoRoute(
+                      path: 'sprays',
+                      builder: (_, _) => const SprayListScreen(),
+                    ),
+                    GoRoute(
+                      path: 'spray/add',
+                      builder: (_, state) => AddSprayRecordScreen(
+                          pestObservationId:
+                              state.uri.queryParameters['obsId']),
+                    ),
+                    GoRoute(
+                      path: 'spray/detail',
+                      builder: (_, state) =>
+                          SprayDetailScreen(record: state.extra! as SprayRecord),
+                    ),
+                    GoRoute(
+                      path: 'edit',
+                      builder: (_, state) => EditPestObservationScreen(
+                          observation: state.extra! as PestObservation),
+                    ),
+                    GoRoute(
+                      path: 'spray/edit',
+                      builder: (_, state) =>
+                          EditSprayRecordScreen(record: state.extra! as SprayRecord),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'sales',
+                  builder: (_, _) => const SalesScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddSaleScreen(),
+                    ),
+                    GoRoute(
+                      path: 'detail',
+                      builder: (_, state) =>
+                          SaleDetailScreen(sale: state.extra! as CropSale),
+                    ),
+                    GoRoute(
+                      path: 'edit',
+                      builder: (_, state) =>
+                          EditSaleScreen(sale: state.extra! as CropSale),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'expenses',
+                  builder: (_, _) => const ExpenseTrackerScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddExpenseScreen(),
+                    ),
+                    GoRoute(
+                      path: 'edit',
+                      builder: (_, state) =>
+                          EditExpenseScreen(expense: state.extra! as CropExpense),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'harvest',
+                  builder: (_, _) => const HarvestLogScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddHarvestScreen(),
+                    ),
+                    GoRoute(
+                      path: 'detail',
+                      builder: (_, state) =>
+                          HarvestDetailScreen(record: state.extra! as HarvestRecord),
+                    ),
+                    GoRoute(
+                      path: 'edit',
+                      builder: (_, state) =>
+                          EditHarvestScreen(record: state.extra! as HarvestRecord),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'profitability',
+                  builder: (_, _) => const ProfitabilityScreen(),
+                ),
+                GoRoute(
+                  path: 'advisory',
+                  builder: (_, _) => const AdvisoryHubScreen(),
+                  routes: [
+                    GoRoute(
+                      path: ':articleId',
+                      builder: (_, state) => AdvisoryDetailScreen(
+                          articleId: state.pathParameters['articleId']!),
+                    ),
+                  ],
+                ),
               ],
             ),
           ]),
         ],
       ),
+
+      // ── MFA challenge ─────────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.mfaChallenge,
+        builder: (_, state) {
+          final mfa = state.extra as AuthMfaRequired;
+          return MfaChallengeScreen(
+            challengeToken: mfa.challengeToken,
+            email: mfa.email,
+          );
+        },
+      ),
+
+      // ── Payroll module ────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.payrollHub,
+        builder: (_, _) => const PayrollHubScreen(),
+        routes: [
+          GoRoute(
+            path: 'employees',
+            builder: (_, _) => const EmployeeListScreen(),
+            routes: [
+              GoRoute(
+                  path: 'add',
+                  builder: (_, _) => const AddEditEmployeeScreen()),
+              GoRoute(
+                  path: 'import',
+                  builder: (_, _) => const EmployeeImportScreen()),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => EmployeeDetailScreen(
+                    employeeId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                      path: 'edit',
+                      builder: (_, state) => AddEditEmployeeScreen(
+                          employeeId: state.pathParameters['id']!)),
+                  GoRoute(
+                      path: 'terminate',
+                      builder: (_, state) => TerminationScreen(
+                          employeeId: state.pathParameters['id']!)),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'contracts',
+            builder: (_, _) => const ContractListScreen(),
+            routes: [
+              GoRoute(
+                  path: 'generate',
+                  builder: (_, _) => const GenerateContractScreen()),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => ContractDetailScreen(
+                    contractId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                      path: 'sign',
+                      builder: (_, state) => ContractSignScreen(
+                          contractId: state.pathParameters['id']!)),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'pay-structures',
+            builder: (_, _) => const PayStructuresScreen(),
+            routes: [
+              GoRoute(
+                  path: 'add',
+                  builder: (_, _) => const AddEditPayStructureScreen()),
+              GoRoute(
+                  path: ':id/edit',
+                  builder: (_, state) => AddEditPayStructureScreen(
+                      id: state.pathParameters['id']!)),
+            ],
+          ),
+          GoRoute(
+            path: 'pay-groups',
+            builder: (_, _) => const PayGroupsScreen(),
+            routes: [
+              GoRoute(
+                  path: 'add',
+                  builder: (_, _) => const AddEditPayGroupScreen()),
+              GoRoute(
+                  path: ':id/edit',
+                  builder: (_, state) => AddEditPayGroupScreen(
+                      id: state.pathParameters['id']!)),
+            ],
+          ),
+          GoRoute(
+            path: 'attendance',
+            builder: (_, _) => const AttendanceLogScreen(),
+            routes: [
+              GoRoute(
+                  path: 'clock-in',
+                  builder: (_, _) => const ClockInScreen()),
+              GoRoute(
+                  path: 'exceptions',
+                  builder: (_, _) => const AttendanceExceptionsScreen()),
+            ],
+          ),
+          GoRoute(
+            path: 'pay-runs',
+            builder: (_, _) => const PayRunListScreen(),
+            routes: [
+              GoRoute(
+                  path: 'new',
+                  builder: (_, _) => const RunPayrollScreen()),
+              GoRoute(
+                path: ':id',
+                builder: (_, state) => PayRunDetailScreen(
+                    payRunId: state.pathParameters['id']!),
+                routes: [
+                  GoRoute(
+                      path: 'approval',
+                      builder: (_, state) => PayrollApprovalScreen(
+                          payRunId: state.pathParameters['id']!)),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'payslips',
+            builder: (_, _) => const PayslipListScreen(),
+            routes: [
+              GoRoute(
+                  path: ':id',
+                  builder: (_, state) => PayslipDetailScreen(
+                      payslipId: state.pathParameters['id']!)),
+            ],
+          ),
+          GoRoute(
+            path: 'leave',
+            builder: (_, _) => const LeaveDashboardScreen(),
+            routes: [
+              GoRoute(
+                  path: 'request',
+                  builder: (_, _) => const LeaveRequestScreen()),
+              GoRoute(
+                  path: 'approval',
+                  builder: (_, _) => const LeaveApprovalScreen()),
+              GoRoute(
+                  path: 'balances',
+                  builder: (_, _) => const LeaveBalanceScreen()),
+            ],
+          ),
+          GoRoute(
+            path: 'deductions',
+            builder: (_, _) => const DeductionsScreen(),
+            routes: [
+              GoRoute(
+                path: 'garnishee',
+                builder: (_, _) => const GarnisheeOrdersScreen(),
+                routes: [
+                  GoRoute(
+                      path: 'add',
+                      builder: (_, _) => const AddEditGarnisheeScreen()),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => GarnisheeDetailScreen(
+                        orderId: state.pathParameters['id']!),
+                    routes: [
+                      GoRoute(
+                          path: 'edit',
+                          builder: (_, state) => AddEditGarnisheeScreen(
+                              orderId: state.pathParameters['id']!)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'compliance',
+            builder: (_, _) => const ComplianceScreen(),
+            routes: [
+              GoRoute(
+                  path: 'uif',
+                  builder: (_, _) => const UifReturnsScreen()),
+              GoRoute(
+                  path: 'paye',
+                  builder: (_, _) => const PayeScreen()),
+              GoRoute(
+                  path: 'coida',
+                  builder: (_, _) => const CoidaScreen()),
+              GoRoute(
+                  path: 'alerts/:id',
+                  builder: (_, state) => ComplianceAlertDetailScreen(
+                      alertId: state.pathParameters['id']!)),
+            ],
+          ),
+          GoRoute(
+              path: 'reports',
+              builder: (_, _) => const PayrollReportsScreen()),
+          GoRoute(
+              path: 'audit',
+              builder: (_, _) => const AuditLogScreen()),
+          GoRoute(
+            path: 'disbursements',
+            builder: (_, _) => const DisbursementsScreen(),
+            routes: [
+              GoRoute(
+                  path: 'history',
+                  builder: (_, _) => const PaymentHistoryScreen()),
+              GoRoute(
+                  path: ':id',
+                  builder: (_, state) => TransactionDetailScreen(
+                      transactionId: state.pathParameters['id']!)),
+            ],
+          ),
+          GoRoute(
+            path: 'incidents',
+            builder: (_, _) => const IncidentsScreen(),
+            routes: [
+              GoRoute(
+                  path: ':id',
+                  builder: (_, state) => IncidentDetailScreen(
+                      incidentId: state.pathParameters['id']!)),
+            ],
+          ),
+          GoRoute(
+            path: 'communications',
+            builder: (_, _) => const CommunicationsScreen(),
+            routes: [
+              GoRoute(
+                  path: 'compose',
+                  builder: (_, _) => const ComposeMessageScreen()),
+            ],
+          ),
+          GoRoute(
+            path: 'roster',
+            builder: (_, _) => const RosterBoardScreen(),
+            routes: [
+              GoRoute(
+                  path: 'add-shift',
+                  builder: (_, state) => AddShiftScreen(
+                        preselectedDate:
+                            state.extra is DateTime
+                                ? state.extra as DateTime
+                                : null,
+                      )),
+              GoRoute(
+                  path: 'task-sheet',
+                  builder: (_, state) => TaskSheetScreen(
+                      shiftId: state.uri.queryParameters['id'] ?? '')),
+              GoRoute(
+                  path: ':id/edit',
+                  builder: (_, state) => AddShiftScreen(
+                        editShift: state.extra is Shift ? state.extra as Shift : null,
+                      )),
+              GoRoute(
+                  path: 'add-piecework-log',
+                  builder: (_, _) => const AddPieceworkLogScreen()),
+            ],
+          ),
+          GoRoute(
+            path: 'settings',
+            routes: [
+              GoRoute(
+                  path: 'employer-config',
+                  builder: (_, _) => const EmployerConfigScreen()),
+            ],
+            redirect: (_, _) => null,
+            builder: (_, _) => const EmployerConfigScreen(),
+          ),
+        ],
+      ),
+
     ];
 }
