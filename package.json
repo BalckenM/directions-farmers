@@ -1,0 +1,12 @@
+{
+  "name": "4directions-farm-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "4Directions Farm — Flutter web app served by a minimal Node.js static server",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
