@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../../shared/widgets/social_auth_buttons.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
 
@@ -199,7 +200,24 @@ class _LoginScreenState extends State<LoginScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const SizedBox(height: AppSpacing.xs),
+                                SocialAuthButton(
+                                  label: 'Continue with Google',
+                                  provider: SocialProvider.google,
+                                  onPressed: () {
+                                    // TODO: wire up Google Sign-In
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                SocialAuthButton(
+                                  label: 'Continue with Apple',
+                                  provider: SocialProvider.apple,
+                                  onPressed: () {
+                                    // TODO: wire up Apple Sign-In
+                                  },
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                                const SocialAuthDivider(),
+                                const SizedBox(height: AppSpacing.md),
                                 FarmTextField(
                                   controller: _emailCtrl,
                                   label: 'Email address',

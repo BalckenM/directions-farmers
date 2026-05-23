@@ -7,6 +7,7 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_dropdown.dart';
 import '../../../shared/widgets/farm_text_field.dart';
+import '../../../shared/widgets/social_auth_buttons.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
@@ -330,6 +331,24 @@ class _AccountStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          SocialAuthButton(
+            label: 'Sign up with Google',
+            provider: SocialProvider.google,
+            onPressed: () {
+              // TODO: wire up Google Sign-In
+            },
+          ),
+          const SizedBox(height: 12),
+          SocialAuthButton(
+            label: 'Sign up with Apple',
+            provider: SocialProvider.apple,
+            onPressed: () {
+              // TODO: wire up Apple Sign-In
+            },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          const SocialAuthDivider(),
+          const SizedBox(height: AppSpacing.md),
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
