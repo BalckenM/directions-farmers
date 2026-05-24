@@ -1,9 +1,12 @@
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 
 // ── Slide data ────────────────────────────────────────────────────────────────
@@ -15,41 +18,46 @@ class _Slide {
     required this.title,
     required this.body,
     required this.tag,
+    required this.tagIcon,
   });
   final String imageUrl;
   final Color accentColor;
   final String title;
   final String body;
   final String tag;
+  final IconData tagIcon;
 }
 
 const _slides = [
   _Slide(
     imageUrl:
-        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=900&q=80',
-    accentColor: Color(0xFF81C784),
+        'https://images.unsplash.com/photo-1589923188900-85dae523342b?w=900&q=85',
+    accentColor: Color(0xFF43A047),
     title: 'Smart Farm\nManagement',
     body:
-        'Everything you need to run a profitable farm — livestock, crops, payroll, and more — in one powerful app.',
+        'Everything you need to run a profitable farm — livestock, crops, payroll, and compliance — in one powerful app.',
     tag: 'FARM MANAGEMENT',
+    tagIcon: Icons.agriculture_rounded,
   ),
   _Slide(
     imageUrl:
-        'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=900&q=80',
-    accentColor: Color(0xFF4FC3F7),
+        'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=900&q=85',
+    accentColor: Color(0xFF1E88E5),
     title: 'Track Livestock\n& Crops',
     body:
-        'Monitor health events, vaccinations, breeding, production, and field data for all species and crops.',
+        'Monitor health events, vaccinations, breeding, production, and field data across all species and crops.',
     tag: 'TRACKING & RECORDS',
+    tagIcon: Icons.monitor_heart_outlined,
   ),
   _Slide(
     imageUrl:
-        'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=900&q=80',
-    accentColor: Color(0xFFFFCC80),
+        'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=900&q=85',
+    accentColor: Color(0xFFFB8C00),
     title: 'Insights &\nSmart Reports',
     body:
         'Real-time analytics, financial tracking, payroll, and compliance — make data-driven decisions every day.',
     tag: 'ANALYTICS & PAYROLL',
+    tagIcon: Icons.bar_chart_rounded,
   ),
 ];
 
@@ -82,15 +90,17 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
       ),
     );
     _fadeAnims = _slideCtrl
-        .map((c) => CurvedAnimation(
-              parent: c,
-              curve: const Interval(0.1, 1.0, curve: Curves.easeOut),
-            ))
+        .map(
+          (c) => CurvedAnimation(
+            parent: c,
+            curve: const Interval(0.1, 1.0, curve: Curves.easeOut),
+          ),
+        )
         .toList();
     _slideAnims = _slideCtrl
         .map(
           (c) => Tween<Offset>(
-            begin: const Offset(0, 0.14),
+            begin: const Offset(0, 0.12),
             end: Offset.zero,
           ).animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic)),
         )
@@ -136,67 +146,349 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
   Widget build(BuildContext context) {
     final slide = _slides[_page];
     final isLast = _page == _slides.length - 1;
+    final screenH = MediaQuery.sizeOf(context).height;
+    final topPad = MediaQuery.paddingOf(context).top;
+    final botPad = MediaQuery.paddingOf(context).bottom;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final panelColor = isDark ? const Color(0xFF1A1E1A) : Colors.white;
+    final panelTop = screenH * 0.50;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
-        fit: StackFit.expand,
         children: [
-          // ── Full-bleed photo background ─────────────────────────────────
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 700),
-            child: CachedNetworkImage(
-              key: ValueKey(_page),
-              imageUrl: slide.imageUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              placeholder: (_, __) => Container(color: Colors.black),
-              errorWidget: (_, __, ___) => Container(
-                color: const Color(0xFF1B4332),
-                child: const Icon(
-                  Icons.landscape_rounded,
-                  size: 80,
-                  color: Colors.white24,
+          // ── 1. Full-bleed photo ───────────────────────────────────────────
+          Positioned.fill(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 700),
+              child: CachedNetworkImage(
+                key: ValueKey(_page),
+                imageUrl: slide.imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                placeholder: (_, _) => Container(color: Colors.black87),
+                errorWidget: (_, _, _) => Container(
+                  color: const Color(0xFF1B4332),
+                  child: const Icon(
+                    Icons.landscape_rounded,
+                    size: 80,
+                    color: Colors.white24,
+                  ),
                 ),
               ),
             ),
           ),
 
-          // ── Dark gradient overlay ───────────────────────────────────────
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x33000000),
-                  Color(0x88000000),
-                  Color(0xEE000000),
-                ],
-                stops: [0.0, 0.45, 1.0],
+          // ── 2. Top gradient (status bar softening) ────────────────────────
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 180,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withAlpha(110),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
 
-          // ── Main content ────────────────────────────────────────────────
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ── Skip button ───────────────────────────────────────────
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 12, 20, 0),
+          // ── 3. Accent-mist gradient (image → panel) ───────────────────────
+          Positioned(
+            top: panelTop - screenH * 0.18,
+            left: 0,
+            right: 0,
+            height: screenH * 0.22,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    slide.accentColor.withAlpha(110),
+                    slide.accentColor.withAlpha(55),
+                    panelColor.withAlpha(230),
+                    panelColor,
+                  ],
+                  stops: const [0.0, 0.25, 0.50, 0.78, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // ── 4. Content panel ──────────────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            top: panelTop,
+            child: Container(
+              decoration: BoxDecoration(
+                color: panelColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(70),
+                    blurRadius: 48,
+                    offset: const Offset(0, -8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Grab handle
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 20),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Swipeable slide content
+                  Expanded(
+                    child: PageView.builder(
+                      controller: _pageCtrl,
+                      physics: const BouncingScrollPhysics(),
+                      onPageChanged: (i) {
+                        _slideCtrl[i].reset();
+                        _slideCtrl[i].forward();
+                        setState(() => _page = i);
+                      },
+                      itemCount: _slides.length,
+                      itemBuilder: (_, i) {
+                        final s = _slides[i];
+                        return FadeTransition(
+                          opacity: _fadeAnims[i],
+                          child: SlideTransition(
+                            position: _slideAnims[i],
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 28),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Counter + tag row
+                                  Row(
+                                    children: [
+                                      _TagChip(
+                                        label: s.tag,
+                                        accentColor: s.accentColor,
+                                        icon: s.tagIcon,
+                                      ),
+                                      const Spacer(),
+                                      Text(
+                                        '${(i + 1).toString().padLeft(2, '0')} / ${_slides.length.toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white38
+                                              : Colors.black26,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    s.title,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF111111),
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.08,
+                                      letterSpacing: -0.9,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    s.body,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white60
+                                          : const Color(0xFF555555),
+                                      fontSize: 14.5,
+                                      height: 1.62,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Accent-matched dot indicator
+                  _DotIndicator(
+                    count: _slides.length,
+                    current: _page,
+                    accentColor: slide.accentColor,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Primary CTA — gradient button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _GradientButton(
+                      label: isLast ? 'Get Started' : 'Next',
+                      icon: isLast
+                          ? Icons.rocket_launch_rounded
+                          : Icons.arrow_forward_rounded,
+                      onPressed: _next,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Secondary CTA
+                  if (isLast)
+                    TextButton(
+                      onPressed: () => context.go(AppRoutes.login),
+                      style: TextButton.styleFrom(
+                        foregroundColor:
+                            isDark ? Colors.white54 : Colors.black45,
+                        minimumSize: const Size.fromHeight(44),
+                      ),
+                      child: const Text(
+                        'Already have an account? Sign in',
+                        style:
+                            TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  else
+                    TextButton(
+                      onPressed: _done,
+                      style: TextButton.styleFrom(
+                        foregroundColor:
+                            isDark ? Colors.white54 : Colors.black45,
+                        minimumSize: const Size.fromHeight(44),
+                      ),
+                      child: const Text(
+                        'Skip intro',
+                        style:
+                            TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  SizedBox(height: botPad + 8),
+                ],
+              ),
+            ),
+          ),
+
+          // ── 5. Brand badge — top-centre, glassmorphism ────────────────────
+          Positioned(
+            top: topPad + 16,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(22),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                        color: Colors.white.withAlpha(60),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF66BB6A), Color(0xFF1B5E20)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.agriculture_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          '4Directions',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Farm',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.65),
+                            fontWeight: FontWeight.w400,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ── 6. Skip button — top-right, glassmorphism ─────────────────────
+          Positioned(
+            top: topPad + 14,
+            right: 20,
+            child: AnimatedOpacity(
+              opacity: isLast ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              child: IgnorePointer(
+                ignoring: isLast,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                     child: TextButton(
                       onPressed: _done,
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.white,
+                        backgroundColor: Colors.white.withAlpha(28),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
-                        backgroundColor: Colors.black38,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -211,155 +503,7 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
                     ),
                   ),
                 ),
-
-                const Spacer(),
-
-                // ── Tag chip ─────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 350),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: _TagChip(
-                        key: ValueKey('tag$_page'),
-                        label: slide.tag,
-                        accentColor: slide.accentColor,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ── PageView — title + body ───────────────────────────────
-                SizedBox(
-                  height: 190,
-                  child: PageView.builder(
-                    controller: _pageCtrl,
-                    physics: const BouncingScrollPhysics(),
-                    onPageChanged: (i) {
-                      _slideCtrl[i].reset();
-                      _slideCtrl[i].forward();
-                      setState(() => _page = i);
-                    },
-                    itemCount: _slides.length,
-                    itemBuilder: (_, i) {
-                      final s = _slides[i];
-                      return FadeTransition(
-                        opacity: _fadeAnims[i],
-                        child: SlideTransition(
-                          position: _slideAnims[i],
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  s.title,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 34,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.15,
-                                    letterSpacing: -0.8,
-                                    shadows: [
-                                      Shadow(
-                                        color: Color(0x99000000),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                Text(
-                                  s.body,
-                                  style: const TextStyle(
-                                    color: Color(0xDDFFFFFF),
-                                    fontSize: 15,
-                                    height: 1.6,
-                                    fontWeight: FontWeight.w400,
-                                    shadows: [
-                                      Shadow(
-                                        color: Color(0x66000000),
-                                        blurRadius: 8,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                // ── Dots ─────────────────────────────────────────────────
-                _DotIndicator(count: _slides.length, current: _page),
-                const SizedBox(height: 28),
-
-                // ── CTAs ──────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      FilledButton(
-                        onPressed: _next,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              isLast ? 'Get Started' : 'Next',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              isLast
-                                  ? Icons.rocket_launch_rounded
-                                  : Icons.arrow_forward_rounded,
-                              size: 18,
-                              color: Colors.black87,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      if (isLast)
-                        TextButton(
-                          onPressed: () => context.go(AppRoutes.login),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.white.withAlpha(200),
-                            minimumSize: const Size.fromHeight(44),
-                          ),
-                          child: const Text(
-                            'I already have an account',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
+              ),
             ),
           ),
         ],
@@ -371,57 +515,137 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
 // ── Supporting widgets ────────────────────────────────────────────────────────
 
 class _TagChip extends StatelessWidget {
-  const _TagChip({super.key, required this.label, required this.accentColor});
+  const _TagChip({
+    required this.label,
+    required this.accentColor,
+    required this.icon,
+  });
   final String label;
   final Color accentColor;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.black38,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accentColor.withAlpha(180), width: 1.5),
+        color: accentColor.withAlpha(22),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: accentColor.withAlpha(100), width: 1),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: accentColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: accentColor),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: accentColor,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _DotIndicator extends StatelessWidget {
-  const _DotIndicator({required this.count, required this.current});
+  const _DotIndicator({
+    required this.count,
+    required this.current,
+    required this.accentColor,
+    required this.isDark,
+  });
   final int count;
   final int current;
+  final Color accentColor;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
+    final inactiveColor =
+        isDark ? Colors.white.withAlpha(30) : Colors.black.withAlpha(18);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(count, (i) {
         final active = i == current;
         return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 350),
           curve: Curves.easeInOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: active ? 24 : 8,
+          width: active ? 28 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: active
-                ? Colors.white
-                : Colors.white.withAlpha(80),
+            color: active ? accentColor : inactiveColor,
             borderRadius: BorderRadius.circular(4),
           ),
         );
       }),
+    );
+  }
+}
+
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withAlpha(90),
+            blurRadius: 22,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(icon, size: 18, color: Colors.white),
+          ],
+        ),
+      ),
     );
   }
 }

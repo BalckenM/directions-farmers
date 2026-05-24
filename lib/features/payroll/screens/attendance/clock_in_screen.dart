@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_spacing.dart';
@@ -14,7 +15,6 @@ import '../../providers/payroll_providers.dart';
 import '../../theme/payroll_tokens.dart';
 import '../../widgets/payroll_widgets.dart';
 
-
 final _dfClock = DateFormat('d MMMM y');
 
 class ClockInScreen extends ConsumerStatefulWidget {
@@ -27,12 +27,12 @@ class ClockInScreen extends ConsumerStatefulWidget {
 class _ClockInScreenState extends ConsumerState<ClockInScreen> {
   String? _employeeId;
   AttendanceMethod _method = AttendanceMethod.manual;
-  final _timeCtrl  = TextEditingController();
+  final _timeCtrl = TextEditingController();
   final _hoursCtrl = TextEditingController();
-  final _otCtrl    = TextEditingController();
+  final _otCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
-  DateTime _date   = DateTime.now();
-  bool _isClockIn  = true;
+  DateTime _date = DateTime.now();
+  bool _isClockIn = true;
 
   @override
   void dispose() {
@@ -96,7 +96,9 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                 prefixIcon: const Icon(Icons.person_outline_rounded),
                 items: [
                   const DropdownMenuItem<String?>(
-                      value: null, child: Text('Select employee')),
+                    value: null,
+                    child: Text('Select employee'),
+                  ),
                   ...employees.map(
                     (e) => DropdownMenuItem<String?>(
                       value: e.id,
@@ -137,15 +139,23 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today_outlined,
-                          size: 18, color: cs.onSurfaceVariant),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 18,
+                        color: cs.onSurfaceVariant,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: Text(_dfClock.format(_date),
-                            style: tt.bodyMedium),
+                        child: Text(
+                          _dfClock.format(_date),
+                          style: tt.bodyMedium,
+                        ),
                       ),
-                      Icon(Icons.edit_calendar_outlined,
-                          color: cs.onSurfaceVariant, size: 18),
+                      Icon(
+                        Icons.edit_calendar_outlined,
+                        color: cs.onSurfaceVariant,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
@@ -164,8 +174,9 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
             children: [
               FarmTextField(
                 controller: _timeCtrl,
-                label:
-                    _isClockIn ? 'Clock In Time (HH:mm)' : 'Clock Out Time (HH:mm)',
+                label: _isClockIn
+                    ? 'Clock In Time (HH:mm)'
+                    : 'Clock Out Time (HH:mm)',
                 hint: '07:30',
                 prefixIcon: const Icon(Icons.access_time_rounded),
               ),
@@ -184,10 +195,14 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                       selected: selected,
                       selectedColor: PayrollTokens.navy.withValues(alpha: 0.15),
                       side: BorderSide(
-                        color: selected ? PayrollTokens.navy : cs.outlineVariant,
+                        color: selected
+                            ? PayrollTokens.navy
+                            : cs.outlineVariant,
                       ),
                       labelStyle: TextStyle(
-                        color: selected ? PayrollTokens.navy : cs.onSurfaceVariant,
+                        color: selected
+                            ? PayrollTokens.navy
+                            : cs.onSurfaceVariant,
                         fontWeight: selected
                             ? FontWeight.w600
                             : FontWeight.normal,
@@ -209,10 +224,10 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                         hint: '8.0',
                         prefixIcon: const Icon(Icons.schedule_rounded),
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                          decimal: true,
+                        ),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[\d.]')),
+                          FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                         ],
                       ),
                     ),
@@ -224,10 +239,10 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                         hint: '0',
                         prefixIcon: const Icon(Icons.more_time_rounded),
                         keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                          decimal: true,
+                        ),
                         inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[\d.]')),
+                          FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
                         ],
                       ),
                     ),
@@ -252,14 +267,19 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
             width: double.infinity,
             child: FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: _isClockIn ? PayrollTokens.green : PayrollTokens.rose,
+                backgroundColor: _isClockIn
+                    ? PayrollTokens.green
+                    : PayrollTokens.rose,
               ),
               onPressed: (_employeeId == null || isLoading) ? null : _submit,
               child: isLoading
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(_isClockIn ? 'Clock In' : 'Clock Out'),
             ),
@@ -274,15 +294,44 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
   void _autoDetectMode() {
     if (_employeeId == null) return;
     final records = ref.read(
-        attendanceProvider(AttendanceFilter(employeeId: _employeeId)));
-    final hasOpen = records.any((r) =>
-        r.date.year == _date.year &&
-        r.date.month == _date.month &&
-        r.date.day == _date.day &&
-        r.clockOutTime == null &&
-        r.clockInTime != null);
+      attendanceProvider(AttendanceFilter(employeeId: _employeeId)),
+    );
+    final hasOpen = records.any(
+      (r) =>
+          r.date.year == _date.year &&
+          r.date.month == _date.month &&
+          r.date.day == _date.day &&
+          r.clockOutTime == null &&
+          r.clockInTime != null,
+    );
     if (hasOpen != !_isClockIn) {
       setState(() => _isClockIn = !hasOpen);
+    }
+  }
+
+  /// Request location permission and return the current GPS coordinates as a
+  /// formatted string, or null if unavailable / not permitted.
+  Future<String?> _getGpsCoords() async {
+    try {
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        return null;
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+      return 'GPS: ${pos.latitude.toStringAsFixed(6)}, '
+          '${pos.longitude.toStringAsFixed(6)} '
+          '(±${pos.accuracy.toStringAsFixed(0)} m)';
+    } catch (_) {
+      return null;
     }
   }
 
@@ -291,15 +340,38 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
         ? '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}'
         : _timeCtrl.text.trim();
 
+    // Capture GPS coordinates when method is set to GPS
+    String? gpsNotes;
+    if (_method == AttendanceMethod.gps) {
+      gpsNotes = await _getGpsCoords();
+      if (!mounted) return;
+      if (gpsNotes == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Could not obtain GPS location. Please enable location services or use a different method.',
+            ),
+            backgroundColor: PayrollTokens.amber,
+          ),
+        );
+        return;
+      }
+    }
+    final combinedNotes = [
+      ?gpsNotes,
+      if (_notesCtrl.text.isNotEmpty) _notesCtrl.text,
+    ].join(' — ');
+
     if (_isClockIn) {
-      final result =
-          await ref.read(attendanceNotifierProvider.notifier).clockIn(
-                employeeId: _employeeId!,
-                date: _date,
-                clockInTime: timeStr,
-                method: _method,
-                notes: _notesCtrl.text.isEmpty ? null : _notesCtrl.text,
-              );
+      final result = await ref
+          .read(attendanceNotifierProvider.notifier)
+          .clockIn(
+            employeeId: _employeeId!,
+            date: _date,
+            clockInTime: timeStr,
+            method: _method,
+            notes: combinedNotes.isEmpty ? null : combinedNotes,
+          );
       if (!mounted) return;
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -312,31 +384,34 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
       }
     } else {
       final records = ref.read(
-          attendanceProvider(AttendanceFilter(employeeId: _employeeId)));
-      final today = records.where((r) =>
-          r.employeeId == _employeeId &&
-          r.date.year == _date.year &&
-          r.date.month == _date.month &&
-          r.date.day == _date.day);
+        attendanceProvider(AttendanceFilter(employeeId: _employeeId)),
+      );
+      final today = records.where(
+        (r) =>
+            r.employeeId == _employeeId &&
+            r.date.year == _date.year &&
+            r.date.month == _date.month &&
+            r.date.day == _date.day,
+      );
       final existing = today.isNotEmpty ? today.first : null;
       if (existing == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No clock-in record found for today.')),
+          const SnackBar(content: Text('No clock-in record found for today.')),
         );
         return;
       }
       final hours = double.tryParse(_hoursCtrl.text) ?? 0;
       final ot = double.tryParse(_otCtrl.text) ?? 0;
-      final result =
-          await ref.read(attendanceNotifierProvider.notifier).clockOut(
-                attendanceId: existing.id,
-                clockOutTime: timeStr,
-                hoursWorked: hours,
-                overtimeHours: ot > 0 ? ot : null,
-                notes: _notesCtrl.text.isEmpty ? null : _notesCtrl.text,
-              );
+      final result = await ref
+          .read(attendanceNotifierProvider.notifier)
+          .clockOut(
+            attendanceId: existing.id,
+            clockOutTime: timeStr,
+            hoursWorked: hours,
+            overtimeHours: ot > 0 ? ot : null,
+            notes: combinedNotes.isEmpty ? null : combinedNotes,
+          );
       if (!mounted) return;
       if (result != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -394,8 +469,7 @@ class _ModeTab extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontWeight:
-                      selected ? FontWeight.w700 : FontWeight.normal,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.normal,
                   color: selected
                       ? Colors.white
                       : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -413,8 +487,8 @@ class _ModeTab extends StatelessWidget {
 // --- Helpers -----------------------------------------------------------------
 
 String _methodLabel(AttendanceMethod m) => switch (m) {
-      AttendanceMethod.manual    => 'Manual',
-      AttendanceMethod.gps       => 'GPS',
-      AttendanceMethod.qrCode    => 'QR Code',
-      AttendanceMethod.biometric => 'Biometric',
-    };
+  AttendanceMethod.manual => 'Manual',
+  AttendanceMethod.gps => 'GPS',
+  AttendanceMethod.qrCode => 'QR Code',
+  AttendanceMethod.biometric => 'Biometric',
+};

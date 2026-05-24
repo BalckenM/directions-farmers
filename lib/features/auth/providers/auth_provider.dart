@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/providers/shared_preferences_provider.dart';
 import '../data/auth_mock_data_source.dart';
 import '../models/auth_state.dart';

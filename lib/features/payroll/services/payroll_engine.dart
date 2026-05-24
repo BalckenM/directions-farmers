@@ -4,16 +4,16 @@
 
 import 'dart:math' show min, max;
 
-import '../models/payroll_employee.dart';
-import '../models/pay_run.dart';
-import '../models/pay_structure.dart';
-import '../models/payslip.dart';
-import '../models/deduction_rule.dart';
 import '../models/attendance_record.dart';
-import '../models/piecework_log.dart';
 import '../models/compliance_alert.dart';
+import '../models/deduction_rule.dart';
 import '../models/garnishee_order.dart';
 import '../models/leave_type.dart';
+import '../models/pay_run.dart';
+import '../models/pay_structure.dart';
+import '../models/payroll_employee.dart';
+import '../models/payslip.dart';
+import '../models/piecework_log.dart';
 
 // ─── SA Statutory Constants (2025 / 2026 tax year) ───────────────────────────
 class SaStatutory {
@@ -135,6 +135,27 @@ class SaStatutory {
 
   /// Maximum monthly salary for ETI eligibility.
   static const double etiMaxMonthlySalary = 6_500.0;
+
+  // ─── COIDA calculation helpers ───────────────────────────────────────────
+
+  /// Compute the total annual COIDA assessment for the whole payroll.
+  ///
+  /// [annualPayroll] is the sum of all employee annual earnings subject to
+  /// COIDA. Each employee's earnings are capped at [coidaAnnualCeiling]
+  /// individually *before* summing, so pass the pre-capped total here.
+  static double computeCoidaAnnualAssessment(double annualPayroll) {
+    return annualPayroll * coidaDefaultRate;
+  }
+
+  /// Compute the COIDA contribution for a single employee for one month.
+  ///
+  /// Annualises [monthlyEarnings], applies the [coidaAnnualCeiling] cap, then
+  /// divides by 12 to get the monthly provision amount.
+  static double computeMonthlyCoida(double monthlyEarnings) {
+    final annualEarnings = monthlyEarnings * 12;
+    final cappedAnnual = min(annualEarnings, coidaAnnualCeiling);
+    return (cappedAnnual * coidaDefaultRate) / 12;
+  }
 }
 
 class _TaxBracket {
@@ -196,6 +217,72 @@ class EmployeePayResult {
   final double coidaContribution;
   final List<String> warnings;
   final bool nmwaBreach;
+}
+
+// ─── Retroactive back-pay calculator ─────────────────────────────────────────
+
+/// Computes the gross retroactive pay owed when a wage rate has been
+/// increased and the increase must be applied to prior periods.
+abstract final class BackpayCalculator {
+  /// Compute back-pay from a *rate-based* wage change (hourly or daily).
+  ///
+  /// * [oldRate] — the rate that was actually paid.
+  /// * [newRate] — the rate that should have been applied (must be > [oldRate]).
+  /// * [periodsAffected] — number of pay periods (e.g. weeks or months) the
+  ///   increase is applied retroactively to.
+  /// * [unitsPerPeriod] — hours or days worked in each affected period.
+  ///
+  /// Returns the total gross back-pay amount (0.0 if [newRate] ≤ [oldRate]).
+  static double computeRetroactivePay({
+    required double oldRate,
+    required double newRate,
+    required int periodsAffected,
+    required double unitsPerPeriod,
+  }) {
+    if (newRate <= oldRate) return 0.0;
+    return (newRate - oldRate) * unitsPerPeriod * periodsAffected;
+  }
+
+  /// Compute back-pay from a *monthly-salary* change.
+  ///
+  /// * [oldMonthly] — monthly salary that was paid.
+  /// * [newMonthly] — monthly salary that should have been paid.
+  /// * [monthsAffected] — number of months to apply retroactively.
+  ///
+  /// Returns the total gross back-pay (0.0 if [newMonthly] ≤ [oldMonthly]).
+  static double computeRetroactiveMonthlySalary({
+    required double oldMonthly,
+    required double newMonthly,
+    required int monthsAffected,
+  }) {
+    if (newMonthly <= oldMonthly) return 0.0;
+    return (newMonthly - oldMonthly) * monthsAffected;
+  }
+
+  /// Compute PAYE on a lump-sum back-pay using the "spread-over-period"
+  /// method — adds the back-pay pro-rated over the affected months to the
+  /// current monthly gross, computes PAYE, then subtracts the base PAYE.
+  ///
+  /// [currentMonthlyGross] — normal monthly gross before back-pay.
+  /// [totalBackpay] — total lump-sum back-pay to be paid.
+  /// [monthsAffected] — number of months the back-pay relates to.
+  ///
+  /// Returns the additional PAYE tax due on the lump sum.
+  static double computeBackpayPaye({
+    required double currentMonthlyGross,
+    required double totalBackpay,
+    required int monthsAffected,
+  }) {
+    final normalPaye = SaStatutory.computeMonthlyPaye(currentMonthlyGross);
+    final monthlyBackpay = monthsAffected > 0
+        ? totalBackpay / monthsAffected
+        : totalBackpay;
+    final adjustedPaye = SaStatutory.computeMonthlyPaye(
+      currentMonthlyGross + monthlyBackpay,
+    );
+    final additionalMonthlyPaye = max(0.0, adjustedPaye - normalPaye);
+    return additionalMonthlyPaye * (monthsAffected > 0 ? monthsAffected : 1);
+  }
 }
 
 // ─── Pay-run result ──────────────────────────────────────────────────────────

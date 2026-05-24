@@ -14,7 +14,8 @@ import '../models/payslip.dart';
 ///   Gross Remuneration, UIF Employee (1%), UIF Employer (1%)
 abstract final class UifExportService {
   static const double _uifRate = 0.01;
-  static const double _uifMonthlyCap = 17712.0;
+  static const double _uifMonthlyCap =
+      17_747.46; // SARS 2025/26 — matches SaStatutory.uifMonthlyCap
 
   /// Generates a UI-19 CSV from a list of [payslips].
   ///

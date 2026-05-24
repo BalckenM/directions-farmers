@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_dropdown.dart';
 import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/social_auth_buttons.dart';
-import '../../../shared/widgets/primary_button.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
 
@@ -45,7 +43,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   String _country = 'South Africa';
   String _province = kCountryProvinces['South Africa']!.first;
   late SubscriptionPlan _plan = kSubscriptionPlans[1];
-  late Set<String> _selectedModules = {...kSubscriptionPlans[1].includedModules};
+  late Set<String> _selectedModules = {
+    ...kSubscriptionPlans[1].includedModules,
+  };
 
   @override
   void dispose() {
@@ -76,7 +76,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       case _RegStep.account:
         return _formKey.currentState?.validate() ?? false;
       case _RegStep.farm:
-        // R8: validate farm name via formState too
         return _farmNameCtrl.text.trim().isNotEmpty;
       case _RegStep.plan:
         return true;
@@ -144,7 +143,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
     final authState = ref.read(authProvider).value;
     if (authState is AuthAuthenticated) {
-      // R7: navigate to WelcomeScreen instead of going directly to dashboard
       context.go(
         AppRoutes.welcome,
         extra: {
@@ -168,31 +166,31 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: cs.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: _back,
-        ),
-        title: Text(
-          _stepTitle(_step),
-          style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        centerTitle: true,
+      appBar: _RegHeader(
+        stepIndex: _step.index,
+        stepTotal: _RegStep.values.length,
+        onBack: _back,
       ),
       body: Column(
         children: [
-          // R1: progress bar with distinct completed / current / upcoming states
-          _StepProgressBar(
-            current: _step.index,
-            total: _RegStep.values.length,
+          // Visual step progress
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              AppSpacing.md,
+              AppSpacing.xl,
+              AppSpacing.sm,
+            ),
+            child: _VisualStepper(
+              current: _step.index,
+              labels: const ['Account', 'Farm', 'Plan', 'Modules'],
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
+
+          // Step pages
           Expanded(
             child: Form(
               key: _formKey,
@@ -200,48 +198,87 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 controller: _pageCtrl,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  _AccountStep(
-                    firstNameCtrl: _firstNameCtrl,
-                    lastNameCtrl: _lastNameCtrl,
-                    emailCtrl: _emailCtrl,
-                    phoneCtrl: _phoneCtrl,
-                    passwordCtrl: _passwordCtrl,
-                    confirmCtrl: _confirmCtrl,
+                  // Step 1: Account
+                  _StepPage(
+                    hero: const _StepHero(
+                      icon: Icons.person_outline_rounded,
+                      title: 'Account Details',
+                      subtitle: 'Create your secure login credentials',
+                    ),
+                    child: _AccountStep(
+                      firstNameCtrl: _firstNameCtrl,
+                      lastNameCtrl: _lastNameCtrl,
+                      emailCtrl: _emailCtrl,
+                      phoneCtrl: _phoneCtrl,
+                      passwordCtrl: _passwordCtrl,
+                      confirmCtrl: _confirmCtrl,
+                    ),
                   ),
-                  _FarmStep(
-                    farmNameCtrl: _farmNameCtrl,
-                    selectedCountry: _country,
-                    selectedProvince: _province,
-                    onCountryChanged: (c) => setState(() {
-                      _country = c;
-                      _province = kCountryProvinces[c]!.first;
-                    }),
-                    onProvinceChanged: (p) => setState(() => _province = p),
+
+                  // Step 2: Farm
+                  _StepPage(
+                    hero: const _StepHero(
+                      icon: Icons.home_work_outlined,
+                      title: 'Your Farm',
+                      subtitle: 'Tell us where and how you farm',
+                    ),
+                    child: _FarmStep(
+                      farmNameCtrl: _farmNameCtrl,
+                      selectedCountry: _country,
+                      selectedProvince: _province,
+                      onCountryChanged: (c) => setState(() {
+                        _country = c;
+                        _province = kCountryProvinces[c]!.first;
+                      }),
+                      onProvinceChanged: (p) =>
+                          setState(() => _province = p),
+                    ),
                   ),
-                  _PlanStep(
-                    selected: _plan,
-                    onSelect: (p) => setState(() {
-                      _plan = p;
-                      _selectedModules = {...p.includedModules};
-                    }),
+
+                  // Step 3: Plan
+                  _StepPage(
+                    hero: const _StepHero(
+                      icon: Icons.workspace_premium_outlined,
+                      title: 'Choose a Plan',
+                      subtitle: 'Start with a 30-day free trial — cancel anytime',
+                    ),
+                    child: _PlanStep(
+                      selected: _plan,
+                      onSelect: (p) => setState(() {
+                        _plan = p;
+                        _selectedModules = {...p.includedModules};
+                      }),
+                    ),
                   ),
-                  _ModulesStep(
-                    plan: _plan,
-                    selectedModules: _selectedModules,
-                    onToggle: (m) => setState(() {
-                      if (_selectedModules.contains(m)) {
-                        if (_selectedModules.length > 1) {
-                          _selectedModules.remove(m);
+
+                  // Step 4: Modules
+                  _StepPage(
+                    hero: _StepHero(
+                      icon: Icons.apps_rounded,
+                      title: 'Activate Modules',
+                      subtitle:
+                          'Your ${_plan.label} plan includes these features',
+                    ),
+                    child: _ModulesStep(
+                      plan: _plan,
+                      selectedModules: _selectedModules,
+                      onToggle: (m) => setState(() {
+                        if (_selectedModules.contains(m)) {
+                          if (_selectedModules.length > 1) {
+                            _selectedModules.remove(m);
+                          }
+                        } else {
+                          _selectedModules.add(m);
                         }
-                      } else {
-                        _selectedModules.add(m);
-                      }
-                    }),
+                      }),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // Footer CTA
           _RegistrationFooter(
             step: _step,
             loading: _loading,
@@ -252,54 +289,286 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       ),
     );
   }
-
-  String _stepTitle(_RegStep s) => switch (s) {
-        _RegStep.account => 'Create Account',
-        _RegStep.farm => 'Your Farm',
-        _RegStep.plan => 'Choose a Plan',
-        _RegStep.modules => 'Activate Modules',
-      };
 }
 
-// ── R1: Progress bar with three visual states ─────────────────────────────────
+// ── Custom AppBar ─────────────────────────────────────────────────────────────
 
-class _StepProgressBar extends StatelessWidget {
-  const _StepProgressBar({required this.current, required this.total});
-  final int current;
-  final int total;
+class _RegHeader extends StatelessWidget implements PreferredSizeWidget {
+  const _RegHeader({
+    required this.stepIndex,
+    required this.stepTotal,
+    required this.onBack,
+  });
+
+  final int stepIndex;
+  final int stepTotal;
+  final VoidCallback onBack;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(60);
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Row(
-        children: List.generate(total, (i) {
-          final isCompleted = i < current;
-          final isCurrent = i == current;
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return AppBar(
+      backgroundColor: cs.surface,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        onPressed: onBack,
+      ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.agriculture_rounded,
+              size: 15,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            '4Directions',
+            style: tt.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
+      ),
+      centerTitle: true,
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(14),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.primary.withAlpha(50),
+            ),
+          ),
+          child: Text(
+            '${stepIndex + 1} / $stepTotal',
+            style: tt.labelSmall?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Visual step indicator ─────────────────────────────────────────────────────
+
+class _VisualStepper extends StatelessWidget {
+  const _VisualStepper({required this.current, required this.labels});
+  final int current;
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = labels.length;
+    return Row(
+      children: List.generate(total * 2 - 1, (i) {
+        if (i.isOdd) {
+          // Connector line
+          final leftDone = (i ~/ 2) < current;
           return Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(right: i < total - 1 ? 6 : 0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isCompleted
-                          ? AppColors.primary
-                          : isCurrent
-                              ? AppColors.primaryLight
-                              : AppColors.primary.withAlpha(30),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ],
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 400),
+              height: 2,
+              decoration: BoxDecoration(
+                color: leftDone
+                    ? AppColors.primary
+                    : AppColors.primary.withAlpha(25),
+                borderRadius: BorderRadius.circular(1),
               ),
             ),
           );
-        }),
+        }
+
+        final idx = i ~/ 2;
+        final isDone = idx < current;
+        final isCurrent = idx == current;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: isDone
+                    ? AppColors.primary
+                    : isCurrent
+                        ? AppColors.primary.withAlpha(15)
+                        : Theme.of(context).colorScheme.surfaceContainerLow,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDone || isCurrent
+                      ? AppColors.primary
+                      : Theme.of(context).colorScheme.outlineVariant,
+                  width: isCurrent ? 2 : 1,
+                ),
+              ),
+              child: Center(
+                child: isDone
+                    ? const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      )
+                    : Text(
+                        '${idx + 1}',
+                        style: TextStyle(
+                          color: isCurrent
+                              ? AppColors.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              labels[idx],
+              style: TextStyle(
+                color: isDone || isCurrent
+                    ? AppColors.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 9,
+                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+}
+
+// ── Step hero card ────────────────────────────────────────────────────────────
+
+class _StepHero extends StatelessWidget {
+  const _StepHero({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.sm,
+        AppSpacing.xl,
+        AppSpacing.sm,
       ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withAlpha(10),
+            AppColors.primaryContainer.withAlpha(28),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withAlpha(30)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withAlpha(60),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: tt.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: cs.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: tt.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Step page wrapper ─────────────────────────────────────────────────────────
+
+class _StepPage extends StatelessWidget {
+  const _StepPage({required this.hero, required this.child});
+  final Widget hero;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        hero,
+        Expanded(child: child),
+      ],
     );
   }
 }
@@ -331,25 +600,6 @@ class _AccountStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SocialAuthButton(
-            label: 'Sign up with Google',
-            provider: SocialProvider.google,
-            onPressed: () {
-              // TODO: wire up Google Sign-In
-            },
-          ),
-          const SizedBox(height: 12),
-          SocialAuthButton(
-            label: 'Sign up with Apple',
-            provider: SocialProvider.apple,
-            onPressed: () {
-              // TODO: wire up Apple Sign-In
-            },
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const SocialAuthDivider(),
-          const SizedBox(height: AppSpacing.md),
-          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
@@ -357,9 +607,10 @@ class _AccountStep extends StatelessWidget {
                   controller: firstNameCtrl,
                   label: 'First Name',
                   hint: 'John',
-                  // R3: added prefix icons to name fields for visual consistency
-                  prefixIcon: Icon(Icons.person_outline_rounded,
-                      color: cs.onSurfaceVariant),
+                  prefixIcon: Icon(
+                    Icons.person_outline_rounded,
+                    color: cs.onSurfaceVariant,
+                  ),
                   textInputAction: TextInputAction.next,
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -371,8 +622,10 @@ class _AccountStep extends StatelessWidget {
                   controller: lastNameCtrl,
                   label: 'Last Name',
                   hint: 'Dlamini',
-                  prefixIcon: Icon(Icons.person_outline_rounded,
-                      color: cs.onSurfaceVariant),
+                  prefixIcon: Icon(
+                    Icons.person_outline_rounded,
+                    color: cs.onSurfaceVariant,
+                  ),
                   textInputAction: TextInputAction.next,
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
@@ -408,8 +661,6 @@ class _AccountStep extends StatelessWidget {
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: AppSpacing.md),
-          // R2: obscureText: true enables FarmTextField's built-in visibility
-          // toggle; minimum raised to 8 characters
           FarmTextField(
             controller: passwordCtrl,
             label: 'Password',
@@ -425,7 +676,6 @@ class _AccountStep extends StatelessWidget {
             },
           ),
           const SizedBox(height: AppSpacing.xs),
-          // R2: password strength indicator
           _PasswordStrengthBar(controller: passwordCtrl),
           const SizedBox(height: AppSpacing.md),
           FarmTextField(
@@ -449,7 +699,7 @@ class _AccountStep extends StatelessWidget {
   }
 }
 
-// ── R2: Password strength indicator ──────────────────────────────────────────
+// ── Password strength bar ─────────────────────────────────────────────────────
 
 class _PasswordStrengthBar extends StatefulWidget {
   const _PasswordStrengthBar({required this.controller});
@@ -478,7 +728,6 @@ class _PasswordStrengthBarState extends State<_PasswordStrengthBar> {
     if (mounted) setState(() => _password = widget.controller.text);
   }
 
-  // Returns 0–4
   int get _strength {
     if (_password.isEmpty) return 0;
     int score = 0;
@@ -567,15 +816,15 @@ class _FarmStep extends StatelessWidget {
             controller: farmNameCtrl,
             label: 'Farm Name',
             hint: 'e.g. Green Valley Farm',
-            prefixIcon: Icon(Icons.home_work_outlined,
-                color: cs.onSurfaceVariant),
+            prefixIcon: Icon(
+              Icons.home_work_outlined,
+              color: cs.onSurfaceVariant,
+            ),
             textInputAction: TextInputAction.next,
-            validator: (v) => (v == null || v.trim().isEmpty)
-                ? 'Farm name is required'
-                : null,
+            validator: (v) =>
+                (v == null || v.trim().isEmpty) ? 'Farm name is required' : null,
           ),
           const SizedBox(height: AppSpacing.md),
-          // R4: replaced local _DropdownField with shared FarmDropdown widget
           FarmDropdown<String>(
             label: 'Country',
             value: selectedCountry,
@@ -594,8 +843,10 @@ class _FarmStep extends StatelessWidget {
             value: provinces.contains(selectedProvince)
                 ? selectedProvince
                 : provinces.first,
-            prefixIcon: Icon(Icons.location_on_outlined,
-                color: cs.onSurfaceVariant),
+            prefixIcon: Icon(
+              Icons.location_on_outlined,
+              color: cs.onSurfaceVariant,
+            ),
             items: provinces
                 .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                 .toList(),
@@ -619,7 +870,9 @@ class _PlanStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.sm,
+      ),
       children: [
         ...kSubscriptionPlans.map(
           (plan) => _PlanCard(
@@ -633,7 +886,8 @@ class _PlanStep extends StatelessWidget {
           child: Text(
             '* 30-day free trial. Cancel anytime.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color:
+                      Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
             textAlign: TextAlign.center,
           ),
@@ -667,7 +921,6 @@ class _PlanCard extends StatelessWidget {
       _ => AppColors.primary,
     };
 
-    // R5: Growth plan gets a "Most Popular" badge
     final isPopular = plan.id == 'growth';
 
     return GestureDetector(
@@ -685,16 +938,21 @@ class _PlanCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // R5: popular badge top-right
             if (isPopular)
               Positioned(
                 top: 0,
                 right: 0,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm, vertical: 4),
+                    horizontal: AppSpacing.sm,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: const BorderRadius.only(
                       topRight: Radius.circular(14),
                       bottomLeft: Radius.circular(10),
@@ -730,13 +988,13 @@ class _PlanCard extends StatelessWidget {
                             ),
                             Text(
                               plan.tagline,
-                              style: tt.bodySmall
-                                  ?.copyWith(color: cs.onSurfaceVariant),
+                              style: tt.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      // Extra right padding on popular card to avoid badge overlap
                       SizedBox(width: isPopular ? 80 : 0),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -750,30 +1008,33 @@ class _PlanCard extends StatelessWidget {
                           ),
                           Text(
                             '/month',
-                            style: tt.labelSmall
-                                ?.copyWith(color: cs.onSurfaceVariant),
+                            style: tt.labelSmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
                       if (isSelected) ...[
                         const SizedBox(width: AppSpacing.sm),
-                        Icon(Icons.check_circle_rounded,
-                            color: accent, size: 22),
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: accent,
+                          size: 22,
+                        ),
                       ],
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   ...plan.features.map(
                     (f) => Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: AppSpacing.xs),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                       child: Row(
                         children: [
-                          Icon(Icons.check_rounded,
-                              size: 15,
-                              color: isSelected
-                                  ? accent
-                                  : cs.onSurfaceVariant),
+                          Icon(
+                            Icons.check_rounded,
+                            size: 15,
+                            color: isSelected ? accent : cs.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -799,53 +1060,35 @@ class _PlanCard extends StatelessWidget {
   }
 }
 
-// ── Step 4: Module selection ──────────────────────────────────────────────────
+// ── Step 4: Module selection — 2-column tap grid ──────────────────────────────
 
 const _moduleInfo = <String, ({String label, IconData icon})>{
   FarmerModules.cattle: (
-    label: 'Cattle Management',
-    icon: Icons.agriculture_rounded
+    label: 'Cattle',
+    icon: Icons.agriculture_rounded,
   ),
-  FarmerModules.goat: (
-    label: 'Goat Management',
-    icon: Icons.pets_rounded
-  ),
-  FarmerModules.poultry: (
-    label: 'Poultry Management',
-    icon: Icons.egg_alt_rounded
-  ),
-  FarmerModules.pigs: (
-    label: 'Pig Management',
-    icon: Icons.set_meal_rounded
-  ),
-  FarmerModules.aquaculture: (
-    label: 'Aquaculture',
-    icon: Icons.water_rounded
-  ),
+  FarmerModules.goat: (label: 'Goats', icon: Icons.pets_rounded),
+  FarmerModules.poultry: (label: 'Poultry', icon: Icons.egg_alt_rounded),
+  FarmerModules.pigs: (label: 'Pigs', icon: Icons.set_meal_rounded),
+  FarmerModules.aquaculture: (label: 'Aquaculture', icon: Icons.water_rounded),
   FarmerModules.apiculture: (
-    label: 'Apiculture (Bees)',
-    icon: Icons.emoji_nature_rounded
+    label: 'Apiculture',
+    icon: Icons.emoji_nature_rounded,
   ),
-  FarmerModules.crop: (
-    label: 'Crop Farming',
-    icon: Icons.grass_rounded
-  ),
+  FarmerModules.crop: (label: 'Crop Farming', icon: Icons.grass_rounded),
   FarmerModules.financial: (
-    label: 'Financial Records',
-    icon: Icons.account_balance_wallet_rounded
+    label: 'Financials',
+    icon: Icons.account_balance_wallet_rounded,
   ),
   FarmerModules.insights: (
-    label: 'Analytics & Insights',
-    icon: Icons.bar_chart_rounded
+    label: 'Analytics',
+    icon: Icons.bar_chart_rounded,
   ),
   FarmerModules.traceability: (
-    label: 'Animal Traceability',
-    icon: Icons.route_rounded
+    label: 'Traceability',
+    icon: Icons.route_rounded,
   ),
-  FarmerModules.reports: (
-    label: 'Reports',
-    icon: Icons.description_rounded
-  ),
+  FarmerModules.reports: (label: 'Reports', icon: Icons.description_rounded),
 };
 
 class _ModulesStep extends StatelessWidget {
@@ -861,51 +1104,115 @@ class _ModulesStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileW =
+            (constraints.maxWidth - AppSpacing.xl * 2 - AppSpacing.sm) / 2;
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl,
+            AppSpacing.sm,
+            AppSpacing.xl,
+            AppSpacing.xl,
+          ),
+          children: [
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: plan.includedModules.map((m) {
+                final info = _moduleInfo[m];
+                if (info == null) return const SizedBox.shrink();
+                final isOn = selectedModules.contains(m);
+                return _ModuleTile(
+                  info: info,
+                  isSelected: isOn,
+                  width: tileW,
+                  onTap: () => onToggle(m),
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ModuleTile extends StatelessWidget {
+  const _ModuleTile({
+    required this.info,
+    required this.isSelected,
+    required this.width,
+    required this.onTap,
+  });
+
+  final ({String label, IconData icon}) info;
+  final bool isSelected;
+  final double width;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
-      children: [
-        Text(
-          'Your ${plan.label} plan includes:',
-          style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: width,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withAlpha(14)
+              : cs.surfaceContainerLowest,
+          border: Border.all(
+            color: isSelected ? AppColors.primary : cs.outlineVariant,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(16),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        ...plan.includedModules.map((m) {
-          final info = _moduleInfo[m];
-          if (info == null) return const SizedBox.shrink();
-          final isOn = selectedModules.contains(m);
-          return CheckboxListTile(
-            value: isOn,
-            onChanged: (_) => onToggle(m),
-            secondary: CircleAvatar(
-              radius: 18,
-              backgroundColor: isOn
-                  ? AppColors.primary.withAlpha(20)
-                  : cs.surfaceContainerLow,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withAlpha(20)
+                    : cs.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Icon(
                 info.icon,
-                size: 18,
-                color: isOn ? AppColors.primary : cs.onSurfaceVariant,
+                size: 20,
+                color: isSelected ? AppColors.primary : cs.onSurfaceVariant,
               ),
             ),
-            title: Text(
+            const SizedBox(height: 10),
+            Text(
               info.label,
-              style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: tt.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isSelected ? AppColors.primary : cs.onSurface,
+              ),
             ),
-            // R6: restored standard content padding so secondary icon has proper inset
-            contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm, vertical: 0),
-            controlAffinity: ListTileControlAffinity.trailing,
-            activeColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-          );
-        }),
-        const SizedBox(height: AppSpacing.xl),
-      ],
+            const SizedBox(height: 6),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 2,
+              width: isSelected ? 24 : 0,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -928,25 +1235,127 @@ class _RegistrationFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
     final isLast = step == _RegStep.modules;
+    final botPad = MediaQuery.paddingOf(context).bottom;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.md, AppSpacing.xl, AppSpacing.xxl),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xl,
+        AppSpacing.md,
+        AppSpacing.xl,
+        botPad + AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: cs.surface,
-        border: Border(
-            top: BorderSide(color: cs.outlineVariant.withAlpha(60))),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
-      child: PrimaryButton(
-        label: isLast ? 'Create Account' : 'Next',
-        icon: Icon(
-          isLast ? Icons.check_rounded : Icons.arrow_forward_rounded,
-          size: 18,
-          color: Colors.white,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isLast) ...[
+            Text(
+              'Step ${step.index + 1} of ${_RegStep.values.length}',
+              style: tt.labelSmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          _GradientCTA(
+            label: isLast ? 'Create Account' : 'Continue',
+            icon: isLast ? Icons.check_rounded : Icons.arrow_forward_rounded,
+            isLoading: loading,
+            onPressed: loading ? null : (isLast ? onRegister : onNext),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GradientCTA extends StatelessWidget {
+  const _GradientCTA({
+    required this.label,
+    required this.icon,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: onPressed == null || isLoading
+            ? null
+            : const LinearGradient(
+                colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        color: onPressed == null || isLoading
+            ? AppColors.primary.withAlpha(100)
+            : null,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: onPressed == null || isLoading
+            ? []
+            : [
+                BoxShadow(
+                  color: AppColors.primary.withAlpha(80),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          disabledBackgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(54),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
         ),
-        isLoading: loading,
-        onPressed: loading ? null : (isLast ? onRegister : onNext),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(icon, size: 18, color: Colors.white),
+                ],
+              ),
       ),
     );
   }

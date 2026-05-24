@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +9,6 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
 import '../../../shared/widgets/social_auth_buttons.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
@@ -36,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 800),
     );
     _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.22),
+      begin: const Offset(0, 0.20),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _fadeAnim = CurvedAnimation(
@@ -58,9 +60,10 @@ class _LoginScreenState extends State<LoginScreen>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final container = ProviderScope.containerOf(context);
-    await container
-        .read(authProvider.notifier)
-        .signIn(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
+    await container.read(authProvider.notifier).signIn(
+          email: _emailCtrl.text.trim(),
+          password: _passwordCtrl.text,
+        );
     if (!mounted) return;
     setState(() => _loading = false);
     final authState = container.read(authProvider).value;
@@ -72,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authState.message),
-          // L7: use AppColors tokens instead of raw Colors.red
           backgroundColor: AppColors.error,
         ),
       );
@@ -84,356 +86,344 @@ class _LoginScreenState extends State<LoginScreen>
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenH = MediaQuery.sizeOf(context).height;
+    final topPad = MediaQuery.paddingOf(context).top;
+    final botPad = MediaQuery.paddingOf(context).bottom;
+    final panelColor = isDark ? const Color(0xFF1A1E1A) : Colors.white;
+    final panelTop = screenH * 0.44;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? cs.surface : const Color(0xFF1B5E20),
+      backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          // ── Decorative background ─────────────────────────────────────────
-          if (!isDark) ...[
-            // Gradient overlay for richer hero
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.sizeOf(context).height * 0.46,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF1B5E20),
-                      Color(0xFF2E7D32),
-                      Color(0xFF1565C0),
-                    ],
-                    stops: [0.0, 0.65, 1.0],
-                  ),
+          // ── 1. Full-bleed background photo ───────────────────────────────
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl:
+                  'https://images.unsplash.com/photo-1464226184884-fa280b87c399'
+                  '?w=900&q=85',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // ── 2. Dark scrim gradient over photo ────────────────────────────
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withAlpha(20),
+                    Colors.black.withAlpha(80),
+                    Colors.black.withAlpha(160),
+                  ],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
               ),
             ),
-            Positioned(
-              top: -60,
-              right: -60,
-              child: Container(
-                width: 240,
-                height: 240,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(10),
+          ),
+
+          // ── 3. Accent-mist gradient (image → panel) ───────────────────────
+          Positioned(
+            top: panelTop - screenH * 0.16,
+            left: 0,
+            right: 0,
+            height: screenH * 0.20,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFF2E7D32).withAlpha(80),
+                    const Color(0xFF1B5E20).withAlpha(44),
+                    panelColor.withAlpha(230),
+                    panelColor,
+                  ],
+                  stops: const [0.0, 0.28, 0.55, 0.80, 1.0],
                 ),
               ),
             ),
-            Positioned(
-              top: 60,
-              left: -80,
-              child: Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(8),
-                ),
-              ),
-            ),
-          ] else ...[
-            // L9: dark mode gets a subtle gradient overlay in the hero area
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.sizeOf(context).height * 0.40,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.darkPrimaryContainer.withAlpha(180),
-                      cs.surface,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-          SafeArea(
+          ),
+
+          // ── 4. Brand hero — centred in photo area ─────────────────────────
+          Positioned(
+            top: topPad + 16,
+            left: 0,
+            right: 0,
+            bottom: screenH - panelTop + 16,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ── Brand hero (top 38%) ──────────────────────────────────────
-                Expanded(
-                  flex: 38,
-                  child: _BrandHero(tt: tt, isDark: isDark, cs: cs),
-                ),
-                // ── Slide-up form card (bottom 62%) ──────────────────────────
-                Expanded(
-                  flex: 62,
-                  child: SlideTransition(
-                    position: _slideAnim,
-                    child: FadeTransition(
-                      opacity: _fadeAnim,
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: isDark ? cs.surfaceContainerLow : Colors.white,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(28),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(40),
-                              blurRadius: 48,
-                              offset: const Offset(0, -12),
-                            ),
-                          ],
-                        ),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.xl,
-                            AppSpacing.lg,
-                            AppSpacing.xl,
-                            AppSpacing.xxl,
-                          ),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                SocialAuthButton(
-                                  label: 'Continue with Google',
-                                  provider: SocialProvider.google,
-                                  onPressed: () {
-                                    // TODO: wire up Google Sign-In
-                                  },
-                                ),
-                                const SizedBox(height: 12),
-                                SocialAuthButton(
-                                  label: 'Continue with Apple',
-                                  provider: SocialProvider.apple,
-                                  onPressed: () {
-                                    // TODO: wire up Apple Sign-In
-                                  },
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-                                const SocialAuthDivider(),
-                                const SizedBox(height: AppSpacing.md),
-                                FarmTextField(
-                                  controller: _emailCtrl,
-                                  label: 'Email address',
-                                  hint: 'you@example.com',
-                                  prefixIcon: Icon(
-                                    Icons.email_outlined,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.next,
-                                  validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Email is required';
-                                    }
-                                    if (!RegExp(
-                                      r'^[^@]+@[^@]+\.[^@]+',
-                                    ).hasMatch(v.trim())) {
-                                      return 'Enter a valid email';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                // L2: password field now uses FarmTextField's
-                                // built-in obscureText toggle (visibility icon)
-                                FarmTextField(
-                                  controller: _passwordCtrl,
-                                  label: 'Password',
-                                  hint: '••••••••',
-                                  prefixIcon: Icon(
-                                    Icons.lock_outline_rounded,
-                                    color: cs.onSurfaceVariant,
-                                  ),
-                                  textInputAction: TextInputAction.done,
-                                  obscureText: true,
-                                  onFieldSubmitted: (_) => _signIn(),
-                                  validator: (v) => (v == null || v.length < 6)
-                                      ? 'Minimum 6 characters'
-                                      : null,
-                                ),
-                                // L1: forgot password now navigates to the
-                                // ForgotPasswordScreen instead of doing nothing
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(
-                                    onPressed: () =>
-                                        context.push(AppRoutes.forgotPassword),
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: AppSpacing.sm,
-                                        vertical: AppSpacing.xs,
-                                      ),
-                                    ),
-                                    child: const Text('Forgot password?'),
-                                  ),
-                                ),
-                                PrimaryButton(
-                                  label: 'Sign In',
-                                  onPressed: _signIn,
-                                  icon: const Icon(
-                                    Icons.arrow_forward_rounded,
-                                    size: 18,
-                                  ),
-                                  isLoading: _loading,
-                                  isExpanded: true,
-                                ),
-                                const SizedBox(height: AppSpacing.xl),
-                                // L4: removed misleading "or" divider that implied
-                                // social login; replaced with clear register prompt
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "Don't have an account?",
-                                      style: tt.bodyMedium?.copyWith(
-                                        color: cs.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          context.go(AppRoutes.register),
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: AppSpacing.sm,
-                                        ),
-                                      ),
-                                      child: const Text('Sign up'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF66BB6A), Color(0xFF1B5E20)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2E7D32).withAlpha(130),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withAlpha(60),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.agriculture_rounded,
+                    size: 36,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  '4Directions',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                    shadows: [Shadow(color: Colors.black54, blurRadius: 10)],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your farm, under control',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.78),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.2,
+                    shadows: const [
+                      Shadow(color: Colors.black38, blurRadius: 8),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
 
-// ── Brand hero widget ─────────────────────────────────────────────────────────
-
-class _BrandHero extends StatelessWidget {
-  const _BrandHero({required this.tt, required this.isDark, required this.cs});
-  final TextTheme tt;
-  final bool isDark;
-  final ColorScheme cs;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xl,
-        AppSpacing.xl,
-        AppSpacing.xl,
-        AppSpacing.lg,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? cs.primaryContainer
-                      : Colors.white.withAlpha(22),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark
-                        ? cs.primary
-                        : Colors.white.withAlpha(70),
-                    width: 1.5,
-                  ),
-                  boxShadow: isDark
-                      ? []
-                      : [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(30),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+          // ── 5. Bottom panel ───────────────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            top: panelTop,
+            child: Container(
+              decoration: BoxDecoration(
+                color: panelColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
                 ),
-                child: Icon(
-                  Icons.agriculture_rounded,
-                  size: 30,
-                  color: isDark ? cs.onPrimaryContainer : Colors.white,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '4Directions',
-                    style: tt.titleLarge?.copyWith(
-                      color: isDark ? cs.onSurface : Colors.white,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                      height: 1.1,
-                    ),
-                  ),
-                  Text(
-                    'Farm Management',
-                    style: tt.bodySmall?.copyWith(
-                      color: isDark
-                          ? cs.onSurfaceVariant
-                          : Colors.white.withAlpha(190),
-                      letterSpacing: 0.8,
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(60),
+                    blurRadius: 40,
+                    offset: const Offset(0, -8),
                   ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Welcome back',
-            style: tt.headlineMedium?.copyWith(
-              color: isDark ? cs.onSurface : Colors.white,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              height: 1.1,
+              child: SlideTransition(
+                position: _slideAnim,
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(24, 8, 24, botPad + 16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Grab handle
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              margin: const EdgeInsets.only(bottom: 18),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withAlpha(40)
+                                    : Colors.black.withAlpha(15),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+
+                          // Title + subtitle
+                          Text(
+                            'Welcome back',
+                            style: tt.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.6,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Sign in to manage your farm',
+                            style: tt.bodyMedium?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Email field
+                          FarmTextField(
+                            controller: _emailCtrl,
+                            label: 'Email address',
+                            hint: 'you@example.com',
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: cs.onSurfaceVariant,
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                  .hasMatch(v.trim())) {
+                                return 'Enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Password field
+                          FarmTextField(
+                            controller: _passwordCtrl,
+                            label: 'Password',
+                            hint: '••••••••',
+                            prefixIcon: Icon(
+                              Icons.lock_outline_rounded,
+                              color: cs.onSurfaceVariant,
+                            ),
+                            textInputAction: TextInputAction.done,
+                            obscureText: true,
+                            onFieldSubmitted: (_) => _signIn(),
+                            validator: (v) => (v == null || v.length < 6)
+                                ? 'Minimum 6 characters'
+                                : null,
+                          ),
+
+                          // Forgot password
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () =>
+                                  context.push(AppRoutes.forgotPassword),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text(
+                                'Forgot password?',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Sign In — gradient button
+                          _GradientSignInButton(
+                            isLoading: _loading,
+                            onPressed: _signIn,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          // "or continue with" divider
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  color: cs.outlineVariant.withAlpha(80),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: Text(
+                                  'or continue with',
+                                  style: tt.labelSmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: cs.outlineVariant.withAlpha(80),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+
+                          // Social auth row
+                          SocialAuthRow(
+                            onGoogle: () {},
+                            onApple: () {},
+                            onFacebook: () {},
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          // Sign-up link
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Don't have an account?",
+                                style: tt.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    context.go(AppRoutes.register),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'Sign up',
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Sign in to manage your farm',
-            style: tt.bodyMedium?.copyWith(
-              color: isDark
-                  ? cs.onSurfaceVariant
-                  : Colors.white.withAlpha(190),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          // Feature pills
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: const [
-              _FeaturePill(label: 'Livestock', icon: Icons.pets_rounded),
-              _FeaturePill(label: 'Crops', icon: Icons.grass_rounded),
-              _FeaturePill(label: 'Payroll', icon: Icons.payments_rounded),
-              _FeaturePill(label: 'Analytics', icon: Icons.bar_chart_rounded),
-            ],
           ),
         ],
       ),
@@ -441,45 +431,80 @@ class _BrandHero extends StatelessWidget {
   }
 }
 
-class _FeaturePill extends StatelessWidget {
-  const _FeaturePill({required this.label, required this.icon});
-  final String label;
-  final IconData icon;
+// ── Gradient sign-in button ───────────────────────────────────────────────────
+
+class _GradientSignInButton extends StatelessWidget {
+  const _GradientSignInButton({
+    required this.isLoading,
+    required this.onPressed,
+  });
+  final bool isLoading;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: isDark
-            ? cs.primaryContainer.withAlpha(80)
-            : Colors.white.withAlpha(22),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? cs.primary.withAlpha(60) : Colors.white.withAlpha(60),
-          width: 1,
-        ),
+        gradient: isLoading
+            ? null
+            : const LinearGradient(
+                colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        color: isLoading ? AppColors.primary.withAlpha(120) : null,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: isLoading
+            ? []
+            : [
+                BoxShadow(
+                  color: AppColors.primary.withAlpha(90),
+                  blurRadius: 22,
+                  offset: const Offset(0, 7),
+                ),
+              ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 12,
-            color: isDark ? cs.primary : Colors.white.withAlpha(200),
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          disabledBackgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(54),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: isDark ? cs.onPrimaryContainer : Colors.white.withAlpha(210),
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Sign In',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
       ),
     );
   }

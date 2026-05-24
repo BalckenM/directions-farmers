@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 
 /// Shown on cold start for ~1.8 s, then routes based on auth state.
@@ -98,7 +97,11 @@ class _SplashScreenState extends State<SplashScreen>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF1565C0)],
+                colors: [
+                  Color(0xFF1B5E20),
+                  Color(0xFF2E7D32),
+                  Color(0xFF1565C0),
+                ],
                 stops: [0.0, 0.6, 1.0],
               ),
             ),
@@ -107,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen>
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _orbitCtrl,
-              builder: (_, __) {
+              builder: (_, _) {
                 return CustomPaint(
                   painter: _OrbitPainter(
                     progress: _orbitCtrl.value,
@@ -194,13 +197,20 @@ class _SplashScreenState extends State<SplashScreen>
                     FadeTransition(
                       opacity: _taglineAnim,
                       child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.4),
-                          end: Offset.zero,
-                        ).animate(CurvedAnimation(
-                          parent: _animCtrl,
-                          curve: const Interval(0.45, 1.0, curve: Curves.easeOut),
-                        )),
+                        position:
+                            Tween<Offset>(
+                              begin: const Offset(0, 0.4),
+                              end: Offset.zero,
+                            ).animate(
+                              CurvedAnimation(
+                                parent: _animCtrl,
+                                curve: const Interval(
+                                  0.45,
+                                  1.0,
+                                  curve: Curves.easeOut,
+                                ),
+                              ),
+                            ),
                         child: Text(
                           'Farm Management',
                           style: TextStyle(
@@ -278,14 +288,14 @@ class _DotsLoaderState extends State<_DotsLoader>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, __) {
+      builder: (_, _) {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(3, (i) {
             final delay = i / 3.0;
-            final value = math.sin(
-              (_ctrl.value - delay) * 2 * math.pi,
-            ).clamp(-1.0, 1.0);
+            final value = math
+                .sin((_ctrl.value - delay) * 2 * math.pi)
+                .clamp(-1.0, 1.0);
             final scale = 0.5 + (value + 1) * 0.25;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -342,4 +352,3 @@ class _OrbitPainter extends CustomPainter {
   @override
   bool shouldRepaint(_OrbitPainter old) => old.progress != progress;
 }
-

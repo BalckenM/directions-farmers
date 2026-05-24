@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 
@@ -29,6 +30,7 @@ class FarmTextField extends StatefulWidget {
     this.focusNode,
     this.initialValue,
     this.inputFormatters,
+    this.isDense = false,
   });
 
   final TextEditingController? controller;
@@ -50,6 +52,7 @@ class FarmTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final String? initialValue;
   final List<TextInputFormatter>? inputFormatters;
+  final bool isDense;
 
   @override
   State<FarmTextField> createState() => _FarmTextFieldState();
@@ -97,12 +100,44 @@ class _FarmTextFieldState extends State<FarmTextField> {
                 onPressed: () => setState(() => _obscure = !_obscure),
               )
             : widget.suffixIcon,
+        filled: true,
+        fillColor: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withAlpha(10)
+            : const Color(0xFFF4F6F8),
         border: OutlineInputBorder(
-          borderRadius: AppRadius.button,
+          borderRadius: AppRadius.input,
+          borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppRadius.input,
+          borderSide: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withAlpha(20)
+                : Colors.black.withAlpha(14),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppRadius.input,
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.8,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: AppRadius.input,
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: AppRadius.input,
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 1.8,
+          ),
+        ),
+        isDense: widget.isDense,
+        contentPadding: EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
+          vertical: widget.isDense ? 10.0 : AppSpacing.md,
         ),
       ),
     );

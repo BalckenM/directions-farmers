@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/router/app_routes.dart';
-import '../providers/auth_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_text_field.dart';
+import '../providers/auth_provider.dart';
 
 // ── Step metadata ─────────────────────────────────────────────────────────────
 
@@ -74,8 +75,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _next() {
     if (_page < _stepData.length - 1) {
       _pageCtrl.nextPage(
-          duration: const Duration(milliseconds: 380),
-          curve: Curves.easeInOutCubic);
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeInOutCubic,
+      );
       setState(() => _page++);
     }
   }
@@ -83,8 +85,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _back() {
     if (_page > 0) {
       _pageCtrl.previousPage(
-          duration: const Duration(milliseconds: 380),
-          curve: Curves.easeInOutCubic);
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeInOutCubic,
+      );
       setState(() => _page--);
     }
   }
@@ -123,16 +126,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
               ),
               child: Column(
                 children: [
                   const SizedBox(height: AppSpacing.lg),
                   _StepDots(
-                      current: _page,
-                      total: _stepData.length,
-                      activeColor: step.heroColor),
+                    current: _page,
+                    total: _stepData.length,
+                    activeColor: step.heroColor,
+                  ),
                   Expanded(
                     child: PageView(
                       controller: _pageCtrl,
@@ -173,7 +178,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onBack: _back,
                     onNext: _next,
                     onFinish: _finish,
-                    onSignIn: _page == 0 ? () => context.go(AppRoutes.login) : null,
+                    onSignIn: _page == 0
+                        ? () => context.go(AppRoutes.login)
+                        : null,
                   ),
                 ],
               ),
@@ -226,10 +233,7 @@ class _HeroArea extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withAlpha(25),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: Colors.white.withAlpha(50),
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.white.withAlpha(50), width: 1.5),
           ),
           child: Icon(step.icon, size: 52, color: Colors.white),
         ),
@@ -241,10 +245,11 @@ class _HeroArea extends StatelessWidget {
 // ── Step dots ─────────────────────────────────────────────────────────────────
 
 class _StepDots extends StatelessWidget {
-  const _StepDots(
-      {required this.current,
-      required this.total,
-      required this.activeColor});
+  const _StepDots({
+    required this.current,
+    required this.total,
+    required this.activeColor,
+  });
   final int current;
   final int total;
   final Color activeColor;
@@ -266,8 +271,8 @@ class _StepDots extends StatelessWidget {
               color: i == current
                   ? activeColor
                   : i < current
-                      ? activeColor.withAlpha(80)
-                      : cs.outlineVariant,
+                  ? activeColor.withAlpha(80)
+                  : cs.outlineVariant,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -295,7 +300,11 @@ class _FarmDetailsPage extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.md),
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -309,15 +318,19 @@ class _FarmDetailsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(step.subtitle,
-              style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+          Text(
+            step.subtitle,
+            style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+          ),
           const SizedBox(height: AppSpacing.xl),
           FarmTextField(
             controller: nameCtrl,
             label: 'Farm name',
             hint: 'e.g. Sunrise Ranch',
-            prefixIcon:
-                Icon(Icons.home_work_outlined, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(
+              Icons.home_work_outlined,
+              color: cs.onSurfaceVariant,
+            ),
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -325,8 +338,10 @@ class _FarmDetailsPage extends StatelessWidget {
             controller: locationCtrl,
             label: 'Location',
             hint: 'e.g. Nairobi County, Kenya',
-            prefixIcon:
-                Icon(Icons.location_on_outlined, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(
+              Icons.location_on_outlined,
+              color: cs.onSurfaceVariant,
+            ),
             textInputAction: TextInputAction.done,
           ),
         ],
@@ -352,25 +367,17 @@ class _SpeciesPage extends StatelessWidget {
     (name: 'Goats', icon: Icons.hive_rounded, color: AppColors.goatColor),
     (name: 'Sheep', icon: Icons.hive_rounded, color: AppColors.sheepColor),
     (name: 'Pigs', icon: Icons.hive_rounded, color: AppColors.pigColor),
-    (
-      name: 'Poultry',
-      icon: Icons.egg_rounded,
-      color: AppColors.poultryColor
-    ),
-    (
-      name: 'Horses',
-      icon: Icons.hive_rounded,
-      color: AppColors.horseColor
-    ),
+    (name: 'Poultry', icon: Icons.egg_rounded, color: AppColors.poultryColor),
+    (name: 'Horses', icon: Icons.hive_rounded, color: AppColors.horseColor),
     (
       name: 'Rabbits',
       icon: Icons.cruelty_free_rounded,
-      color: AppColors.rabbitColor
+      color: AppColors.rabbitColor,
     ),
     (
       name: 'Fish',
       icon: Icons.water_rounded,
-      color: AppColors.aquacultureColor
+      color: AppColors.aquacultureColor,
     ),
   ];
 
@@ -381,7 +388,11 @@ class _SpeciesPage extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.md),
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -395,8 +406,10 @@ class _SpeciesPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(step.subtitle,
-              style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+          Text(
+            step.subtitle,
+            style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+          ),
           const SizedBox(height: AppSpacing.lg),
           Wrap(
             spacing: AppSpacing.sm,
@@ -442,7 +455,9 @@ class _SpeciesChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? color.withAlpha(20) : cs.surfaceContainerLow,
           borderRadius: AppRadius.chip,
@@ -454,16 +469,17 @@ class _SpeciesChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                size: 16,
-                color: isSelected ? color : cs.onSurfaceVariant),
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? color : cs.onSurfaceVariant,
+            ),
             const SizedBox(width: AppSpacing.xs),
             Text(
               name,
               style: tt.labelMedium?.copyWith(
                 color: isSelected ? color : cs.onSurface,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
             if (isSelected) ...[
@@ -491,7 +507,11 @@ class _DonePage extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.md),
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.xl,
+        AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -507,8 +527,10 @@ class _DonePage extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             step.subtitle,
-            style:
-                tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant, height: 1.55),
+            style: tt.bodyLarge?.copyWith(
+              color: cs.onSurfaceVariant,
+              height: 1.55,
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
           Container(
@@ -517,7 +539,9 @@ class _DonePage extends StatelessWidget {
               color: AppColors.success.withAlpha(15),
               borderRadius: AppRadius.card,
               border: Border.all(
-                  color: AppColors.success.withAlpha(60), width: 1.5),
+                color: AppColors.success.withAlpha(60),
+                width: 1.5,
+              ),
             ),
             child: Row(
               children: [
@@ -528,25 +552,36 @@ class _DonePage extends StatelessWidget {
                     color: AppColors.success.withAlpha(25),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.home_work_rounded,
-                      color: AppColors.success, size: 24),
+                  child: const Icon(
+                    Icons.home_work_rounded,
+                    color: AppColors.success,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(farmName,
-                          style: tt.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700)),
-                      Text('Farm profile created',
-                          style: tt.bodySmall
-                              ?.copyWith(color: cs.onSurfaceVariant)),
+                      Text(
+                        farmName,
+                        style: tt.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        'Farm profile created',
+                        style: tt.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const Icon(Icons.check_circle_rounded,
-                    color: AppColors.success),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.success,
+                ),
               ],
             ),
           ),
@@ -587,7 +622,11 @@ class _OnboardingControls extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl, AppSpacing.md, AppSpacing.xl, AppSpacing.lg),
+          AppSpacing.xl,
+          AppSpacing.md,
+          AppSpacing.xl,
+          AppSpacing.lg,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -598,10 +637,12 @@ class _OnboardingControls extends StatelessWidget {
                     onPressed: onBack,
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(56, 52),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                      ),
                       shape: const RoundedRectangleBorder(
-                          borderRadius: AppRadius.button),
+                        borderRadius: AppRadius.button,
+                      ),
                     ),
                     child: const Icon(Icons.arrow_back_rounded),
                   )
@@ -614,21 +655,27 @@ class _OnboardingControls extends StatelessWidget {
                     backgroundColor: activeColor,
                     minimumSize: const Size(148, 52),
                     shape: const RoundedRectangleBorder(
-                        borderRadius: AppRadius.button),
+                      borderRadius: AppRadius.button,
+                    ),
                   ),
                   child: isLoading
                       ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(isLast ? 'Get Started' : 'Continue',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w700)),
+                            Text(
+                              isLast ? 'Get Started' : 'Continue',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             const SizedBox(width: AppSpacing.xs),
                             Icon(
                               isLast

@@ -5,10 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
+import '../../../shared/widgets/fmd_zone_indicator.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
+import '../../../shared/widgets/withdrawal_countdown.dart';
+import '../../livestock/models/animal.dart' show FmdZone;
 import '../models/cattle_animal.dart';
+import '../models/cattle_records.dart';
 import '../providers/cattle_providers.dart';
-import '../widgets/cattle_compliance_widgets.dart';
 
 class CattleDetailScreen extends ConsumerWidget {
   const CattleDetailScreen({super.key, required this.cattleId});
@@ -302,7 +305,7 @@ class _OverviewTab extends StatelessWidget {
                                       .onSurfaceVariant,
                                 )),
                   ),
-                  FmdZoneIndicator(zone: a.fmdZone),
+                  FmdZoneIndicator(zone: _parseFmdZone(a.fmdZone!)),
                 ]),
               ),
             ],
@@ -358,17 +361,37 @@ class _HealthTab extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         // Notifiable disease prompt
-        NotifiableDiseasePrompt(events: healthEvents),
+        _NotifiableDiseaseBanner(events: healthEvents),
 
         // Withdrawal countdowns
-        if (activeMeds.isNotEmpty) ...[          
+        if (activeMeds.isNotEmpty) ...[
           Text('Active Withdrawals',
               style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
-          ...activeMeds.map((m) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: WithdrawalCountdown(log: m),
-              )),
+          ...activeMeds.expand((m) {
+            final meatExpiry = m.withdrawalExpiryDateMeat;
+            final milkExpiry = m.withdrawalExpiryDateMilk;
+            return [
+              if (meatExpiry != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: WithdrawalCountdown(
+                    productName: '${m.medicationName} — Meat',
+                    withdrawalEndDate: _isoToDisplay(meatExpiry),
+                    daysRemaining: _daysUntil(meatExpiry),
+                  ),
+                ),
+              if (milkExpiry != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: WithdrawalCountdown(
+                    productName: '${m.medicationName} — Milk',
+                    withdrawalEndDate: _isoToDisplay(milkExpiry),
+                    daysRemaining: _daysUntil(milkExpiry),
+                  ),
+                ),
+            ];
+          }),
           const SizedBox(height: 16),
         ],
 
@@ -484,6 +507,23 @@ class _HealthTab extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  static String _isoToDisplay(String iso) {
+    try {
+      final d = DateTime.parse(iso);
+      return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    } catch (_) {
+      return iso;
+    }
+  }
+
+  static int _daysUntil(String iso) {
+    try {
+      return DateTime.parse(iso).difference(DateTime.now()).inDays.clamp(0, 9999);
+    } catch (_) {
+      return 0;
+    }
   }
 
   Color _severityColor(String severity) {
@@ -793,6 +833,18 @@ class _RecordsTab extends ConsumerWidget {
   }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/// Maps the cattle model's free-form fmdZone string to the shared [FmdZone] enum.
+FmdZone _parseFmdZone(String raw) {
+  final s = raw.toLowerCase();
+  if (s.contains('surveillance')) return FmdZone.surveillanceZone;
+  if (s.contains('protection') || s.contains('infected')) {
+    return FmdZone.protectionZone;
+  }
+  return FmdZone.freeZone;
+}
+
 // ── Shared widgets ────────────────────────────────────────────────────────────
 
 class _InfoCard extends StatelessWidget {
@@ -849,6 +901,72 @@ class _InfoRow extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w500,
                     )),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Notifiable disease banner ─────────────────────────────────────────────────
+
+/// Inline warning banner shown at the top of the Health tab when one or more
+/// recorded health events are classified as notifiable diseases.
+///
+/// This is a passive display widget. For the interactive reporting modal,
+/// use [NotifiableDiseasePrompt.show] from shared/widgets.
+class _NotifiableDiseaseBanner extends StatelessWidget {
+  const _NotifiableDiseaseBanner({required this.events});
+
+  final List<CattleHealthEvent> events;
+
+  @override
+  Widget build(BuildContext context) {
+    final notifiable = events.where((e) => e.isNotifiable).toList();
+    if (notifiable.isEmpty) return const SizedBox.shrink();
+
+    final diagnoses = notifiable.map((e) => e.diagnosis).toSet().join(', ');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.red.shade400, width: 1.5),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.crisis_alert_rounded, color: Colors.red.shade700, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'NOTIFIABLE DISEASE DETECTED',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  diagnoses,
+                  style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Report to State Vet immediately as required by law.',
+                  style: TextStyle(color: Colors.red.shade600, fontSize: 11),
+                ),
+              ],
+            ),
           ),
         ],
       ),
