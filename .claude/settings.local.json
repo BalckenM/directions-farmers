@@ -11,7 +11,8 @@
       "Bash(~/flutter/bin/flutter analyze:*)",
       "Bash(grep -E \"\\\\.\\(dart\\)$\")",
       "Bash(xargs grep:*)",
-      "Bash(find /e/4directions/Products/mobile_app/lib -type f -name *.dart)"
+      "Bash(find /e/4directions/Products/mobile_app/lib -type f -name *.dart)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }

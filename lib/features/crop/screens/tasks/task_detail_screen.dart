@@ -11,6 +11,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop_task.dart';
+import '../../providers/crop_action_providers.dart';
 import '../../providers/crop_providers.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
@@ -97,9 +98,7 @@ class _TaskDetailView extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              background: Container(
-                color: cs.primaryContainer,
-              ),
+              background: Container(color: cs.primaryContainer),
             ),
           ),
 
@@ -140,7 +139,8 @@ class _TaskDetailView extends StatelessWidget {
                   builder: (ctx) => AlertDialog(
                     title: const Text('Delete Task'),
                     content: Text(
-                        'Delete "${task.title}"? This cannot be undone.'),
+                      'Delete "${task.title}"? This cannot be undone.',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
@@ -149,17 +149,17 @@ class _TaskDetailView extends StatelessWidget {
                       FilledButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: FilledButton.styleFrom(
-                            backgroundColor: AppColors.error),
+                          backgroundColor: AppColors.error,
+                        ),
                         child: const Text('Delete'),
                       ),
                     ],
                   ),
                 );
                 if (confirmed == true && context.mounted) {
-                  await ref.read(cropRepositoryProvider).deleteTask(task.id);
-                  ref.invalidate(cropTasksProvider);
-                  ref.invalidate(openCropTasksProvider);
-                  ref.invalidate(overdueCropTasksProvider);
+                  await ref
+                      .read(cropActionProvider.notifier)
+                      .deleteTask(task.id);
                   if (context.mounted) context.pop();
                 }
               },
@@ -172,7 +172,7 @@ class _TaskDetailView extends StatelessWidget {
             heroTag: 'fab_task_edit',
             tooltip: 'Edit Task',
             onPressed: () =>
-                context.push(AppRoutes.cropTaskDetailPath(task.id) + '/edit'),
+                context.push('${AppRoutes.cropTaskDetailPath(task.id)}/edit'),
             child: const Icon(Icons.edit_outlined),
           ),
         ],
@@ -211,8 +211,7 @@ class _StatusCard extends ConsumerWidget {
               children: [
                 Text(
                   'Status',
-                  style: tt.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 _StatusChip(status: task.status),
@@ -252,14 +251,15 @@ class _StatusCard extends ConsumerWidget {
                                     : task.completedAt,
                               );
                               await ref
-                                  .read(cropRepositoryProvider)
+                                  .read(cropActionProvider.notifier)
                                   .updateTask(updated);
-                              ref.invalidate(cropTasksProvider);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                      content: Text(
-                                          'Status updated to ${s.label}')),
+                                    content: Text(
+                                      'Status updated to ${s.label}',
+                                    ),
+                                  ),
                                 );
                               }
                             },
@@ -296,7 +296,7 @@ class _DetailsCard extends ConsumerWidget {
 
     final fieldName = task.fieldId != null
         ? ref.watch(cropFieldByIdProvider(task.fieldId!)).value?.name ??
-            task.fieldId!
+              task.fieldId!
         : null;
 
     String? planLabel;
@@ -307,11 +307,13 @@ class _DetailsCard extends ConsumerWidget {
       if (planMatches.isNotEmpty) {
         final plan = planMatches.first;
         final cropMatches = crops.where((c) => c.id == plan.cropId);
-        final cropName =
-            cropMatches.isNotEmpty ? cropMatches.first.name : plan.cropId;
+        final cropName = cropMatches.isNotEmpty
+            ? cropMatches.first.name
+            : plan.cropId;
         final status = plan.status;
-        final statusLabel =
-            status.isEmpty ? '' : status[0].toUpperCase() + status.substring(1);
+        final statusLabel = status.isEmpty
+            ? ''
+            : status[0].toUpperCase() + status.substring(1);
         planLabel = '$cropName ($statusLabel)';
       } else {
         planLabel = task.planId!;
@@ -328,8 +330,7 @@ class _DetailsCard extends ConsumerWidget {
           children: [
             Text(
               'Task Details',
-              style:
-                  tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.md),
 
@@ -365,13 +366,16 @@ class _DetailsCard extends ConsumerWidget {
             // Priority badge
             Row(
               children: [
-                Icon(Icons.flag_outlined,
-                    size: AppSpacing.iconSm,
-                    color: cs.onSurfaceVariant),
+                Icon(
+                  Icons.flag_outlined,
+                  size: AppSpacing.iconSm,
+                  color: cs.onSurfaceVariant,
+                ),
                 const SizedBox(width: AppSpacing.sm),
-                Text('Priority: ',
-                    style: tt.bodySmall
-                        ?.copyWith(color: cs.onSurfaceVariant)),
+                Text(
+                  'Priority: ',
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
                 _PriorityBadge(priority: task.priority),
               ],
             ),
@@ -434,8 +438,7 @@ class _DatesCard extends StatelessWidget {
           children: [
             Text(
               'Timeline',
-              style:
-                  tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.md),
             _DetailRow(
@@ -482,8 +485,7 @@ class _DetailRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon,
-            size: AppSpacing.iconSm, color: cs.onSurfaceVariant),
+        Icon(icon, size: AppSpacing.iconSm, color: cs.onSurfaceVariant),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
@@ -491,8 +493,7 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: tt.labelSmall
-                    ?.copyWith(color: cs.onSurfaceVariant),
+                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
               ),
               Text(
                 value,
@@ -570,31 +571,31 @@ class _PriorityBadge extends StatelessWidget {
 // ── Color helpers ─────────────────────────────────────────────────────────────
 
 Color _statusColor(TaskStatus status) => switch (status) {
-      TaskStatus.pending => AppColors.warning,
-      TaskStatus.inProgress => AppColors.tertiary,
-      TaskStatus.completed => AppColors.success,
-      TaskStatus.delayed => AppColors.secondary,
-      TaskStatus.overdue => AppColors.error,
-    };
+  TaskStatus.pending => AppColors.warning,
+  TaskStatus.inProgress => AppColors.tertiary,
+  TaskStatus.completed => AppColors.success,
+  TaskStatus.delayed => AppColors.secondary,
+  TaskStatus.overdue => AppColors.error,
+};
 
 Color _statusContainerColor(TaskStatus status) => switch (status) {
-      TaskStatus.pending => AppColors.warningContainer,
-      TaskStatus.inProgress => AppColors.tertiaryContainer,
-      TaskStatus.completed => AppColors.successContainer,
-      TaskStatus.delayed => AppColors.secondaryContainer,
-      TaskStatus.overdue => AppColors.errorContainer,
-    };
+  TaskStatus.pending => AppColors.warningContainer,
+  TaskStatus.inProgress => AppColors.tertiaryContainer,
+  TaskStatus.completed => AppColors.successContainer,
+  TaskStatus.delayed => AppColors.secondaryContainer,
+  TaskStatus.overdue => AppColors.errorContainer,
+};
 
 Color _priorityColor(TaskPriority priority) => switch (priority) {
-      TaskPriority.low => AppColors.success,
-      TaskPriority.medium => AppColors.warning,
-      TaskPriority.high => AppColors.secondary,
-      TaskPriority.urgent => AppColors.error,
-    };
+  TaskPriority.low => AppColors.success,
+  TaskPriority.medium => AppColors.warning,
+  TaskPriority.high => AppColors.secondary,
+  TaskPriority.urgent => AppColors.error,
+};
 
 Color _priorityContainerColor(TaskPriority priority) => switch (priority) {
-      TaskPriority.low => AppColors.successContainer,
-      TaskPriority.medium => AppColors.warningContainer,
-      TaskPriority.high => AppColors.secondaryContainer,
-      TaskPriority.urgent => AppColors.errorContainer,
-    };
+  TaskPriority.low => AppColors.successContainer,
+  TaskPriority.medium => AppColors.warningContainer,
+  TaskPriority.high => AppColors.secondaryContainer,
+  TaskPriority.urgent => AppColors.errorContainer,
+};

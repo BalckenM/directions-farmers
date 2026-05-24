@@ -19,7 +19,7 @@ import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../../shared/widgets/tag_cloud.dart';
 import '../../../shared/widgets/withdrawal_countdown.dart';
-import '../../events/data/events_repository.dart';
+import '../../events/providers/events_providers.dart';
 import '../../events/models/breeding_event.dart';
 import '../../events/models/health_event.dart';
 import '../../events/models/weight_record.dart';
@@ -3071,3 +3071,4 @@ class _FleeceTab extends StatelessWidget {
     );
   }
 }
+

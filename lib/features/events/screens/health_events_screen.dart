@@ -14,7 +14,7 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../../shared/widgets/withdrawal_countdown.dart';
-import '../data/events_repository.dart';
+import '../providers/events_providers.dart';
 import '../models/health_event.dart';
 
 class HealthEventsScreen extends ConsumerWidget {
@@ -171,3 +171,4 @@ class _HealthEventTile extends StatelessWidget {
     );
   }
 }
+

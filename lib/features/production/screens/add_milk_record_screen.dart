@@ -13,7 +13,7 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../livestock/providers/livestock_providers.dart';
-import '../data/production_repository.dart';
+import '../providers/production_providers.dart';
 import '../models/milk_record.dart';
 import 'milk_records_screen.dart';
 
@@ -439,3 +439,4 @@ class _DateField extends FormField<DateTime> {
           },
         );
 }
+

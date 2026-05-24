@@ -1,12 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/animal.dart';
 import '../models/group.dart';
 import 'livestock_data_source.dart';
-import 'livestock_mock_data_source.dart';
-import 'livestock_remote_data_source.dart';
 
 class LivestockRepository {
   LivestockRepository(this._source);
@@ -43,9 +39,3 @@ class LivestockRepository {
   }
 }
 
-final livestockRepositoryProvider = Provider<LivestockRepository>((ref) {
-  final LivestockDataSource source = AppConstants.useMockData
-      ? LivestockMockDataSource()
-      : LivestockRemoteDataSource();
-  return LivestockRepository(source);
-});

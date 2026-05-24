@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -8,27 +9,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../providers/settings_ui_providers.dart';
 
-// ── Providers ─────────────────────────────────────────────────────────────────
-// themeModeProvider is defined in core/providers/theme_provider.dart
-
-class _AccentNotifier extends Notifier<int> {
-  @override
-  int build() => 0;
-  void set(int value) => state = value;
-}
-
-final _accentProvider =
-    NotifierProvider<_AccentNotifier, int>(_AccentNotifier.new);
-
-final _accentOptions = [
-  (label: 'Forest Green', color: AppColors.primary),
-  (label: 'Sky Blue', color: AppColors.info),
-  (label: 'Amber Gold', color: AppColors.secondary),
-  (label: 'Plum', color: const Color(0xFF6A1B9A)),
-];
-
-// ── Screen ────────────────────────────────────────────────────────────────────
+// ── Screen ────────────────────────────────────────────────────────────────────────────────────────
 
 class ThemeSettingsScreen extends ConsumerWidget {
   const ThemeSettingsScreen({super.key});
@@ -36,7 +19,7 @@ class ThemeSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedMode = ref.watch(themeModeProvider);
-    final selectedAccent = ref.watch(_accentProvider);
+    final selectedAccent = ref.watch(accentProvider);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -67,12 +50,18 @@ class ThemeSettingsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.brightness_6_rounded,
-                          size: 18, color: AppColors.primary),
+                      const Icon(
+                        Icons.brightness_6_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
-                      Text('Theme Mode',
-                          style: tt.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600)),
+                      Text(
+                        'Theme Mode',
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -125,12 +114,18 @@ class ThemeSettingsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
-                      const Icon(Icons.palette_rounded,
-                          size: 18, color: AppColors.primary),
+                      const Icon(
+                        Icons.palette_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
-                      Text('Accent Colour',
-                          style: tt.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600)),
+                      Text(
+                        'Accent Colour',
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -141,17 +136,16 @@ class ThemeSettingsScreen extends ConsumerWidget {
                     spacing: AppSpacing.md,
                     runSpacing: AppSpacing.sm,
                     children: [
-                      for (int i = 0; i < _accentOptions.length; i++)
+                      for (int i = 0; i < accentOptions.length; i++)
                         GestureDetector(
-                          onTap: () =>
-                              ref.read(_accentProvider.notifier).set(i),
+                          onTap: () => ref.read(accentProvider.notifier).set(i),
                           child: Column(
                             children: [
                               Container(
                                 width: 52,
                                 height: 52,
                                 decoration: BoxDecoration(
-                                  color: _accentOptions[i].color,
+                                  color: accentOptions[i].color,
                                   shape: BoxShape.circle,
                                   border: selectedAccent == i
                                       ? Border.all(
@@ -161,13 +155,16 @@ class ThemeSettingsScreen extends ConsumerWidget {
                                       : null,
                                 ),
                                 child: selectedAccent == i
-                                    ? const Icon(Icons.check_rounded,
-                                        color: Colors.white, size: 24)
+                                    ? const Icon(
+                                        Icons.check_rounded,
+                                        color: Colors.white,
+                                        size: 24,
+                                      )
                                     : null,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _accentOptions[i].label,
+                                accentOptions[i].label,
                                 style: tt.labelSmall,
                               ),
                             ],

@@ -12,11 +12,11 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
-import '../../events/data/events_repository.dart';
+import '../../events/providers/events_providers.dart';
 import '../../events/models/breeding_event.dart';
 import '../../events/models/health_event.dart';
 import '../../events/models/weight_record.dart';
-import '../../production/data/production_repository.dart';
+import '../../production/providers/production_providers.dart';
 import '../../production/models/egg_record.dart';
 import '../../production/models/milk_record.dart';
 import '../../production/models/wool_record.dart';
@@ -593,3 +593,5 @@ class _StatCell extends StatelessWidget {
     );
   }
 }
+
+

@@ -115,4 +115,9 @@ class CropRemoteDataSource implements CropDataSource {
   @override Future<CropSale> addSale(CropSale s) => throw UnimplementedError();
   @override Future<CropSale> updateSale(CropSale s) => throw UnimplementedError();
   @override Future<void> deleteSale(String id) => throw UnimplementedError();
+
+  // ── Calendar Events ──────────────────────────────────────────────────────────
+  @override Future<CalendarEvent> addCalendarEvent(CalendarEvent e) => throw UnimplementedError();
+  @override Future<CalendarEvent> updateCalendarEvent(CalendarEvent e) => throw UnimplementedError();
+  @override Future<void> deleteCalendarEvent(String id) => throw UnimplementedError();
 }

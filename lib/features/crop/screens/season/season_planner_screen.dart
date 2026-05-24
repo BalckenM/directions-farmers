@@ -12,6 +12,7 @@ import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/crop_season.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class SeasonPlannerScreen extends ConsumerStatefulWidget {
   const SeasonPlannerScreen({super.key});
@@ -130,8 +131,7 @@ class _SeasonPlannerScreenState extends ConsumerState<SeasonPlannerScreen> {
       ),
     );
     if (confirmed == true) {
-      await ref.read(cropRepositoryProvider).deleteSeason(season.id);
-      ref.invalidate(seasonsProvider);
+      await ref.read(cropActionProvider.notifier).deleteSeason(season.id);
     }
   }
 

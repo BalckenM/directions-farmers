@@ -13,9 +13,8 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../livestock/providers/livestock_providers.dart';
-import '../data/events_repository.dart';
 import '../models/weight_record.dart';
-import 'weight_records_screen.dart';
+import '../providers/events_action_providers.dart';
 
 class AddWeightRecordScreen extends ConsumerStatefulWidget {
   const AddWeightRecordScreen({super.key});
@@ -25,15 +24,19 @@ class AddWeightRecordScreen extends ConsumerStatefulWidget {
       _AddWeightRecordScreenState();
 }
 
-class _AddWeightRecordScreenState
-    extends ConsumerState<AddWeightRecordScreen> {
+class _AddWeightRecordScreenState extends ConsumerState<AddWeightRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _tagCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
   static const _speciesOptions = [
-    'cattle', 'sheep', 'goats', 'pigs', 'horses', 'poultry'
+    'cattle',
+    'sheep',
+    'goats',
+    'pigs',
+    'horses',
+    'poultry',
   ];
 
   String? _species;
@@ -63,8 +66,7 @@ class _AddWeightRecordScreenState
         weightKg: double.tryParse(_weightCtrl.text) ?? 0.0,
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
-      await ref.read(eventsRepositoryProvider).addWeightRecord(record);
-      ref.invalidate(weightRecordsProvider);
+      await ref.read(eventsActionProvider.notifier).addWeightRecord(record);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -72,14 +74,16 @@ class _AddWeightRecordScreenState
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm)),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
       );
       context.pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -108,7 +112,7 @@ class _AddWeightRecordScreenState
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: _species,
+                    initialValue: _species,
                     decoration: const InputDecoration(
                       labelText: 'Species',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -116,11 +120,12 @@ class _AddWeightRecordScreenState
                     hint: const Text('Select species'),
                     isExpanded: true,
                     items: _speciesOptions
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child:
-                                  Text(s[0].toUpperCase() + s.substring(1)),
-                            ))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(s[0].toUpperCase() + s.substring(1)),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() {
                       _species = v;
@@ -141,25 +146,24 @@ class _AddWeightRecordScreenState
                   else
                     Consumer(
                       builder: (context, ref, _) {
-                        final animalsAsync =
-                            ref.watch(animalsProvider(_species!));
+                        final animalsAsync = ref.watch(
+                          animalsProvider(_species!),
+                        );
                         return animalsAsync.when(
-                          loading: () => const Center(
-                              child: CircularProgressIndicator()),
-                          error: (_, __) => FarmTextField(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, _) => FarmTextField(
                             controller: _tagCtrl,
                             label: 'Animal Tag / ID *',
                             hint: 'e.g. C-001',
                             prefixIcon: const Icon(Icons.tag_rounded),
                             textInputAction: TextInputAction.next,
-                            validator: (v) =>
-                                (v == null || v.trim().isEmpty)
-                                    ? 'Required'
-                                    : null,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
                           ),
-                          data: (animals) =>
-                              DropdownButtonFormField<String>(
-                            value: _selectedAnimalId,
+                          data: (animals) => DropdownButtonFormField<String>(
+                            initialValue: _selectedAnimalId,
                             decoration: const InputDecoration(
                               labelText: 'Select Animal *',
                               prefixIcon: Icon(Icons.tag_rounded),
@@ -167,11 +171,12 @@ class _AddWeightRecordScreenState
                             hint: const Text('Choose animal'),
                             isExpanded: true,
                             items: animals
-                                .map((a) => DropdownMenuItem(
-                                      value: a.id,
-                                      child: Text(
-                                          '${a.tagNumber} — ${a.name}'),
-                                    ))
+                                .map(
+                                  (a) => DropdownMenuItem(
+                                    value: a.id,
+                                    child: Text('${a.tagNumber} — ${a.name}'),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (id) => setState(() {
                               _selectedAnimalId = id;
@@ -206,8 +211,9 @@ class _AddWeightRecordScreenState
                     hint: 'e.g. 245.5',
                     prefixIcon: const Icon(Icons.scale_rounded),
                     textInputAction: TextInputAction.next,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
                     ],
@@ -275,22 +281,26 @@ class _FormCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: Row(
               children: [
                 Icon(icon, size: 18, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
-                Text(title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
         ],
       ),
     );
@@ -308,49 +318,46 @@ class _DateField extends FormField<DateTime> {
     required bool required,
     bool allowFuture = false,
   }) : super(
-          initialValue: value,
-          validator: (v) {
-            if (required && v == null) return 'Please select a date';
-            return null;
-          },
-          builder: (state) {
-            final context = state.context;
-            final theme = Theme.of(context);
-            final text = state.value == null
-                ? null
-                : '${state.value!.day.toString().padLeft(2, '0')}/'
-                    '${state.value!.month.toString().padLeft(2, '0')}/'
-                    '${state.value!.year}';
+         initialValue: value,
+         validator: (v) {
+           if (required && v == null) return 'Please select a date';
+           return null;
+         },
+         builder: (state) {
+           final context = state.context;
+           final theme = Theme.of(context);
+           final text = state.value == null
+               ? null
+               : '${state.value!.day.toString().padLeft(2, '0')}/'
+                     '${state.value!.month.toString().padLeft(2, '0')}/'
+                     '${state.value!.year}';
 
-            return InputDecorator(
-              decoration: InputDecoration(
-                labelText: label,
-                prefixIcon: Icon(icon),
-                errorText: state.errorText,
-                suffixIcon: const Icon(Icons.calendar_today_outlined),
-              ),
-              isEmpty: state.value == null,
-              child: GestureDetector(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: state.value ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: allowFuture
-                        ? DateTime.now().add(const Duration(days: 730))
-                        : DateTime.now(),
-                  );
-                  if (picked != null) {
-                    state.didChange(picked);
-                    onPicked(picked);
-                  }
-                },
-                child: Text(
-                  text ?? '',
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            );
-          },
-        );
+           return InputDecorator(
+             decoration: InputDecoration(
+               labelText: label,
+               prefixIcon: Icon(icon),
+               errorText: state.errorText,
+               suffixIcon: const Icon(Icons.calendar_today_outlined),
+             ),
+             isEmpty: state.value == null,
+             child: GestureDetector(
+               onTap: () async {
+                 final picked = await showDatePicker(
+                   context: context,
+                   initialDate: state.value ?? DateTime.now(),
+                   firstDate: DateTime(2000),
+                   lastDate: allowFuture
+                       ? DateTime.now().add(const Duration(days: 730))
+                       : DateTime.now(),
+                 );
+                 if (picked != null) {
+                   state.didChange(picked);
+                   onPicked(picked);
+                 }
+               },
+               child: Text(text ?? '', style: theme.textTheme.bodyMedium),
+             ),
+           );
+         },
+       );
 }

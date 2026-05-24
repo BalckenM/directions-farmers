@@ -10,6 +10,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_sale.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class EditSaleScreen extends ConsumerStatefulWidget {
   const EditSaleScreen({super.key, required this.sale});
@@ -22,12 +23,13 @@ class EditSaleScreen extends ConsumerStatefulWidget {
 
 class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final _quantityCtrl =
-      TextEditingController(text: widget.sale.quantityTons.toString());
-  late final _priceCtrl =
-      TextEditingController(text: widget.sale.pricePerTonZar.toString());
-  late final _buyerCtrl =
-      TextEditingController(text: widget.sale.buyer ?? '');
+  late final _quantityCtrl = TextEditingController(
+    text: widget.sale.quantityTons.toString(),
+  );
+  late final _priceCtrl = TextEditingController(
+    text: widget.sale.pricePerTonZar.toString(),
+  );
+  late final _buyerCtrl = TextEditingController(text: widget.sale.buyer ?? '');
 
   late String _selectedCrop = widget.sale.cropId;
   late DateTime _saleDate = widget.sale.saleDate;
@@ -89,17 +91,14 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
     );
 
     try {
-      await ref.read(cropRepositoryProvider).updateSale(updated);
-      ref.invalidate(cropSalesProvider);
-      ref.invalidate(totalRevenueProvider);
-      ref.invalidate(grossMarginProvider);
+      await ref.read(cropActionProvider.notifier).updateSale(updated);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sale updated')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Sale updated')));
     Navigator.of(context).pop(true);
   }
 
@@ -110,8 +109,11 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
     final cropsAsync = ref.watch(cropsProvider(null));
     final crops = cropsAsync.value ?? [];
     final dateFmt = DateFormat('dd MMM yyyy');
-    final currencyFmt =
-        NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
+    final currencyFmt = NumberFormat.currency(
+      locale: 'en_ZA',
+      symbol: 'R ',
+      decimalDigits: 2,
+    );
 
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
@@ -124,14 +126,18 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
             vertical: AppSpacing.pagePaddingVertical,
           ),
           children: [
-            Text('Crop',
-                style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Crop',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               initialValue: _selectedCrop,
               decoration: _dec('Select crop', icon: Icons.grass_rounded),
               items: crops
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _selectedCrop = v);
@@ -140,8 +146,10 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            Text('Sale Date',
-                style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Sale Date',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             InkWell(
               onTap: _pickDate,
@@ -153,18 +161,24 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            Text('Sale Details',
-                style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Sale Details',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
               controller: _quantityCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
               ],
-              decoration:
-                  _dec('Quantity', suffix: 'tons', icon: Icons.scale_rounded),
+              decoration: _dec(
+                'Quantity',
+                suffix: 'tons',
+                icon: Icons.scale_rounded,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
@@ -175,13 +189,17 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _priceCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
               ],
-              decoration: _dec('Price per ton',
-                  suffix: 'ZAR', icon: Icons.payments_rounded),
+              decoration: _dec(
+                'Price per ton',
+                suffix: 'ZAR',
+                icon: Icons.payments_rounded,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
@@ -204,8 +222,11 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calculate_rounded,
-                        color: AppColors.success, size: 18),
+                    const Icon(
+                      Icons.calculate_rounded,
+                      color: AppColors.success,
+                      size: 18,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Total: ${currencyFmt.format(_total)}',
@@ -227,16 +248,20 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            Text('Payment Status',
-                style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Payment Status',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             SegmentedButton<String>(
               segments: _statuses
-                  .map((s) => ButtonSegment(
-                        value: s,
-                        label: Text(_statusLabel(s)),
-                        icon: Icon(_statusIcon(s), size: 16),
-                      ))
+                  .map(
+                    (s) => ButtonSegment(
+                      value: s,
+                      label: Text(_statusLabel(s)),
+                      icon: Icon(_statusIcon(s), size: 16),
+                    ),
+                  )
                   .toList(),
               selected: {_paymentStatus},
               onSelectionChanged: (sel) =>
@@ -266,8 +291,7 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.success,
                   foregroundColor: Colors.white,
-                  shape:
-                      RoundedRectangleBorder(borderRadius: AppRadius.button),
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.button),
                 ),
               ),
             ),
@@ -279,14 +303,14 @@ class _EditSaleScreenState extends ConsumerState<EditSaleScreen> {
   }
 
   String _statusLabel(String s) => switch (s) {
-        'paid' => 'Paid',
-        'partial' => 'Partial',
-        _ => 'Pending',
-      };
+    'paid' => 'Paid',
+    'partial' => 'Partial',
+    _ => 'Pending',
+  };
 
   IconData _statusIcon(String s) => switch (s) {
-        'paid' => Icons.check_circle_rounded,
-        'partial' => Icons.pending_rounded,
-        _ => Icons.hourglass_empty_rounded,
-      };
+    'paid' => Icons.check_circle_rounded,
+    'partial' => Icons.pending_rounded,
+    _ => Icons.hourglass_empty_rounded,
+  };
 }

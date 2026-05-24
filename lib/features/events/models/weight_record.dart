@@ -34,4 +34,26 @@ class WeightRecord {
       notes: json['notes'] as String?,
     );
   }
+
+  WeightRecord copyWith({
+    String? id,
+    String? animalId,
+    String? animalType,
+    String? weighDate,
+    double? weightKg,
+    int? bodyConditionScore,
+    double? adgSinceLastKg,
+    String? method,
+    String? notes,
+  }) => WeightRecord(
+    id: id ?? this.id,
+    animalId: animalId ?? this.animalId,
+    animalType: animalType ?? this.animalType,
+    weighDate: weighDate ?? this.weighDate,
+    weightKg: weightKg ?? this.weightKg,
+    bodyConditionScore: bodyConditionScore ?? this.bodyConditionScore,
+    adgSinceLastKg: adgSinceLastKg ?? this.adgSinceLastKg,
+    method: method ?? this.method,
+    notes: notes ?? this.notes,
+  );
 }

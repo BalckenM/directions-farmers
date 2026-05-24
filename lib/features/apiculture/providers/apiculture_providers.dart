@@ -1,11 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/apiculture_data_source.dart';
+import '../data/apiculture_mock_data_source.dart';
 import '../data/apiculture_repository.dart';
 import '../models/apiculture.dart';
+
+final apicultureDataSourceProvider = Provider<ApicultureDataSource>(
+  (ref) => ApicultureMockDataSource(),
+);
+
+final apicultureRepositoryProvider = Provider<ApicultureRepository>(
+  (ref) => ApicultureRepository(ref.watch(apicultureDataSourceProvider)),
+);
 
 // ── Apiaries ──────────────────────────────────────────────────────────────────
 
 final _mockApiariesProvider = FutureProvider<List<Apiary>>((ref) {
-  return ref.read(apicultureRepositoryProvider).getApiaries();
+  return ref.watch(apicultureRepositoryProvider).getApiaries();
 });
 
 final apiariesProvider =
@@ -16,7 +26,7 @@ final apiariesProvider =
 // ── Hives ─────────────────────────────────────────────────────────────────────
 
 final _mockHivesProvider = FutureProvider<List<Hive>>((ref) {
-  return ref.read(apicultureRepositoryProvider).getHives();
+  return ref.watch(apicultureRepositoryProvider).getHives();
 });
 
 final hivesProvider =
@@ -47,7 +57,7 @@ final hiveDetailProvider =
 // ── Hive Inspections ──────────────────────────────────────────────────────────
 
 final _mockInspectionsProvider = FutureProvider<List<HiveInspection>>((ref) {
-  return ref.read(apicultureRepositoryProvider).getHiveInspections();
+  return ref.watch(apicultureRepositoryProvider).getHiveInspections();
 });
 
 /// Inspection history for a specific hive, sorted newest-first.

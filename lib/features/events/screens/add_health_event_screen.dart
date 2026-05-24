@@ -16,7 +16,7 @@ import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/notifiable_disease_prompt.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../livestock/providers/livestock_providers.dart';
-import '../data/events_repository.dart';
+import '../providers/events_action_providers.dart';
 import '../models/health_event.dart';
 
 // â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -29,8 +29,7 @@ class AddHealthEventScreen extends ConsumerStatefulWidget {
       _AddHealthEventScreenState();
 }
 
-class _AddHealthEventScreenState
-    extends ConsumerState<AddHealthEventScreen> {
+class _AddHealthEventScreenState extends ConsumerState<AddHealthEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final _tagCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
@@ -47,11 +46,15 @@ class _AddHealthEventScreenState
   bool _submitting = false;
 
   static const _speciesOptions = [
-    'cattle', 'sheep', 'goats', 'pigs', 'horses', 'poultry',
+    'cattle',
+    'sheep',
+    'goats',
+    'pigs',
+    'horses',
+    'poultry',
   ];
 
-  bool get _isSheepOrGoats =>
-      _species == 'sheep' || _species == 'goats';
+  bool get _isSheepOrGoats => _species == 'sheep' || _species == 'goats';
 
   void _onEventTypeChanged(String? type) {
     setState(() => _eventType = type);
@@ -61,12 +64,10 @@ class _AddHealthEventScreenState
         LivestockConstants.notifiableDiseasesBySpecies[_species];
     if (diseasesBySpecies == null) return;
     final typeKey = type.toLowerCase().replaceAll(' ', '_');
-    final diseaseKey = diseasesBySpecies
-        .cast<String?>()
-        .firstWhere(
-          (d) => d != null && d.contains(typeKey),
-          orElse: () => null,
-        );
+    final diseaseKey = diseasesBySpecies.cast<String?>().firstWhere(
+      (d) => d != null && d.contains(typeKey),
+      orElse: () => null,
+    );
     if (diseaseKey != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -113,8 +114,9 @@ class _AddHealthEventScreenState
             ? DateFormat('yyyy-MM-dd').format(_eventDate!)
             : DateFormat('yyyy-MM-dd').format(DateTime.now()),
         description: _notesCtrl.text.trim(),
-        productName:
-            _productCtrl.text.trim().isEmpty ? null : _productCtrl.text.trim(),
+        productName: _productCtrl.text.trim().isEmpty
+            ? null
+            : _productCtrl.text.trim(),
         nextDueDate: _nextDueCtrl.text.trim().isEmpty
             ? null
             : _nextDueCtrl.text.trim(),
@@ -122,11 +124,7 @@ class _AddHealthEventScreenState
         famachaScore: _famachaScore,
         dagScore: _dagScore,
       );
-      await ref.read(eventsRepositoryProvider).addHealthEvent(event);
-      ref.invalidate(healthEventsProvider);
-      if (_species != null) {
-        ref.invalidate(healthEventsBySpeciesProvider(_species!));
-      }
+      await ref.read(eventsActionProvider.notifier).addHealthEvent(event);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -134,15 +132,16 @@ class _AddHealthEventScreenState
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm)),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
       );
       context.pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -180,7 +179,7 @@ class _AddHealthEventScreenState
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: _species,
+                    initialValue: _species,
                     decoration: const InputDecoration(
                       labelText: 'Species',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -188,10 +187,12 @@ class _AddHealthEventScreenState
                     hint: const Text('Select species'),
                     isExpanded: true,
                     items: _speciesOptions
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(s[0].toUpperCase() + s.substring(1)),
-                            ))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(s[0].toUpperCase() + s.substring(1)),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() {
                       _species = v;
@@ -212,12 +213,13 @@ class _AddHealthEventScreenState
                   else
                     Consumer(
                       builder: (context, ref, _) {
-                        final animalsAsync =
-                            ref.watch(animalsProvider(_species!));
+                        final animalsAsync = ref.watch(
+                          animalsProvider(_species!),
+                        );
                         return animalsAsync.when(
-                          loading: () => const Center(
-                              child: CircularProgressIndicator()),
-                          error: (_, __) => FarmTextField(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, _) => FarmTextField(
                             controller: _tagCtrl,
                             label: 'Animal Tag / ID *',
                             hint: 'e.g. A-001',
@@ -227,9 +229,8 @@ class _AddHealthEventScreenState
                                 ? 'Required'
                                 : null,
                           ),
-                          data: (animals) =>
-                              DropdownButtonFormField<String>(
-                            value: _selectedAnimalId,
+                          data: (animals) => DropdownButtonFormField<String>(
+                            initialValue: _selectedAnimalId,
                             decoration: const InputDecoration(
                               labelText: 'Select Animal *',
                               prefixIcon: Icon(Icons.tag_rounded),
@@ -237,11 +238,12 @@ class _AddHealthEventScreenState
                             hint: const Text('Choose animal'),
                             isExpanded: true,
                             items: animals
-                                .map((a) => DropdownMenuItem(
-                                      value: a.id,
-                                      child: Text(
-                                          '${a.tagNumber} — ${a.name}'),
-                                    ))
+                                .map(
+                                  (a) => DropdownMenuItem(
+                                    value: a.id,
+                                    child: Text('${a.tagNumber} — ${a.name}'),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (id) => setState(() {
                               _selectedAnimalId = id;
@@ -271,8 +273,7 @@ class _AddHealthEventScreenState
                     hint: const Text('Select type'),
                     isExpanded: true,
                     items: _eventTypes
-                        .map((t) =>
-                            DropdownMenuItem(value: t, child: Text(t)))
+                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                         .toList(),
                     onChanged: _onEventTypeChanged,
                     validator: (v) =>
@@ -327,7 +328,7 @@ class _AddHealthEventScreenState
               ),
             ),
             // SA: FAMACHA (sheep / goats)
-            if (_isSheepOrGoats) ...[  
+            if (_isSheepOrGoats) ...[
               const SizedBox(height: AppSpacing.md),
               _FormCard(
                 title: 'FAMACHA Score',
@@ -339,7 +340,7 @@ class _AddHealthEventScreenState
               ),
             ],
             // SA: DAG score (sheep only)
-            if (_species == 'sheep') ...[  
+            if (_species == 'sheep') ...[
               const SizedBox(height: AppSpacing.md),
               _FormCard(
                 title: 'DAG Score (Dags)',
@@ -420,22 +421,26 @@ class _FormCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: Row(
               children: [
                 Icon(icon, size: 18, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
-                Text(title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
         ],
       ),
     );
@@ -453,49 +458,46 @@ class _DateField extends FormField<DateTime> {
     bool isRequired = false,
     bool allowFuture = false,
   }) : super(
-          initialValue: value,
-          validator: (v) {
-            if (isRequired && v == null) return 'Please select a date';
-            return null;
-          },
-          builder: (state) {
-            final context = state.context;
-            final theme = Theme.of(context);
-            final text = state.value == null
-                ? null
-                : '${state.value!.day.toString().padLeft(2, '0')}/'
-                    '${state.value!.month.toString().padLeft(2, '0')}/'
-                    '${state.value!.year}';
+         initialValue: value,
+         validator: (v) {
+           if (isRequired && v == null) return 'Please select a date';
+           return null;
+         },
+         builder: (state) {
+           final context = state.context;
+           final theme = Theme.of(context);
+           final text = state.value == null
+               ? null
+               : '${state.value!.day.toString().padLeft(2, '0')}/'
+                     '${state.value!.month.toString().padLeft(2, '0')}/'
+                     '${state.value!.year}';
 
-            return InputDecorator(
-              decoration: InputDecoration(
-                labelText: label,
-                prefixIcon: Icon(icon),
-                errorText: state.errorText,
-                suffixIcon: const Icon(Icons.calendar_today_outlined),
-              ),
-              isEmpty: state.value == null,
-              child: GestureDetector(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: state.value ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: allowFuture
-                        ? DateTime.now().add(const Duration(days: 730))
-                        : DateTime.now(),
-                  );
-                  if (picked != null) {
-                    state.didChange(picked);
-                    onPicked(picked);
-                  }
-                },
-                child: Text(
-                  text ?? '',
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            );
-          },
-        );
+           return InputDecorator(
+             decoration: InputDecoration(
+               labelText: label,
+               prefixIcon: Icon(icon),
+               errorText: state.errorText,
+               suffixIcon: const Icon(Icons.calendar_today_outlined),
+             ),
+             isEmpty: state.value == null,
+             child: GestureDetector(
+               onTap: () async {
+                 final picked = await showDatePicker(
+                   context: context,
+                   initialDate: state.value ?? DateTime.now(),
+                   firstDate: DateTime(2000),
+                   lastDate: allowFuture
+                       ? DateTime.now().add(const Duration(days: 730))
+                       : DateTime.now(),
+                 );
+                 if (picked != null) {
+                   state.didChange(picked);
+                   onPicked(picked);
+                 }
+               },
+               child: Text(text ?? '', style: theme.textTheme.bodyMedium),
+             ),
+           );
+         },
+       );
 }

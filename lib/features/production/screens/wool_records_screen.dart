@@ -6,7 +6,7 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../data/production_repository.dart';
+import '../providers/production_providers.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_state.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
@@ -234,3 +234,4 @@ class _MetricChip extends StatelessWidget {
     );
   }
 }
+

@@ -57,9 +57,15 @@ import '../../features/crop/models/harvest_record.dart';
 import '../../features/crop/models/pest_observation.dart';
 import '../../features/crop/models/planting_plan.dart';
 import '../../features/crop/models/spray_record.dart';
+import '../../features/crop/models/advisor_models.dart';
+import '../../features/crop/models/disease_detection.dart';
+import '../../features/crop/screens/advisor/advisor_chat_screen.dart';
+import '../../features/crop/screens/advisor/crop_advisor_screen.dart';
 import '../../features/crop/screens/advisory/advisory_detail_screen.dart';
 import '../../features/crop/screens/advisory/advisory_hub_screen.dart';
 import '../../features/crop/screens/calendar/planting_calendar_screen.dart';
+import '../../features/crop/screens/disease/crop_scanner_screen.dart';
+import '../../features/crop/screens/disease/disease_result_screen.dart';
 import '../../features/crop/screens/catalog/crop_catalog_screen.dart';
 import '../../features/crop/screens/catalog/crop_detail_screen.dart';
 import '../../features/crop/screens/crop_hub_screen.dart';
@@ -1570,6 +1576,28 @@ List<RouteBase> _buildRoutes() {
                       path: ':articleId',
                       builder: (_, state) => AdvisoryDetailScreen(
                         articleId: state.pathParameters['articleId']!,
+                      ),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'disease/scanner',
+                  builder: (_, _) => const CropScannerScreen(),
+                ),
+                GoRoute(
+                  path: 'disease/result',
+                  builder: (_, state) => DiseaseResultScreen(
+                    result: state.extra! as DiseaseDetectionResult,
+                  ),
+                ),
+                GoRoute(
+                  path: 'advisor',
+                  builder: (_, _) => const CropAdvisorScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'chat',
+                      builder: (_, state) => AdvisorChatScreen(
+                        payload: state.extra!,
                       ),
                     ),
                   ],

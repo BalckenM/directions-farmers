@@ -9,6 +9,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/harvest_record.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -68,12 +69,12 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
       return;
     }
 
-    final repo = ref.read(cropRepositoryProvider);
     final yield_ = double.parse(_yieldCtrl.text.trim());
     final area = double.parse(_areaCtrl.text.trim());
 
     // Resolve planId from the active planting plan on the selected field (if any).
-    final allPlans = ref.read(plantingPlansProvider(_selectedField)).value ?? [];
+    final allPlans =
+        ref.read(plantingPlansProvider(_selectedField)).value ?? [];
     final activePlan = allPlans.where((p) => p.isActive).firstOrNull;
     final record = HarvestRecord(
       id: 'harv-${DateTime.now().millisecondsSinceEpoch}',
@@ -97,14 +98,13 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
     );
 
     try {
-      await repo.addHarvestRecord(record);
-      ref.invalidate(harvestRecordsProvider);
+      await ref.read(cropActionProvider.notifier).addHarvestRecord(record);
     } catch (_) {}
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Harvest logged')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Harvest logged')));
     Navigator.of(context).pop();
   }
 
@@ -133,7 +133,9 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
               initialValue: _selectedField,
               decoration: _inputDecoration('Select field'),
               items: fields
-                  .map((f) => DropdownMenuItem(value: f.id, child: Text(f.name)))
+                  .map(
+                    (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedField = v),
               validator: (v) => v == null ? 'Please select a field' : null,
@@ -147,7 +149,9 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
               initialValue: _selectedCrop,
               decoration: _inputDecoration('Select crop'),
               items: crops
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedCrop = v),
               validator: (v) => v == null ? 'Please select a crop' : null,
@@ -163,7 +167,8 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
               onChanged: (d) => setState(() => _harvestDate = d),
               firstDate: DateTime(2000),
               lastDate: DateTime.now(),
-              validator: (d) => d == null ? 'Please select a harvest date' : null,
+              validator: (d) =>
+                  d == null ? 'Please select a harvest date' : null,
             ),
             const SizedBox(height: AppSpacing.md),
 
@@ -173,8 +178,9 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
             TextFormField(
               controller: _yieldCtrl,
               decoration: _inputDecoration('e.g. 12.5'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Required';
@@ -193,8 +199,9 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
             TextFormField(
               controller: _areaCtrl,
               decoration: _inputDecoration('e.g. 5.0'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
                 if (double.tryParse(v.trim()) == null) {
@@ -224,10 +231,12 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
             TextFormField(
               controller: _moistureCtrl,
               decoration: _inputDecoration('e.g. 14.5 (optional)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
-                if (v != null && v.trim().isNotEmpty &&
+                if (v != null &&
+                    v.trim().isNotEmpty &&
                     double.tryParse(v.trim()) == null) {
                   return 'Enter a valid number';
                 }
@@ -251,11 +260,13 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
             TextFormField(
               controller: _lossesCtrl,
               decoration: _inputDecoration('e.g. 0.5 (optional)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
-                if (v != null && v.trim().isNotEmpty &&
+                if (v != null &&
+                    v.trim().isNotEmpty &&
                     double.tryParse(v.trim()) == null) {
                   return 'Enter a valid number';
                 }
@@ -303,13 +314,13 @@ class _AddHarvestScreenState extends ConsumerState<AddHarvestScreen> {
   }
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        border: OutlineInputBorder(borderRadius: AppRadius.input),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm + AppSpacing.xs,
-        ),
-      );
+    hintText: hint,
+    border: OutlineInputBorder(borderRadius: AppRadius.input),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.sm + AppSpacing.xs,
+    ),
+  );
 }
 
 // ── Section label helper ──────────────────────────────────────────────────────

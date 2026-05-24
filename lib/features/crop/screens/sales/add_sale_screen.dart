@@ -10,6 +10,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_sale.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddSaleScreen extends ConsumerStatefulWidget {
   const AddSaleScreen({super.key});
@@ -66,9 +67,9 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCrop == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a crop')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a crop')));
       return;
     }
 
@@ -90,17 +91,14 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
     );
 
     try {
-      await ref.read(cropRepositoryProvider).addSale(sale);
-      ref.invalidate(cropSalesProvider);
-      ref.invalidate(totalRevenueProvider);
-      ref.invalidate(grossMarginProvider);
+      await ref.read(cropActionProvider.notifier).addSale(sale);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sale recorded')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Sale recorded')));
     Navigator.of(context).pop();
   }
 
@@ -111,8 +109,11 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
     final cropsAsync = ref.watch(cropsProvider(null));
     final crops = cropsAsync.value ?? [];
     final dateFmt = DateFormat('dd MMM yyyy');
-    final currencyFmt =
-        NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
+    final currencyFmt = NumberFormat.currency(
+      locale: 'en_ZA',
+      symbol: 'R ',
+      decimalDigits: 2,
+    );
 
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
@@ -126,13 +127,18 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
           ),
           children: [
             // ── Crop ──────────────────────────────────────────────────────────
-            Text('Crop', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Crop',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               initialValue: _selectedCrop,
               decoration: _dec('Select crop', icon: Icons.grass_rounded),
               items: crops
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedCrop = v),
               validator: (v) => v == null ? 'Please select a crop' : null,
@@ -140,7 +146,10 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
             const SizedBox(height: AppSpacing.md),
 
             // ── Sale Date ──────────────────────────────────────────────────────
-            Text('Sale Date', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Sale Date',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             InkWell(
               onTap: _pickDate,
@@ -153,30 +162,52 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
             const SizedBox(height: AppSpacing.md),
 
             // ── Quantity & Price ───────────────────────────────────────────────
-            Text('Sale Details', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Sale Details',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
               controller: _quantityCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              decoration: _dec('Quantity', suffix: 'tons', icon: Icons.scale_rounded),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              ],
+              decoration: _dec(
+                'Quantity',
+                suffix: 'tons',
+                icon: Icons.scale_rounded,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Quantity is required';
-                if (double.tryParse(v.trim()) == null) return 'Enter a valid number';
+                if (v == null || v.trim().isEmpty)
+                  return 'Quantity is required';
+                if (double.tryParse(v.trim()) == null)
+                  return 'Enter a valid number';
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _priceCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              decoration: _dec('Price per ton', suffix: 'ZAR', icon: Icons.payments_rounded),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              ],
+              decoration: _dec(
+                'Price per ton',
+                suffix: 'ZAR',
+                icon: Icons.payments_rounded,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Price is required';
-                if (double.tryParse(v.trim()) == null) return 'Enter a valid number';
+                if (double.tryParse(v.trim()) == null)
+                  return 'Enter a valid number';
                 return null;
               },
             ),
@@ -196,8 +227,11 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calculate_rounded,
-                        color: AppColors.success, size: 18),
+                    const Icon(
+                      Icons.calculate_rounded,
+                      color: AppColors.success,
+                      size: 18,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       'Total: ${currencyFmt.format(_total)}',
@@ -221,15 +255,20 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
             const SizedBox(height: AppSpacing.md),
 
             // ── Payment status ─────────────────────────────────────────────────
-            Text('Payment Status', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Payment Status',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             SegmentedButton<String>(
               segments: _statuses
-                  .map((s) => ButtonSegment(
-                        value: s,
-                        label: Text(_statusLabel(s)),
-                        icon: Icon(_statusIcon(s), size: 16),
-                      ))
+                  .map(
+                    (s) => ButtonSegment(
+                      value: s,
+                      label: Text(_statusLabel(s)),
+                      icon: Icon(_statusIcon(s), size: 16),
+                    ),
+                  )
                   .toList(),
               selected: {_paymentStatus},
               onSelectionChanged: (sel) =>
@@ -272,14 +311,14 @@ class _AddSaleScreenState extends ConsumerState<AddSaleScreen> {
   }
 
   String _statusLabel(String s) => switch (s) {
-        'paid' => 'Paid',
-        'partial' => 'Partial',
-        _ => 'Pending',
-      };
+    'paid' => 'Paid',
+    'partial' => 'Partial',
+    _ => 'Pending',
+  };
 
   IconData _statusIcon(String s) => switch (s) {
-        'paid' => Icons.check_circle_rounded,
-        'partial' => Icons.pending_rounded,
-        _ => Icons.hourglass_empty_rounded,
-      };
+    'paid' => Icons.check_circle_rounded,
+    'partial' => Icons.pending_rounded,
+    _ => Icons.hourglass_empty_rounded,
+  };
 }

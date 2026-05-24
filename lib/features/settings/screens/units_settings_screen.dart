@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -7,75 +8,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/primary_button.dart';
-
-// ── State model ───────────────────────────────────────────────────────────────
-
-class _UnitsState {
-  final bool useImperial; // false = metric
-  final String currency; // ZAR, USD, EUR, GBP
-  final String dateFormat; // DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD
-  final bool useFahrenheit; // false = Celsius
-  final bool useInches; // false = mm for rainfall
-  final bool useAcres; // false = hectares
-
-  const _UnitsState({
-    this.useImperial = false,
-    this.currency = 'ZAR',
-    this.dateFormat = 'DD/MM/YYYY',
-    this.useFahrenheit = false,
-    this.useInches = false,
-    this.useAcres = false,
-  });
-
-  _UnitsState copyWith({
-    bool? useImperial,
-    String? currency,
-    String? dateFormat,
-    bool? useFahrenheit,
-    bool? useInches,
-    bool? useAcres,
-  }) =>
-      _UnitsState(
-        useImperial: useImperial ?? this.useImperial,
-        currency: currency ?? this.currency,
-        dateFormat: dateFormat ?? this.dateFormat,
-        useFahrenheit: useFahrenheit ?? this.useFahrenheit,
-        useInches: useInches ?? this.useInches,
-        useAcres: useAcres ?? this.useAcres,
-      );
-}
-
-class _UnitsNotifier extends Notifier<_UnitsState> {
-  @override
-  _UnitsState build() => const _UnitsState();
-
-  void toggle(String field) {
-    switch (field) {
-      case 'imperial':
-        state = state.copyWith(
-            useImperial: !state.useImperial,
-            useFahrenheit: !state.useImperial,
-            useInches: !state.useImperial,
-            useAcres: !state.useImperial);
-      case 'fahrenheit':
-        state = state.copyWith(useFahrenheit: !state.useFahrenheit);
-      case 'inches':
-        state = state.copyWith(useInches: !state.useInches);
-      case 'acres':
-        state = state.copyWith(useAcres: !state.useAcres);
-    }
-  }
-
-  void setCurrency(String currency) =>
-      state = state.copyWith(currency: currency);
-
-  void setDateFormat(String fmt) =>
-      state = state.copyWith(dateFormat: fmt);
-}
-
-final _unitsProvider =
-    NotifierProvider<_UnitsNotifier, _UnitsState>(
-        _UnitsNotifier.new);
+import '../providers/settings_ui_providers.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -84,8 +17,8 @@ class UnitsSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_unitsProvider);
-    final notifier = ref.read(_unitsProvider.notifier);
+    final state = ref.watch(unitsProvider);
+    final notifier = ref.read(unitsProvider.notifier);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -112,8 +45,7 @@ class UnitsSettingsScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Switch between metric and imperial as a group, or customise individually below.',
-                  style: tt.bodySmall
-                      ?.copyWith(color: cs.onSurfaceVariant),
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Row(
@@ -158,7 +90,9 @@ class UnitsSettingsScreen extends ConsumerWidget {
                   icon: Icons.monitor_weight_outlined,
                   iconColor: AppColors.secondary,
                   label: 'Weight',
-                  valueLabel: state.useImperial ? 'Pounds (lb)' : 'Kilograms (kg)',
+                  valueLabel: state.useImperial
+                      ? 'Pounds (lb)'
+                      : 'Kilograms (kg)',
                   value: state.useImperial,
                   onChanged: (v) => notifier.toggle('imperial'),
                 ),
@@ -167,8 +101,7 @@ class UnitsSettingsScreen extends ConsumerWidget {
                   icon: Icons.landscape_rounded,
                   iconColor: AppColors.primary,
                   label: 'Area',
-                  valueLabel:
-                      state.useAcres ? 'Acres (ac)' : 'Hectares (ha)',
+                  valueLabel: state.useAcres ? 'Acres (ac)' : 'Hectares (ha)',
                   value: state.useAcres,
                   onChanged: (_) => notifier.toggle('acres'),
                 ),
@@ -177,8 +110,9 @@ class UnitsSettingsScreen extends ConsumerWidget {
                   icon: Icons.thermostat_rounded,
                   iconColor: AppColors.error,
                   label: 'Temperature',
-                  valueLabel:
-                      state.useFahrenheit ? 'Fahrenheit (°F)' : 'Celsius (°C)',
+                  valueLabel: state.useFahrenheit
+                      ? 'Fahrenheit (°F)'
+                      : 'Celsius (°C)',
                   value: state.useFahrenheit,
                   onChanged: (_) => notifier.toggle('fahrenheit'),
                 ),
@@ -187,8 +121,9 @@ class UnitsSettingsScreen extends ConsumerWidget {
                   icon: Icons.water_drop_outlined,
                   iconColor: AppColors.info,
                   label: 'Rainfall',
-                  valueLabel:
-                      state.useInches ? 'Inches (in)' : 'Millimetres (mm)',
+                  valueLabel: state.useInches
+                      ? 'Inches (in)'
+                      : 'Millimetres (mm)',
                   value: state.useInches,
                   onChanged: (_) => notifier.toggle('inches'),
                 ),
@@ -211,23 +146,22 @@ class UnitsSettingsScreen extends ConsumerWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm,
+                    ),
                     decoration: BoxDecoration(
                       color: selected
                           ? AppColors.primary
                           : AppColors.primary.withAlpha(18),
                       borderRadius: AppRadius.chip,
                       border: Border.all(
-                        color: selected
-                            ? AppColors.primary
-                            : cs.outlineVariant,
+                        color: selected ? AppColors.primary : cs.outlineVariant,
                       ),
                     ),
                     child: Text(
                       c,
                       style: TextStyle(
-                        color:
-                            selected ? Colors.white : AppColors.primary,
+                        color: selected ? Colors.white : AppColors.primary,
                         fontWeight: selected
                             ? FontWeight.w700
                             : FontWeight.w500,
@@ -247,21 +181,23 @@ class UnitsSettingsScreen extends ConsumerWidget {
             cs: cs,
             child: Column(
               children: ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']
-                  .map((fmt) => RadioListTile<String>(
-                        title: Text(fmt, style: tt.bodyMedium),
-                        subtitle: Text(
-                          _formatSample(fmt),
-                          style: tt.bodySmall
-                              ?.copyWith(color: cs.onSurfaceVariant),
+                  .map(
+                    (fmt) => RadioListTile<String>(
+                      title: Text(fmt, style: tt.bodyMedium),
+                      subtitle: Text(
+                        _formatSample(fmt),
+                        style: tt.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
                         ),
-                        value: fmt,
-                        groupValue: state.dateFormat,
-                        onChanged: (v) =>
-                            notifier.setDateFormat(v ?? fmt),
-                        activeColor: AppColors.primary,
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                      ))
+                      ),
+                      value: fmt,
+                      groupValue: state.dateFormat,
+                      onChanged: (v) => notifier.setDateFormat(v ?? fmt),
+                      activeColor: AppColors.primary,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                    ),
+                  )
                   .toList(),
             ),
           ),
@@ -291,10 +227,10 @@ class UnitsSettingsScreen extends ConsumerWidget {
 }
 
 String _formatSample(String fmt) => switch (fmt) {
-      'DD/MM/YYYY' => 'e.g. 28/03/2024',
-      'MM/DD/YYYY' => 'e.g. 03/28/2024',
-      _ => 'e.g. 2024-03-28',
-    };
+  'DD/MM/YYYY' => 'e.g. 28/03/2024',
+  'MM/DD/YYYY' => 'e.g. 03/28/2024',
+  _ => 'e.g. 2024-03-28',
+};
 
 // ── Shared widgets ────────────────────────────────────────────────────────────
 
@@ -326,19 +262,19 @@ class _SectionCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(children: [
-              Icon(icon, size: 18, color: AppColors.primary),
-              const SizedBox(width: AppSpacing.sm),
-              Text(title,
-                  style:
-                      tt.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-            ]),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: AppColors.primary),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  title,
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
         ],
       ),
     );
@@ -384,16 +320,23 @@ class _ModeButton extends StatelessWidget {
             if (selected)
               Icon(Icons.check_circle_rounded, color: color, size: 20),
             if (!selected)
-              Icon(Icons.radio_button_unchecked_rounded,
-                  color: cs.onSurfaceVariant, size: 20),
+              Icon(
+                Icons.radio_button_unchecked_rounded,
+                color: cs.onSurfaceVariant,
+                size: 20,
+              ),
             const SizedBox(height: AppSpacing.sm),
-            Text(label,
-                style: tt.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: selected ? color : cs.onSurface)),
-            Text(sublabel,
-                style: tt.bodySmall
-                    ?.copyWith(color: cs.onSurfaceVariant)),
+            Text(
+              label,
+              style: tt.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: selected ? color : cs.onSurface,
+              ),
+            ),
+            Text(
+              sublabel,
+              style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
           ],
         ),
       ),

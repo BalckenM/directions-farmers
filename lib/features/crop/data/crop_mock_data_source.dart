@@ -1480,5 +1480,9 @@ class CropMockDataSource implements CropDataSource {
 
   @override Future<CropSale> addSale(CropSale s) async { await Future.delayed(_kWriteDelay); return s; }
   @override Future<CropSale> updateSale(CropSale s) async { await Future.delayed(_kWriteDelay); return s; }
-  @override Future<void> deleteSale(String id) async {}
+  @override Future<void> deleteSale(String id) async { await Future.delayed(_kWriteDelay); }
+
+  @override Future<CalendarEvent> addCalendarEvent(CalendarEvent e) async { await Future.delayed(_kWriteDelay); return e; }
+  @override Future<CalendarEvent> updateCalendarEvent(CalendarEvent e) async { await Future.delayed(_kWriteDelay); return e; }
+  @override Future<void> deleteCalendarEvent(String id) async { await Future.delayed(_kWriteDelay); }
 }

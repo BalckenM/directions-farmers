@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/payroll_data_source.dart';
+import '../data/payroll_mock_data_source.dart';
 import '../data/payroll_repository.dart';
 import '../models/attendance_record.dart';
 import '../models/audit_log_entry.dart';
@@ -22,6 +24,16 @@ import '../models/payslip.dart';
 import '../models/piecework_log.dart';
 import '../models/shift.dart';
 import '../models/task_assignment.dart';
+
+// ─── Dependency Injection ────────────────────────────────────────────────────
+
+final payrollDataSourceProvider = Provider<PayrollDataSource>(
+  (ref) => PayrollMockDataSource(),
+);
+
+final payrollRepositoryProvider = Provider<PayrollRepository>(
+  (ref) => PayrollRepository(ref.watch(payrollDataSourceProvider)),
+);
 
 // ─── Employees ────────────────────────────────────────────────────────────────
 

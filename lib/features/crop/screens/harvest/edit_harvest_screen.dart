@@ -8,6 +8,7 @@ import '../../../../shared/widgets/date_picker_field.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/harvest_record.dart';
+import '../../providers/crop_action_providers.dart';
 import '../../providers/crop_providers.dart';
 
 class EditHarvestScreen extends ConsumerStatefulWidget {
@@ -22,20 +23,27 @@ class EditHarvestScreen extends ConsumerStatefulWidget {
 class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late final _yieldCtrl =
-      TextEditingController(text: widget.record.actualYieldTons.toString());
-  late final _areaCtrl =
-      TextEditingController(text: widget.record.areaHarvestedHa.toString());
+  late final _yieldCtrl = TextEditingController(
+    text: widget.record.actualYieldTons.toString(),
+  );
+  late final _areaCtrl = TextEditingController(
+    text: widget.record.areaHarvestedHa.toString(),
+  );
   late final _moistureCtrl = TextEditingController(
-      text: widget.record.moisturePercent?.toString() ?? '');
-  late final _storageCtrl =
-      TextEditingController(text: widget.record.storageLocation ?? '');
-  late final _lossesCtrl =
-      TextEditingController(text: widget.record.lossesTons?.toString() ?? '');
-  late final _lossReasonCtrl =
-      TextEditingController(text: widget.record.lossReason ?? '');
-  late final _notesCtrl =
-      TextEditingController(text: widget.record.notes ?? '');
+    text: widget.record.moisturePercent?.toString() ?? '',
+  );
+  late final _storageCtrl = TextEditingController(
+    text: widget.record.storageLocation ?? '',
+  );
+  late final _lossesCtrl = TextEditingController(
+    text: widget.record.lossesTons?.toString() ?? '',
+  );
+  late final _lossReasonCtrl = TextEditingController(
+    text: widget.record.lossReason ?? '',
+  );
+  late final _notesCtrl = TextEditingController(
+    text: widget.record.notes ?? '',
+  );
 
   late String _selectedField = widget.record.fieldId;
   late String _selectedCrop = widget.record.cropId;
@@ -81,8 +89,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
       yieldTHa: area > 0 ? yield_ / area : 0,
       qualityGrade: _selectedGrade,
       moisturePercent: double.tryParse(_moistureCtrl.text.trim()),
-      storageLocation:
-          _storageCtrl.text.trim().isEmpty ? null : _storageCtrl.text.trim(),
+      storageLocation: _storageCtrl.text.trim().isEmpty
+          ? null
+          : _storageCtrl.text.trim(),
       lossesTons: double.tryParse(_lossesCtrl.text.trim()),
       lossReason: _lossReasonCtrl.text.trim().isEmpty
           ? null
@@ -91,26 +100,25 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
     );
 
     try {
-      await ref.read(cropRepositoryProvider).updateHarvestRecord(updated);
-      ref.invalidate(harvestRecordsProvider);
+      await ref.read(cropActionProvider.notifier).updateHarvestRecord(updated);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Harvest record updated')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Harvest record updated')));
     Navigator.of(context).pop(true);
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        border: OutlineInputBorder(borderRadius: AppRadius.input),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm + AppSpacing.xs,
-        ),
-      );
+    hintText: hint,
+    border: OutlineInputBorder(borderRadius: AppRadius.input),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.sm + AppSpacing.xs,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +144,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
               initialValue: _selectedField,
               decoration: _dec('Select field'),
               items: fields
-                  .map((f) => DropdownMenuItem(value: f.id, child: Text(f.name)))
+                  .map(
+                    (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _selectedField = v);
@@ -151,7 +161,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
               initialValue: _selectedCrop,
               decoration: _dec('Select crop'),
               items: crops
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _selectedCrop = v);
@@ -176,8 +188,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
             TextFormField(
               controller: _yieldCtrl,
               decoration: _dec('e.g. 12.5'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
                 if (double.tryParse(v.trim()) == null) return 'Invalid number';
@@ -191,8 +204,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
             TextFormField(
               controller: _areaCtrl,
               decoration: _dec('e.g. 5.0'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
                 if (double.tryParse(v.trim()) == null) return 'Invalid number';
@@ -218,8 +232,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
             TextFormField(
               controller: _moistureCtrl,
               decoration: _dec('e.g. 14.5 (optional)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (v) {
                 if (v != null &&
                     v.trim().isNotEmpty &&
@@ -244,8 +259,9 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
             TextFormField(
               controller: _lossesCtrl,
               decoration: _dec('e.g. 0.5 (optional)'),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               onChanged: (_) => setState(() {}),
               validator: (v) {
                 if (v != null &&
@@ -282,15 +298,16 @@ class _EditHarvestScreenState extends ConsumerState<EditHarvestScreen> {
               onPressed: _saving ? null : _save,
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(AppSpacing.minTouchTarget),
-                shape:
-                    RoundedRectangleBorder(borderRadius: AppRadius.button),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.button),
               ),
               child: _saving
                   ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.onPrimary),
+                        strokeWidth: 2,
+                        color: AppColors.onPrimary,
+                      ),
                     )
                   : const Text('Save Changes'),
             ),
@@ -309,10 +326,10 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: tt.labelMedium?.copyWith(
-          color: AppColors.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-        ),
-      );
+    text,
+    style: tt.labelMedium?.copyWith(
+      color: AppColors.onSurfaceVariant,
+      fontWeight: FontWeight.w600,
+    ),
+  );
 }

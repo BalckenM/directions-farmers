@@ -9,6 +9,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_field.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -51,11 +52,7 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
     'well_drained',
   ];
 
-  static const _irrigationTypes = [
-    'dryland',
-    'irrigated',
-    'mixed',
-  ];
+  static const _irrigationTypes = ['dryland', 'irrigated', 'mixed'];
 
   static String _soilLabel(String value) =>
       value.replaceAll('_', ' ').toUpperCase();
@@ -87,7 +84,6 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
 
-    final repo = ref.read(cropRepositoryProvider);
     final id = widget.fieldId ?? 'fld-${DateTime.now().millisecondsSinceEpoch}';
 
     final farmId = ref.read(currentFarmIdProvider);
@@ -103,12 +99,10 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
 
     try {
       if (widget.isEdit) {
-        await repo.updateField(field);
+        await ref.read(cropActionProvider.notifier).updateField(field);
       } else {
-        await repo.addField(field);
+        await ref.read(cropActionProvider.notifier).addField(field);
       }
-      ref.invalidate(cropFieldsProvider);
-      if (widget.fieldId != null) ref.invalidate(cropFieldByIdProvider);
     } catch (_) {}
 
     if (!mounted) return;
@@ -130,9 +124,7 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
 
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
-      appBar: FarmAppBar(
-        title: widget.isEdit ? 'Edit Field' : 'Add Field',
-      ),
+      appBar: FarmAppBar(title: widget.isEdit ? 'Edit Field' : 'Add Field'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -142,9 +134,10 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
           ),
           children: [
             // ── Field Name ──────────────────────────────────────────────────
-            Text('Field Details',
-                style:
-                    tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Field Details',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _nameCtrl,
@@ -155,8 +148,9 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
                 border: OutlineInputBorder(borderRadius: AppRadius.input),
               ),
               textCapitalization: TextCapitalization.words,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Field name is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Field name is required'
+                  : null,
             ),
 
             const SizedBox(height: AppSpacing.md),
@@ -164,8 +158,9 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
             // ── Size ────────────────────────────────────────────────────────
             TextFormField(
               controller: _sizeCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 labelText: 'Size',
                 hintText: '0.0',
@@ -197,15 +192,12 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
               ),
               items: _soilTypes
                   .map(
-                    (s) => DropdownMenuItem(
-                      value: s,
-                      child: Text(_soilLabel(s)),
-                    ),
+                    (s) =>
+                        DropdownMenuItem(value: s, child: Text(_soilLabel(s))),
                   )
                   .toList(),
               onChanged: (v) => setState(() => _soilType = v),
-              validator: (v) =>
-                  v == null ? 'Please select a soil type' : null,
+              validator: (v) => v == null ? 'Please select a soil type' : null,
             ),
 
             const SizedBox(height: AppSpacing.md),
@@ -258,9 +250,7 @@ class _AddEditFieldScreenState extends ConsumerState<AddEditFieldScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: AppRadius.button,
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.button),
                 ),
                 child: _submitting
                     ? const SizedBox(

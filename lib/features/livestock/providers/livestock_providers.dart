@@ -1,7 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/livestock_data_source.dart';
+import '../data/livestock_mock_data_source.dart';
 import '../data/livestock_repository.dart';
 import '../models/animal.dart';
 import 'local_animal_store.dart';
+
+final livestockDataSourceProvider = Provider<LivestockDataSource>(
+  (ref) => LivestockMockDataSource(),
+);
+
+final livestockRepositoryProvider = Provider<LivestockRepository>(
+  (ref) => LivestockRepository(ref.watch(livestockDataSourceProvider)),
+);
 
 // ── Raw mock data ─────────────────────────────────────────────────────────────
 
@@ -9,7 +19,7 @@ import 'local_animal_store.dart';
 /// Not autoDisposed so the cache persists while the app is alive.
 final _mockAnimalsProvider =
     FutureProvider.family<List<Animal>, String>((ref, species) {
-  return ref.read(livestockRepositoryProvider).getAnimals(species);
+  return ref.watch(livestockRepositoryProvider).getAnimals(species);
 });
 
 // ── Merged provider (mock + local) ───────────────────────────────────────────

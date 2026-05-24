@@ -70,6 +70,11 @@ abstract class CropDataSource {
   Future<HarvestRecord> updateHarvestRecord(HarvestRecord updated);
   Future<void> deleteHarvestRecord(String id);
 
+  // ── Calendar Events ──────────────────────────────────────────────────────────
+  Future<CalendarEvent> addCalendarEvent(CalendarEvent event);
+  Future<CalendarEvent> updateCalendarEvent(CalendarEvent updated);
+  Future<void> deleteCalendarEvent(String id);
+
   // ── Sales ─────────────────────────────────────────────────────────────────────
   Future<CropSale> addSale(CropSale sale);
   Future<CropSale> updateSale(CropSale updated);

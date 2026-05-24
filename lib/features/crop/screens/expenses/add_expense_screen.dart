@@ -10,6 +10,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_expense.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddExpenseScreen extends ConsumerStatefulWidget {
   const AddExpenseScreen({super.key});
@@ -54,7 +55,6 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
 
-    final repo = ref.read(cropRepositoryProvider);
     final expense = CropExpense(
       id: 'exp-${DateTime.now().millisecondsSinceEpoch}',
       farmId: ref.read(currentFarmIdProvider),
@@ -72,16 +72,14 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
     );
 
     try {
-      await repo.addExpense(expense);
-      ref.invalidate(cropExpensesProvider);
-      ref.invalidate(totalExpensesProvider);
+      await ref.read(cropActionProvider.notifier).addExpense(expense);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Expense recorded')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Expense recorded')));
     Navigator.of(context).pop();
   }
 
@@ -91,9 +89,7 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
-      appBar: FarmAppBar(
-        title: 'Add Expense',
-      ),
+      appBar: FarmAppBar(title: 'Add Expense'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -128,8 +124,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
             // ── Description ──────────────────────────────────────────────
             TextFormField(
               controller: _descriptionController,
-              decoration:
-                  _inputDecoration('Description', Icons.description_outlined),
+              decoration: _inputDecoration(
+                'Description',
+                Icons.description_outlined,
+              ),
               textCapitalization: TextCapitalization.sentences,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Description is required'
@@ -147,8 +145,9 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                 border: OutlineInputBorder(borderRadius: AppRadius.input),
                 filled: true,
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
               ],
@@ -206,10 +205,10 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
                       Icons.numbers_rounded,
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+\.?\d*')),
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
                     ],
                   ),
                 ),
@@ -270,25 +269,25 @@ class _AddExpenseScreenState extends ConsumerState<AddExpenseScreen> {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 Color _categoryColor(ExpenseCategory cat) => switch (cat) {
-      ExpenseCategory.seed => AppColors.success,
-      ExpenseCategory.fertilizer => const Color(0xFF8BC34A),
-      ExpenseCategory.chemical => AppColors.secondaryDark,
-      ExpenseCategory.fuel => AppColors.warning,
-      ExpenseCategory.labor => AppColors.tertiary,
-      ExpenseCategory.machinery => AppColors.rabbitColor,
-      ExpenseCategory.irrigation => AppColors.aquacultureColor,
-      ExpenseCategory.transport => AppColors.sheepColor,
-      ExpenseCategory.other => AppColors.onSurfaceVariant,
-    };
+  ExpenseCategory.seed => AppColors.success,
+  ExpenseCategory.fertilizer => const Color(0xFF8BC34A),
+  ExpenseCategory.chemical => AppColors.secondaryDark,
+  ExpenseCategory.fuel => AppColors.warning,
+  ExpenseCategory.labor => AppColors.tertiary,
+  ExpenseCategory.machinery => AppColors.rabbitColor,
+  ExpenseCategory.irrigation => AppColors.aquacultureColor,
+  ExpenseCategory.transport => AppColors.sheepColor,
+  ExpenseCategory.other => AppColors.onSurfaceVariant,
+};
 
 IconData _categoryIcon(ExpenseCategory cat) => switch (cat) {
-      ExpenseCategory.seed => Icons.grass_rounded,
-      ExpenseCategory.fertilizer => Icons.science_rounded,
-      ExpenseCategory.chemical => Icons.bubble_chart_rounded,
-      ExpenseCategory.fuel => Icons.local_gas_station_rounded,
-      ExpenseCategory.labor => Icons.people_rounded,
-      ExpenseCategory.machinery => Icons.agriculture_rounded,
-      ExpenseCategory.irrigation => Icons.water_rounded,
-      ExpenseCategory.transport => Icons.local_shipping_rounded,
-      ExpenseCategory.other => Icons.more_horiz_rounded,
-    };
+  ExpenseCategory.seed => Icons.grass_rounded,
+  ExpenseCategory.fertilizer => Icons.science_rounded,
+  ExpenseCategory.chemical => Icons.bubble_chart_rounded,
+  ExpenseCategory.fuel => Icons.local_gas_station_rounded,
+  ExpenseCategory.labor => Icons.people_rounded,
+  ExpenseCategory.machinery => Icons.agriculture_rounded,
+  ExpenseCategory.irrigation => Icons.water_rounded,
+  ExpenseCategory.transport => Icons.local_shipping_rounded,
+  ExpenseCategory.other => Icons.more_horiz_rounded,
+};

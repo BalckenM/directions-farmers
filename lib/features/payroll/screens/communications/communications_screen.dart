@@ -9,7 +9,6 @@ import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/primary_button.dart';
 import '../../models/communication_log.dart';
 import '../../providers/payroll_providers.dart';
-import '../../data/payroll_repository.dart';
 import '../../theme/payroll_tokens.dart';
 
 final _dateFmt = DateFormat('d MMM y');
@@ -709,3 +708,4 @@ String _channelLabel(CommunicationChannel ch) => switch (ch) {
       CommunicationChannel.inApp    => 'In-App',
       CommunicationChannel.push     => 'Push',
     };
+

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -7,8 +8,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../providers/settings_ui_providers.dart';
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// â”€â”€ Mock data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _BackupEntry {
   final String label;
@@ -47,7 +49,7 @@ final _backupHistory = [
   ),
   _BackupEntry(
     label: 'Auto backup',
-    size: '—',
+    size: 'â€”',
     timestamp: _now.subtract(const Duration(days: 3, hours: 2)),
     successful: false,
   ),
@@ -61,66 +63,17 @@ String _formatDateTime(DateTime dt) {
   return '$d/$mo/${dt.year} $h:$m';
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-class _SyncState {
-  final bool isSyncing;
-  final bool autoBackup;
-  final bool wifiOnly;
-  final DateTime? lastSync;
-
-  const _SyncState({
-    this.isSyncing = false,
-    this.autoBackup = true,
-    this.wifiOnly = true,
-    this.lastSync,
-  });
-
-  _SyncState copyWith({
-    bool? isSyncing,
-    bool? autoBackup,
-    bool? wifiOnly,
-    DateTime? lastSync,
-  }) =>
-      _SyncState(
-        isSyncing: isSyncing ?? this.isSyncing,
-        autoBackup: autoBackup ?? this.autoBackup,
-        wifiOnly: wifiOnly ?? this.wifiOnly,
-        lastSync: lastSync ?? this.lastSync,
-      );
-}
-
-class _SyncNotifier extends Notifier<_SyncState> {
-  @override
-  _SyncState build() =>
-      _SyncState(lastSync: _now.subtract(const Duration(hours: 6)));
-
-  Future<void> syncNow() async {
-    state = state.copyWith(isSyncing: true);
-    await Future.delayed(const Duration(seconds: 2));
-    state = state.copyWith(isSyncing: false, lastSync: DateTime.now());
-  }
-
-  void toggleAutoBackup() =>
-      state = state.copyWith(autoBackup: !state.autoBackup);
-
-  void toggleWifiOnly() =>
-      state = state.copyWith(wifiOnly: !state.wifiOnly);
-}
-
-final _syncProvider =
-    NotifierProvider<_SyncNotifier, _SyncState>(
-        _SyncNotifier.new);
-
-// ── Screen ────────────────────────────────────────────────────────────────────
+// â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class SyncBackupScreen extends ConsumerWidget {
   const SyncBackupScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_syncProvider);
-    final notifier = ref.read(_syncProvider.notifier);
+    final state = ref.watch(syncProvider);
+    final notifier = ref.read(syncProvider.notifier);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -142,8 +95,7 @@ class SyncBackupScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: AppColors.primary.withAlpha(18),
               borderRadius: AppRadius.card,
-              border: Border.all(
-                  color: AppColors.primary.withAlpha(60)),
+              border: Border.all(color: AppColors.primary.withAlpha(60)),
             ),
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
@@ -163,8 +115,11 @@ class SyncBackupScreen extends ConsumerWidget {
                             color: AppColors.primary,
                           ),
                         )
-                      : const Icon(Icons.cloud_done_rounded,
-                          color: AppColors.primary, size: 26),
+                      : const Icon(
+                          Icons.cloud_done_rounded,
+                          color: AppColors.primary,
+                          size: 26,
+                        ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -172,17 +127,19 @@ class SyncBackupScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        state.isSyncing ? 'Syncing…' : 'Data up to date',
+                        state.isSyncing ? 'Syncingâ€¦' : 'Data up to date',
                         style: tt.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary),
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
                       ),
                       Text(
                         state.lastSync != null
                             ? 'Last sync: ${_formatDateTime(state.lastSync!)}'
                             : 'Never synced',
                         style: tt.bodySmall?.copyWith(
-                            color: AppColors.primary.withAlpha(180)),
+                          color: AppColors.primary.withAlpha(180),
+                        ),
                       ),
                     ],
                   ),
@@ -203,14 +160,22 @@ class SyncBackupScreen extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(children: [
-                    const Icon(Icons.settings_rounded,
-                        size: 18, color: AppColors.primary),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text('Sync Settings',
-                        style: tt.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w600)),
-                  ]),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.settings_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        'Sync Settings',
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
@@ -219,11 +184,13 @@ class SyncBackupScreen extends ConsumerWidget {
                     height: 36,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withAlpha(20),
-                      borderRadius:
-                          BorderRadius.circular(AppRadius.sm),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    child: const Icon(Icons.backup_rounded,
-                        color: AppColors.primary, size: 18),
+                    child: const Icon(
+                      Icons.backup_rounded,
+                      color: AppColors.primary,
+                      size: 18,
+                    ),
                   ),
                   title: const Text('Auto Backup'),
                   subtitle: const Text('Backup data automatically every 24h'),
@@ -238,15 +205,16 @@ class SyncBackupScreen extends ConsumerWidget {
                     height: 36,
                     decoration: BoxDecoration(
                       color: AppColors.info.withAlpha(20),
-                      borderRadius:
-                          BorderRadius.circular(AppRadius.sm),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
-                    child: const Icon(Icons.wifi_rounded,
-                        color: AppColors.info, size: 18),
+                    child: const Icon(
+                      Icons.wifi_rounded,
+                      color: AppColors.info,
+                      size: 18,
+                    ),
                   ),
                   title: const Text('Wi-Fi Only'),
-                  subtitle:
-                      const Text('Sync only when connected to Wi-Fi'),
+                  subtitle: const Text('Sync only when connected to Wi-Fi'),
                   value: state.wifiOnly,
                   onChanged: (_) => notifier.toggleWifiOnly(),
                   activeThumbColor: AppColors.primary,
@@ -267,14 +235,22 @@ class SyncBackupScreen extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(children: [
-                    const Icon(Icons.storage_rounded,
-                        size: 18, color: AppColors.primary),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text('Storage',
-                        style: tt.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w600)),
-                  ]),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.storage_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        'Storage',
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Divider(height: 1),
                 Padding(
@@ -282,37 +258,49 @@ class SyncBackupScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       _StorageRow(
-                          label: 'Livestock data',
-                          size: '1.2 MB',
-                          color: AppColors.primary),
+                        label: 'Livestock data',
+                        size: '1.2 MB',
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(height: AppSpacing.sm),
                       _StorageRow(
-                          label: 'Payroll records',
-                          size: '0.6 MB',
-                          color: AppColors.secondary),
+                        label: 'Payroll records',
+                        size: '0.6 MB',
+                        color: AppColors.secondary,
+                      ),
                       const SizedBox(height: AppSpacing.sm),
                       _StorageRow(
-                          label: 'Financial records',
-                          size: '0.3 MB',
-                          color: AppColors.success),
+                        label: 'Financial records',
+                        size: '0.3 MB',
+                        color: AppColors.success,
+                      ),
                       const SizedBox(height: AppSpacing.sm),
                       _StorageRow(
-                          label: 'Crop data',
-                          size: '0.2 MB',
-                          color: const Color(0xFF33691E)),
+                        label: 'Crop data',
+                        size: '0.2 MB',
+                        color: const Color(0xFF33691E),
+                      ),
                       const SizedBox(height: AppSpacing.md),
                       const Divider(),
                       const SizedBox(height: AppSpacing.sm),
-                      Row(children: [
-                        Text('Total',
+                      Row(
+                        children: [
+                          Text(
+                            'Total',
                             style: tt.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700)),
-                        const Spacer(),
-                        Text('2.3 MB',
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '2.3 MB',
                             style: tt.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary)),
-                      ]),
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -332,27 +320,32 @@ class SyncBackupScreen extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(children: [
-                    const Icon(Icons.history_rounded,
-                        size: 18, color: AppColors.primary),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text('Backup History',
-                        style: tt.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w600)),
-                  ]),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.history_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        'Backup History',
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const Divider(height: 1),
-                ..._backupHistory.map(
-                  (b) => _BackupRow(entry: b),
-                ),
+                ..._backupHistory.map((b) => _BackupRow(entry: b)),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(
-            label: state.isSyncing ? 'Syncing…' : 'Sync Now',
-            onPressed:
-                state.isSyncing ? null : () => notifier.syncNow(),
+            label: state.isSyncing ? 'Syncingâ€¦' : 'Sync Now',
+            onPressed: state.isSyncing ? null : () => notifier.syncNow(),
             icon: const Icon(Icons.sync_rounded),
             isLoading: state.isSyncing,
             isExpanded: true,
@@ -363,11 +356,14 @@ class SyncBackupScreen extends ConsumerWidget {
   }
 }
 
-// ── Sub-widgets ───────────────────────────────────────────────────────────────
+// â”€â”€ Sub-widgets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StorageRow extends StatelessWidget {
-  const _StorageRow(
-      {required this.label, required this.size, required this.color});
+  const _StorageRow({
+    required this.label,
+    required this.size,
+    required this.color,
+  });
   final String label;
   final String size;
   final Color color;
@@ -383,12 +379,8 @@ class _StorageRow extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Expanded(
-            child: Text(label,
-                style: tt.bodySmall)),
-        Text(size,
-            style: tt.bodySmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
+        Expanded(child: Text(label, style: tt.bodySmall)),
+        Text(size, style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -402,8 +394,7 @@ class _BackupRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    final color =
-        entry.successful ? AppColors.success : AppColors.error;
+    final color = entry.successful ? AppColors.success : AppColors.error;
     final icon = entry.successful
         ? Icons.check_circle_outline_rounded
         : Icons.error_outline_rounded;
@@ -415,7 +406,9 @@ class _BackupRow extends StatelessWidget {
       trailing: Text(
         entry.size,
         style: tt.bodySmall?.copyWith(
-            color: cs.onSurfaceVariant, fontWeight: FontWeight.w600),
+          color: cs.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       dense: true,
     );

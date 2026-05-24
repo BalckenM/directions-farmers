@@ -12,9 +12,8 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../livestock/providers/livestock_providers.dart';
-import '../data/events_repository.dart';
 import '../models/breeding_event.dart';
-import 'breeding_events_screen.dart';
+import '../providers/events_action_providers.dart';
 
 class AddBreedingEventScreen extends ConsumerStatefulWidget {
   const AddBreedingEventScreen({super.key});
@@ -38,9 +37,7 @@ class _AddBreedingEventScreenState
   String? _breedingMethod;
   bool _submitting = false;
 
-  static const _speciesOptions = [
-    'cattle', 'sheep', 'goats', 'pigs', 'horses',
-  ];
+  static const _speciesOptions = ['cattle', 'sheep', 'goats', 'pigs', 'horses'];
 
   static const _methods = [
     'Natural',
@@ -59,8 +56,9 @@ class _AddBreedingEventScreenState
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_breedingDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Select a breeding date')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Select a breeding date')));
       return;
     }
     setState(() => _submitting = true);
@@ -78,14 +76,9 @@ class _AddBreedingEventScreenState
         expectedBirthDate: _expectedBirthDate == null
             ? null
             : DateFormat('yyyy-MM-dd').format(_expectedBirthDate!),
-        notes:
-            _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
-      await ref.read(eventsRepositoryProvider).addBreedingEvent(event);
-      ref.invalidate(breedingEventsProvider);
-      if (_species != null) {
-        ref.invalidate(breedingEventsBySpeciesProvider(_species!));
-      }
+      await ref.read(eventsActionProvider.notifier).addBreedingEvent(event);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -93,14 +86,16 @@ class _AddBreedingEventScreenState
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm)),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
       );
       context.pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -129,7 +124,7 @@ class _AddBreedingEventScreenState
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: _species,
+                    initialValue: _species,
                     decoration: const InputDecoration(
                       labelText: 'Species *',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -137,11 +132,12 @@ class _AddBreedingEventScreenState
                     hint: const Text('Select species'),
                     isExpanded: true,
                     items: _speciesOptions
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child:
-                                  Text(s[0].toUpperCase() + s.substring(1)),
-                            ))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(s[0].toUpperCase() + s.substring(1)),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() {
                       _species = v;
@@ -163,12 +159,13 @@ class _AddBreedingEventScreenState
                   else
                     Consumer(
                       builder: (context, ref, _) {
-                        final animalsAsync =
-                            ref.watch(animalsProvider(_species!));
+                        final animalsAsync = ref.watch(
+                          animalsProvider(_species!),
+                        );
                         return animalsAsync.when(
-                          loading: () => const Center(
-                              child: CircularProgressIndicator()),
-                          error: (_, __) => FarmTextField(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, _) => FarmTextField(
                             controller: _tagCtrl,
                             label: 'Animal Tag / ID *',
                             hint: 'e.g. A-001',
@@ -179,7 +176,7 @@ class _AddBreedingEventScreenState
                                 : null,
                           ),
                           data: (animals) => DropdownButtonFormField<String>(
-                            value: _selectedAnimalId,
+                            initialValue: _selectedAnimalId,
                             decoration: const InputDecoration(
                               labelText: 'Select Animal *',
                               prefixIcon: Icon(Icons.tag_rounded),
@@ -187,11 +184,12 @@ class _AddBreedingEventScreenState
                             hint: const Text('Choose animal'),
                             isExpanded: true,
                             items: animals
-                                .map((a) => DropdownMenuItem(
-                                      value: a.id,
-                                      child: Text(
-                                          '${a.tagNumber} — ${a.name}'),
-                                    ))
+                                .map(
+                                  (a) => DropdownMenuItem(
+                                    value: a.id,
+                                    child: Text('${a.tagNumber} — ${a.name}'),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (id) => setState(() {
                               _selectedAnimalId = id;
@@ -229,8 +227,7 @@ class _AddBreedingEventScreenState
                     hint: const Text('Select method'),
                     isExpanded: true,
                     items: _methods
-                        .map((m) =>
-                            DropdownMenuItem(value: m, child: Text(m)))
+                        .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                         .toList(),
                     onChanged: (v) => setState(() => _breedingMethod = v),
                   ),
@@ -316,22 +313,26 @@ class _FormCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: Row(
               children: [
                 Icon(icon, size: 18, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
-                Text(title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
         ],
       ),
     );
@@ -349,49 +350,46 @@ class _DateField extends FormField<DateTime> {
     required bool required,
     bool allowFuture = false,
   }) : super(
-          initialValue: value,
-          validator: (v) {
-            if (required && v == null) return 'Please select a date';
-            return null;
-          },
-          builder: (state) {
-            final context = state.context;
-            final theme = Theme.of(context);
-            final text = state.value == null
-                ? null
-                : '${state.value!.day.toString().padLeft(2, '0')}/'
-                    '${state.value!.month.toString().padLeft(2, '0')}/'
-                    '${state.value!.year}';
+         initialValue: value,
+         validator: (v) {
+           if (required && v == null) return 'Please select a date';
+           return null;
+         },
+         builder: (state) {
+           final context = state.context;
+           final theme = Theme.of(context);
+           final text = state.value == null
+               ? null
+               : '${state.value!.day.toString().padLeft(2, '0')}/'
+                     '${state.value!.month.toString().padLeft(2, '0')}/'
+                     '${state.value!.year}';
 
-            return InputDecorator(
-              decoration: InputDecoration(
-                labelText: label,
-                prefixIcon: Icon(icon),
-                errorText: state.errorText,
-                suffixIcon: const Icon(Icons.calendar_today_outlined),
-              ),
-              isEmpty: state.value == null,
-              child: GestureDetector(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: state.value ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: allowFuture
-                        ? DateTime.now().add(const Duration(days: 730))
-                        : DateTime.now(),
-                  );
-                  if (picked != null) {
-                    state.didChange(picked);
-                    onPicked(picked);
-                  }
-                },
-                child: Text(
-                  text ?? '',
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            );
-          },
-        );
+           return InputDecorator(
+             decoration: InputDecoration(
+               labelText: label,
+               prefixIcon: Icon(icon),
+               errorText: state.errorText,
+               suffixIcon: const Icon(Icons.calendar_today_outlined),
+             ),
+             isEmpty: state.value == null,
+             child: GestureDetector(
+               onTap: () async {
+                 final picked = await showDatePicker(
+                   context: context,
+                   initialDate: state.value ?? DateTime.now(),
+                   firstDate: DateTime(2000),
+                   lastDate: allowFuture
+                       ? DateTime.now().add(const Duration(days: 730))
+                       : DateTime.now(),
+                 );
+                 if (picked != null) {
+                   state.didChange(picked);
+                   onPicked(picked);
+                 }
+               },
+               child: Text(text ?? '', style: theme.textTheme.bodyMedium),
+             ),
+           );
+         },
+       );
 }

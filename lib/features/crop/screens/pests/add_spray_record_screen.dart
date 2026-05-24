@@ -10,6 +10,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/spray_record.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddSprayRecordScreen extends ConsumerStatefulWidget {
   const AddSprayRecordScreen({super.key, this.pestObservationId});
@@ -68,9 +69,9 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedField == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a field')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a field')));
       return;
     }
 
@@ -98,15 +99,14 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
     );
 
     try {
-      await ref.read(cropRepositoryProvider).addSprayRecord(record);
-      ref.invalidate(sprayRecordsProvider);
+      await ref.read(cropActionProvider.notifier).addSprayRecord(record);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Spray record saved')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Spray record saved')));
     Navigator.of(context).pop();
   }
 
@@ -130,13 +130,18 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
           ),
           children: [
             // ── Field ─────────────────────────────────────────────────────────
-            Text('Field', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Field',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               initialValue: _selectedField,
               decoration: _dec('Select field', icon: Icons.grass_rounded),
               items: fields
-                  .map((f) => DropdownMenuItem(value: f.id, child: Text(f.name)))
+                  .map(
+                    (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedField = v),
               validator: (v) => v == null ? 'Please select a field' : null,
@@ -144,7 +149,10 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
             const SizedBox(height: AppSpacing.md),
 
             // ── Spray Date ────────────────────────────────────────────────────
-            Text('Spray Date', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Spray Date',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             InkWell(
               onTap: _pickDate,
@@ -157,51 +165,81 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
             const SizedBox(height: AppSpacing.md),
 
             // ── Product ───────────────────────────────────────────────────────
-            Text('Product Details', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Product Details',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
               controller: _productCtrl,
               textCapitalization: TextCapitalization.words,
               decoration: _dec('Product Name', icon: Icons.science_rounded),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Product name is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Product name is required'
+                  : null,
             ),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _dosageCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              decoration: _dec('Dosage', suffix: 'L/ha', icon: Icons.water_drop_rounded),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              ],
+              decoration: _dec(
+                'Dosage',
+                suffix: 'L/ha',
+                icon: Icons.water_drop_rounded,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Dosage is required';
-                if (double.tryParse(v.trim()) == null) return 'Enter a valid number';
+                if (double.tryParse(v.trim()) == null)
+                  return 'Enter a valid number';
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.sm),
             TextFormField(
               controller: _areaCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              decoration: _dec('Area Sprayed', suffix: 'ha', icon: Icons.square_foot_rounded),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              ],
+              decoration: _dec(
+                'Area Sprayed',
+                suffix: 'ha',
+                icon: Icons.square_foot_rounded,
+              ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Area is required';
-                if (double.tryParse(v.trim()) == null) return 'Enter a valid number';
+                if (double.tryParse(v.trim()) == null)
+                  return 'Enter a valid number';
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.md),
 
             // ── Withholding period ────────────────────────────────────────────
-            Text('Safety', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Safety',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
               controller: _withholdingCtrl,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: _dec('Withholding Period', suffix: 'days', icon: Icons.timer_rounded),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Withholding period required' : null,
+              decoration: _dec(
+                'Withholding Period',
+                suffix: 'days',
+                icon: Icons.timer_rounded,
+              ),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Withholding period required'
+                  : null,
             ),
             const SizedBox(height: AppSpacing.md),
 
@@ -209,7 +247,10 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
             TextFormField(
               controller: _applicatorCtrl,
               textCapitalization: TextCapitalization.words,
-              decoration: _dec('Applicator Name (optional)', icon: Icons.person_rounded),
+              decoration: _dec(
+                'Applicator Name (optional)',
+                icon: Icons.person_rounded,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
 
@@ -240,13 +281,18 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: cs.onTertiaryContainer, size: 18),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: cs.onTertiaryContainer,
+                    size: 18,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'Re-entry date will be calculated automatically from the spray date + withholding period.',
-                      style: tt.bodySmall?.copyWith(color: cs.onTertiaryContainer),
+                      style: tt.bodySmall?.copyWith(
+                        color: cs.onTertiaryContainer,
+                      ),
                     ),
                   ),
                 ],

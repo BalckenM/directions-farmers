@@ -1,13 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/egg_record.dart';
 import '../models/milk_record.dart';
 import '../models/wool_record.dart';
 import 'production_data_source.dart';
-import 'production_mock_data_source.dart';
-import 'production_remote_data_source.dart';
 
 class ProductionRepository {
   ProductionRepository(this._source);
@@ -75,9 +71,3 @@ class ProductionRepository {
   }
 }
 
-final productionRepositoryProvider = Provider<ProductionRepository>((ref) {
-  final ProductionDataSource source = AppConstants.useMockData
-      ? ProductionMockDataSource()
-      : ProductionRemoteDataSource();
-  return ProductionRepository(source);
-});

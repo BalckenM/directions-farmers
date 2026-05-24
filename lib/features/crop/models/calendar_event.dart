@@ -88,4 +88,29 @@ class CalendarEvent {
   bool get isCompleted => status == 'completed';
   bool get isPending => status == 'pending';
   bool get isOverdue => status == 'overdue';
+
+  CalendarEvent copyWith({
+    String? id,
+    String? planId,
+    String? fieldId,
+    CalendarActivityType? activityType,
+    String? title,
+    DateTime? scheduledDate,
+    DateTime? completedDate,
+    String? status,
+    String? notes,
+    int? reminderDaysBefore,
+  }) =>
+      CalendarEvent(
+        id: id ?? this.id,
+        planId: planId ?? this.planId,
+        fieldId: fieldId ?? this.fieldId,
+        activityType: activityType ?? this.activityType,
+        title: title ?? this.title,
+        scheduledDate: scheduledDate ?? this.scheduledDate,
+        completedDate: completedDate ?? this.completedDate,
+        status: status ?? this.status,
+        notes: notes ?? this.notes,
+        reminderDaysBefore: reminderDaysBefore ?? this.reminderDaysBefore,
+      );
 }

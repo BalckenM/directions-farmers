@@ -1,11 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/sow.dart';
 import 'pigs_data_source.dart';
-import 'pigs_mock_data_source.dart';
-import 'pigs_remote_data_source.dart';
 
 class PigsRepository {
   PigsRepository(this._source);
@@ -52,9 +48,3 @@ class PigsRepository {
   }
 }
 
-final pigsRepositoryProvider = Provider<PigsRepository>((ref) {
-  final PigsDataSource source = AppConstants.useMockData
-      ? PigsMockDataSource()
-      : PigsRemoteDataSource();
-  return PigsRepository(source);
-});

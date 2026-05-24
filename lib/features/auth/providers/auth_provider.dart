@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/shared_preferences_provider.dart';
+import '../data/auth_data_source.dart';
 import '../data/auth_mock_data_source.dart';
 import '../models/auth_state.dart';
 import '../models/auth_user.dart';
@@ -12,7 +13,7 @@ const _kOnboardingKey = 'has_completed_onboarding';
 const _kIntroKey = 'has_seen_intro';
 
 // ── Provider for the data source ─────────────────────────────────────────────
-final authMockDataSourceProvider = Provider<AuthMockDataSource>((ref) {
+final authDataSourceProvider = Provider<AuthDataSource>((ref) {
   return AuthMockDataSource(ref.read(sharedPreferencesProvider));
 });
 
@@ -20,20 +21,21 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   @override
   Future<AuthState> build() async {
     // Restore session from SharedPreferences on cold start.
-    final ds = ref.read(authMockDataSourceProvider);
+    final ds = ref.read(authDataSourceProvider);
     final user = ds.restoreSession();
-    if (user != null) return AuthAuthenticated(user: user, accessToken: 'mock_token_${user.id}');
+    if (user != null)
+      return AuthAuthenticated(
+        user: user,
+        accessToken: 'mock_token_${user.id}',
+      );
     return const AuthUnauthenticated();
   }
 
   // ── Sign In ──────────────────────────────────────────────────────────────────
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     state = const AsyncValue.loading();
     try {
-      final ds = ref.read(authMockDataSourceProvider);
+      final ds = ref.read(authDataSourceProvider);
       final user = await ds.signIn(email: email, password: password);
       state = AsyncValue.data(
         AuthAuthenticated(user: user, accessToken: 'mock_token_${user.id}'),
@@ -60,7 +62,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final ds = ref.read(authMockDataSourceProvider);
+      final ds = ref.read(authDataSourceProvider);
       final user = await ds.register(
         email: email,
         password: password,
@@ -97,7 +99,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   // ── Sign Out ─────────────────────────────────────────────────────────────────
   Future<void> signOut() async {
-    await ref.read(authMockDataSourceProvider).clearSession();
+    await ref.read(authDataSourceProvider).clearSession();
     state = const AsyncValue.data(AuthUnauthenticated());
   }
 
@@ -116,8 +118,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 }
 
 // ── Provider ─────────────────────────────────────────────────────────────────
-final authProvider =
-    AsyncNotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);
 
 // ── Computed selectors ───────────────────────────────────────────────────────
 /// Synchronous bool used by the router guard.

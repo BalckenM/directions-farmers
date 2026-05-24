@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -12,6 +13,7 @@ import '../../../../shared/widgets/section_header.dart';
 import '../../models/calendar_event.dart';
 import '../../models/crop_field.dart';
 import '../../models/planting_plan.dart';
+import '../../providers/crop_action_providers.dart';
 import '../../providers/crop_providers.dart';
 import '../../widgets/crop_illustration.dart';
 
@@ -45,8 +47,8 @@ class _PlantingCalendarScreenState
                 text: 'Seasons',
               ),
               Tab(
-                icon: Icon(Icons.upcoming_rounded, size: 18),
-                text: 'Upcoming',
+                icon: Icon(Icons.calendar_month_rounded, size: 18),
+                text: 'Monthly',
               ),
               Tab(
                 icon: Icon(Icons.list_alt_rounded, size: 18),
@@ -94,7 +96,7 @@ class _PlantingCalendarScreenState
             return TabBarView(
               children: [
                 const _SeasonalGanttTab(),
-                _UpcomingTab(events: events, fieldNames: fieldNames),
+                _MonthCalendarTab(events: events, fieldNames: fieldNames),
                 _AllActivitiesTab(events: events, fieldNames: fieldNames),
               ],
             );
@@ -698,48 +700,598 @@ class _Season {
   final Color color;
 }
 
-// ── Upcoming Tab ──────────────────────────────────────────────────────────────
+// ── Month Calendar Tab ────────────────────────────────────────────────────────
 
-class _UpcomingTab extends StatelessWidget {
-  const _UpcomingTab({required this.events, required this.fieldNames});
+/// Interactive month-grid calendar. Dots show activity types per day.
+/// Tapping a day reveals that day's events + an "Add for this day" shortcut.
+class _MonthCalendarTab extends ConsumerStatefulWidget {
+  const _MonthCalendarTab({required this.events, required this.fieldNames});
 
   final List<CalendarEvent> events;
   final Map<String, String> fieldNames;
 
   @override
-  Widget build(BuildContext context) {
-    final upcoming = events.where((e) => e.isPending || e.isOverdue).toList()
-      ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+  ConsumerState<_MonthCalendarTab> createState() => _MonthCalendarTabState();
+}
 
-    if (upcoming.isEmpty) {
-      return _EmptyState(
-        icon: Icons.event_available_outlined,
-        message: 'No upcoming activities',
+class _MonthCalendarTabState extends ConsumerState<_MonthCalendarTab> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+
+  // Normalise a DateTime to midnight for map keying.
+  static DateTime _normalise(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  // Build event map: date → events on that date.
+  Map<DateTime, List<CalendarEvent>> _buildEventMap(
+    List<CalendarEvent> events,
+  ) {
+    final map = <DateTime, List<CalendarEvent>>{};
+    for (final e in events) {
+      final key = _normalise(e.scheduledDate);
+      map.putIfAbsent(key, () => []).add(e);
+    }
+    return map;
+  }
+
+  // Colour coding per activity type.
+  static Color _colourFor(CalendarActivityType t) => switch (t) {
+    CalendarActivityType.planting => const Color(0xFF4CAF50),
+    CalendarActivityType.harvest => const Color(0xFFFF9800),
+    CalendarActivityType.spraying => const Color(0xFFF44336),
+    CalendarActivityType.fertilizerApplication => const Color(0xFF2196F3),
+    CalendarActivityType.scouting => const Color(0xFF9C27B0),
+    CalendarActivityType.irrigation => const Color(0xFF00BCD4),
+    CalendarActivityType.weeding => const Color(0xFF8BC34A),
+    CalendarActivityType.landPrep => const Color(0xFF795548),
+    CalendarActivityType.germinationCheck => const Color(0xFF03A9F4),
+    CalendarActivityType.inputPurchase => const Color(0xFFFF5722),
+    CalendarActivityType.postHarvest => const Color(0xFF607D8B),
+  };
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = selectedDay;
+      _focusedDay = focusedDay;
+    });
+
+    final eventsForDay =
+        _buildEventMap(widget.events)[_normalise(selectedDay)] ?? [];
+    _showDayPanel(selectedDay, eventsForDay);
+  }
+
+  void _showDayPanel(DateTime day, List<CalendarEvent> dayEvents) {
+    final fmt = DateFormat('EEE, dd MMMM yyyy');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, scrollCtrl) => _DayEventsPanel(
+          day: day,
+          dayLabel: fmt.format(day),
+          events: dayEvents,
+          fieldNames: widget.fieldNames,
+          scrollController: scrollCtrl,
+          onEventChanged: () {
+            ref.invalidate(calendarEventsProvider);
+            ref.invalidate(upcomingCalendarEventsProvider);
+            if (mounted) Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final eventMap = _buildEventMap(widget.events);
+
+    return Column(
+      children: [
+        // ── Legend strip ───────────────────────────────────────────────────
+        Container(
+          color: cs.surfaceContainerLow,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: CalendarActivityType.values
+                  .map(
+                    (t) => Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _colourFor(t),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(t.label, style: const TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+
+        // ── TableCalendar ──────────────────────────────────────────────────
+        TableCalendar<CalendarEvent>(
+          firstDay: DateTime(DateTime.now().year - 1, 1, 1),
+          lastDay: DateTime(DateTime.now().year + 2, 12, 31),
+          focusedDay: _focusedDay,
+          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+          eventLoader: (day) => eventMap[_normalise(day)] ?? [],
+          calendarFormat: CalendarFormat.month,
+          availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+          onDaySelected: _onDaySelected,
+          onPageChanged: (fd) => setState(() => _focusedDay = fd),
+          calendarStyle: CalendarStyle(
+            todayDecoration: BoxDecoration(
+              color: cs.primary.withAlpha(40),
+              shape: BoxShape.circle,
+            ),
+            todayTextStyle: TextStyle(
+              color: cs.primary,
+              fontWeight: FontWeight.w700,
+            ),
+            selectedDecoration: BoxDecoration(
+              color: cs.primary,
+              shape: BoxShape.circle,
+            ),
+            selectedTextStyle: const TextStyle(color: Colors.white),
+            markersMaxCount: 4,
+            markerDecoration: const BoxDecoration(color: Colors.transparent),
+          ),
+          headerStyle: HeaderStyle(
+            formatButtonVisible: false,
+            titleCentered: true,
+            titleTextStyle: tt.titleMedium!.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            leftChevronIcon: Icon(
+              Icons.chevron_left_rounded,
+              color: cs.onSurface,
+            ),
+            rightChevronIcon: Icon(
+              Icons.chevron_right_rounded,
+              color: cs.onSurface,
+            ),
+            headerPadding: const EdgeInsets.symmetric(vertical: 8),
+          ),
+          calendarBuilders: CalendarBuilders(
+            markerBuilder: (context, day, events) {
+              if (events.isEmpty) return null;
+              // Show up to 4 coloured dots, one per unique activity type.
+              final seen = <CalendarActivityType>{};
+              final dots = <Widget>[];
+              for (final e in events) {
+                if (seen.add(e.activityType)) {
+                  dots.add(
+                    Container(
+                      width: 6,
+                      height: 6,
+                      margin: const EdgeInsets.symmetric(horizontal: 1),
+                      decoration: BoxDecoration(
+                        color: _colourFor(e.activityType),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  );
+                }
+                if (dots.length >= 4) break;
+              }
+              return Positioned(
+                bottom: 2,
+                child: Row(mainAxisSize: MainAxisSize.min, children: dots),
+              );
+            },
+          ),
+        ),
+
+        // ── "Tap a day" hint ───────────────────────────────────────────────
+        if (_selectedDay == null)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.touch_app_outlined,
+                  size: 16,
+                  color: cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Tap a day to view or add activities',
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+
+        // ── Summary: upcoming events this month ────────────────────────────
+        Expanded(
+          child: _UpcomingThisMonth(
+            events: widget.events,
+            focusedDay: _focusedDay,
+            fieldNames: widget.fieldNames,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Day Events Panel (bottom sheet) ──────────────────────────────────────────
+
+class _DayEventsPanel extends ConsumerStatefulWidget {
+  const _DayEventsPanel({
+    required this.day,
+    required this.dayLabel,
+    required this.events,
+    required this.fieldNames,
+    required this.scrollController,
+    required this.onEventChanged,
+  });
+
+  final DateTime day;
+  final String dayLabel;
+  final List<CalendarEvent> events;
+  final Map<String, String> fieldNames;
+  final ScrollController scrollController;
+  final VoidCallback onEventChanged;
+
+  @override
+  ConsumerState<_DayEventsPanel> createState() => _DayEventsPanelState();
+}
+
+class _DayEventsPanelState extends ConsumerState<_DayEventsPanel> {
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        // Handle + header
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Column(
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.dayLabel,
+                          style: tt.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          '${widget.events.length} activit${widget.events.length == 1 ? 'y' : 'ies'}',
+                          style: tt.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                        ),
+                        builder: (_) => _AddEventSheet(prefillDate: widget.day),
+                      );
+                    },
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text('Add'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+
+        // Events list
+        Expanded(
+          child: widget.events.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.event_available_outlined,
+                        size: 48,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'No activities on this day',
+                        style: tt.bodyMedium?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  controller: widget.scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  itemCount: widget.events.length,
+                  separatorBuilder: (_, _) =>
+                      const Divider(height: 1, indent: 56),
+                  itemBuilder: (_, i) => _DayEventTile(
+                    event: widget.events[i],
+                    fieldName:
+                        widget.fieldNames[widget.events[i].fieldId] ??
+                        widget.events[i].fieldId,
+                    onChanged: widget.onEventChanged,
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Single event tile inside the day panel ────────────────────────────────────
+
+class _DayEventTile extends ConsumerStatefulWidget {
+  const _DayEventTile({
+    required this.event,
+    required this.fieldName,
+    required this.onChanged,
+  });
+
+  final CalendarEvent event;
+  final String fieldName;
+  final VoidCallback onChanged;
+
+  @override
+  ConsumerState<_DayEventTile> createState() => _DayEventTileState();
+}
+
+class _DayEventTileState extends ConsumerState<_DayEventTile> {
+  bool _busy = false;
+
+  Color _colourFor(CalendarActivityType t) =>
+      _MonthCalendarTabState._colourFor(t);
+
+  IconData _iconFor(CalendarActivityType t) => switch (t) {
+    CalendarActivityType.planting => Icons.spa_outlined,
+    CalendarActivityType.scouting => Icons.search_outlined,
+    CalendarActivityType.harvest => Icons.agriculture_outlined,
+    CalendarActivityType.spraying => Icons.opacity_outlined,
+    CalendarActivityType.fertilizerApplication => Icons.science_outlined,
+    CalendarActivityType.landPrep => Icons.construction_outlined,
+    CalendarActivityType.weeding => Icons.grass_outlined,
+    CalendarActivityType.irrigation => Icons.water_drop_outlined,
+    CalendarActivityType.germinationCheck => Icons.eco_outlined,
+    CalendarActivityType.inputPurchase => Icons.shopping_cart_outlined,
+    CalendarActivityType.postHarvest => Icons.inventory_2_outlined,
+  };
+
+  Future<void> _markDone() async {
+    setState(() => _busy = true);
+    final completed = widget.event.copyWith(
+      completedDate: DateTime.now(),
+      status: 'completed',
+    );
+    try {
+      await ref
+          .read(cropActionProvider.notifier)
+          .updateCalendarEvent(completed);
+      widget.onChanged();
+    } catch (_) {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _delete() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Activity'),
+        content: Text('Delete "${widget.event.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await ref
+        .read(cropActionProvider.notifier)
+        .deleteCalendarEvent(widget.event.id);
+    widget.onChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final e = widget.event;
+    final color = _colourFor(e.activityType);
+
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color.withAlpha(30),
+          borderRadius: AppRadius.chip,
+        ),
+        child: Icon(_iconFor(e.activityType), size: 20, color: color),
+      ),
+      title: Text(
+        e.title,
+        style: tt.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          decoration: e.isCompleted ? TextDecoration.lineThrough : null,
+          color: e.isCompleted
+              ? Theme.of(context).colorScheme.onSurfaceVariant
+              : null,
+        ),
+      ),
+      subtitle: Text(
+        '${e.activityType.label} · ${widget.fieldName}',
+        style: tt.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      trailing: e.isCompleted
+          ? const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.success,
+              size: 20,
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_busy)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 20,
+                    ),
+                    color: AppColors.success,
+                    tooltip: 'Mark done',
+                    onPressed: _markDone,
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                  color: AppColors.error,
+                  tooltip: 'Delete',
+                  onPressed: _delete,
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+// ── Upcoming events this month (summary below the grid) ──────────────────────
+
+class _UpcomingThisMonth extends StatelessWidget {
+  const _UpcomingThisMonth({
+    required this.events,
+    required this.focusedDay,
+    required this.fieldNames,
+  });
+
+  final List<CalendarEvent> events;
+  final DateTime focusedDay;
+  final Map<String, String> fieldNames;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+
+    final monthEvents =
+        events
+            .where(
+              (e) =>
+                  e.scheduledDate.year == focusedDay.year &&
+                  e.scheduledDate.month == focusedDay.month &&
+                  !e.isCompleted,
+            )
+            .toList()
+          ..sort((a, b) => a.scheduledDate.compareTo(b.scheduledDate));
+
+    if (monthEvents.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Text(
+            'No pending activities this month',
+            style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+          ),
+        ),
       );
     }
 
-    // Group by month
-    final grouped = <String, List<CalendarEvent>>{};
-    for (final event in upcoming) {
-      final key = DateFormat('MMMM yyyy').format(event.scheduledDate);
-      grouped.putIfAbsent(key, () => []).add(event);
-    }
-
-    return ListView(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xl, top: AppSpacing.sm),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final entry in grouped.entries) ...[
-          SectionHeader(title: entry.key),
-          ...entry.value.map(
-            (e) => Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.xs,
-              ),
-              child: _EventCard(event: e, fieldNames: fieldNames),
-            ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.xs,
           ),
-        ],
+          child: Text(
+            'This Month — ${monthEvents.length} pending',
+            style: tt.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: EdgeInsets.zero,
+            itemCount: monthEvents.length,
+            separatorBuilder: (_, _) => const Divider(height: 1, indent: 56),
+            itemBuilder: (_, i) =>
+                _EventCard(event: monthEvents[i], fieldNames: fieldNames),
+          ),
+        ),
       ],
     );
   }
@@ -987,9 +1539,9 @@ class _MarkDoneButtonState extends ConsumerState<_MarkDoneButton> {
       reminderDaysBefore: widget.event.reminderDaysBefore,
     );
     try {
-      await ref.read(cropRepositoryProvider).updateCalendarEvent(completed);
-      ref.invalidate(calendarEventsProvider);
-      ref.invalidate(upcomingCalendarEventsProvider);
+      await ref
+          .read(cropActionProvider.notifier)
+          .updateCalendarEvent(completed);
     } catch (_) {}
     if (!mounted) return;
     setState(() => _busy = false);
@@ -1035,7 +1587,9 @@ class _MarkDoneButtonState extends ConsumerState<_MarkDoneButton> {
 // ── Add Event Sheet ───────────────────────────────────────────────────────────
 
 class _AddEventSheet extends ConsumerStatefulWidget {
-  const _AddEventSheet();
+  const _AddEventSheet({this.prefillDate});
+
+  final DateTime? prefillDate;
 
   @override
   ConsumerState<_AddEventSheet> createState() => _AddEventSheetState();
@@ -1049,8 +1603,16 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
   CropField? _selectedField;
   PlantingPlan? _selectedPlan;
   CalendarActivityType _activityType = CalendarActivityType.scouting;
-  DateTime _scheduledDate = DateTime.now().add(const Duration(days: 1));
+  late DateTime _scheduledDate;
   int _reminderDays = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduledDate =
+        widget.prefillDate ?? DateTime.now().add(const Duration(days: 1));
+  }
+
   bool _saving = false;
 
   @override
@@ -1093,9 +1655,7 @@ class _AddEventSheetState extends ConsumerState<_AddEventSheet> {
     );
 
     try {
-      await ref.read(cropRepositoryProvider).addCalendarEvent(event);
-      ref.invalidate(calendarEventsProvider);
-      ref.invalidate(upcomingCalendarEventsProvider);
+      await ref.read(cropActionProvider.notifier).addCalendarEvent(event);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
@@ -1363,10 +1923,8 @@ class _EventMenuButton extends ConsumerWidget {
           );
           if (confirmed == true && context.mounted) {
             await ref
-                .read(cropRepositoryProvider)
+                .read(cropActionProvider.notifier)
                 .deleteCalendarEvent(event.id);
-            ref.invalidate(calendarEventsProvider);
-            ref.invalidate(upcomingCalendarEventsProvider);
           }
         }
       },
@@ -1456,9 +2014,7 @@ class _EditEventSheetState extends ConsumerState<_EditEventSheet> {
       reminderDaysBefore: _reminderDays,
     );
     try {
-      await ref.read(cropRepositoryProvider).updateCalendarEvent(updated);
-      ref.invalidate(calendarEventsProvider);
-      ref.invalidate(upcomingCalendarEventsProvider);
+      await ref.read(cropActionProvider.notifier).updateCalendarEvent(updated);
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {

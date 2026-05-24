@@ -2,16 +2,26 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/poultry_data_source.dart';
+import '../data/poultry_mock_data_source.dart';
 import '../data/poultry_repository.dart';
-import '../models/poultry_flock.dart';
 import '../models/flock.dart';
 import '../models/inventory_item.dart';
+import '../models/poultry_flock.dart';
+
+final poultryDataSourceProvider = Provider<PoultryDataSource>(
+  (ref) => PoultryMockDataSource(),
+);
+
+final poultryRepositoryProvider = Provider<PoultryRepository>(
+  (ref) => PoultryRepository(ref.watch(poultryDataSourceProvider)),
+);
 
 // ── Flocks ────────────────────────────────────────────────────────────────────
 
 /// Raw flock list from mock JSON. Not autoDisposed (cache persists).
 final _mockFlocksProvider = FutureProvider<List<PoultryFlock>>((ref) {
-  return ref.read(poultryRepositoryProvider).getFlocks();
+  return ref.watch(poultryRepositoryProvider).getFlocks();
 });
 
 /// Holds flocks created in-session via AddFlockScreen (not persisted to JSON).
@@ -177,7 +187,7 @@ final newDailyRecordProvider = NotifierProvider<NewDailyRecordNotifier,
 // ── Daily Records ─────────────────────────────────────────────────────────────
 
 final _mockDailyRecordsProvider = FutureProvider<List<DailyRecord>>((ref) {
-  return ref.read(poultryRepositoryProvider).getDailyRecords();
+  return ref.watch(poultryRepositoryProvider).getDailyRecords();
 });
 
 /// Daily records for a specific flock, sorted newest-first.
@@ -201,7 +211,7 @@ final flockDailyRecordsProvider =
 
 final _mockVaccinationSchedulesProvider =
     FutureProvider<List<VaccinationSchedule>>((ref) {
-  return ref.read(poultryRepositoryProvider).getVaccinationSchedules();
+  return ref.watch(poultryRepositoryProvider).getVaccinationSchedules();
 });
 
 // ── Vaccination Administration Overrides ─────────────────────────────────────
@@ -275,7 +285,7 @@ final flockVaccinationProvider =
 // ── Feed Phases ───────────────────────────────────────────────────────────────
 
 final _mockFeedPhasesProvider = FutureProvider<List<FeedPhase>>((ref) {
-  return ref.read(poultryRepositoryProvider).getFeedPhases();
+  return ref.watch(poultryRepositoryProvider).getFeedPhases();
 });
 
 /// Feed phases for a specific flock, sorted by day_start.
@@ -293,7 +303,7 @@ final flockFeedPhasesProvider =
 // ── Harvest Records ───────────────────────────────────────────────────────────
 
 final _mockHarvestRecordsProvider = FutureProvider<List<HarvestRecord>>((ref) {
-  return ref.read(poultryRepositoryProvider).getHarvestRecords();
+  return ref.watch(poultryRepositoryProvider).getHarvestRecords();
 });
 
 /// Harvest records for a specific flock.
@@ -311,7 +321,7 @@ final flockHarvestRecordsProvider =
 // ── Medication Logs ───────────────────────────────────────────────────────────
 
 final _mockMedicationLogsProvider = FutureProvider<List<MedicationLog>>((ref) {
-  return ref.read(poultryRepositoryProvider).getMedicationLogs();
+  return ref.watch(poultryRepositoryProvider).getMedicationLogs();
 });
 
 class MedicationDeleteNotifier extends Notifier<Set<String>> {
@@ -341,7 +351,7 @@ final flockMedicationLogsProvider =
 // ── Disease Events ────────────────────────────────────────────────────────────
 
 final _mockDiseaseEventsProvider = FutureProvider<List<DiseaseEvent>>((ref) {
-  return ref.read(poultryRepositoryProvider).getDiseaseEvents();
+  return ref.watch(poultryRepositoryProvider).getDiseaseEvents();
 });
 
 /// Disease events for a specific flock, newest-first.
@@ -360,7 +370,7 @@ final flockDiseaseEventsProvider =
 
 final _mockEnvironmentReadingsProvider =
     FutureProvider<List<EnvironmentReading>>((ref) {
-  return ref.read(poultryRepositoryProvider).getEnvironmentReadings();
+  return ref.watch(poultryRepositoryProvider).getEnvironmentReadings();
 });
 
 /// Latest environment readings for a specific flock (newest-first by timestamp).
@@ -402,7 +412,7 @@ final allVaccinationSchedulesProvider =
 // ── Inventory ─────────────────────────────────────────────────────────────────
 
 final _mockInventoryProvider = FutureProvider<List<InventoryItem>>((ref) {
-  return ref.read(poultryRepositoryProvider).getInventoryItems();
+  return ref.watch(poultryRepositoryProvider).getInventoryItems();
 });
 
 final inventoryProvider =
@@ -893,7 +903,7 @@ final lowStockItemsProvider =
 // ── Egg Sales ─────────────────────────────────────────────────────────────────
 
 final _mockEggSalesProvider = FutureProvider<List<EggSale>>((ref) {
-  return ref.read(poultryRepositoryProvider).getEggSales();
+  return ref.watch(poultryRepositoryProvider).getEggSales();
 });
 
 /// In-session egg sales recorded this session (keyed by flockId).
@@ -945,7 +955,7 @@ final flockEggSalesRevenueProvider =
 // ── Chick Sales ───────────────────────────────────────────────────────────────
 
 final _mockChickSalesProvider = FutureProvider<List<ChickSale>>((ref) {
-  return ref.read(poultryRepositoryProvider).getChickSales();
+  return ref.watch(poultryRepositoryProvider).getChickSales();
 });
 
 /// In-session chick sales recorded this session (keyed by flockId).

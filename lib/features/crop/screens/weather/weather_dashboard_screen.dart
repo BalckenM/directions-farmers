@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -9,20 +9,37 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
+import '../../models/farm_weather.dart';
 import '../../models/weather_alert.dart';
 import '../../providers/crop_providers.dart';
+
+// Maps WeatherCondition to a Material icon for the current-conditions header.
+IconData _conditionIcon(WeatherCondition c) => switch (c) {
+      WeatherCondition.sunny => Icons.wb_sunny_rounded,
+      WeatherCondition.partlyCloudy => Icons.wb_cloudy_rounded,
+      WeatherCondition.cloudy => Icons.cloud_rounded,
+      WeatherCondition.lightRain => Icons.grain_rounded,
+      WeatherCondition.rain => Icons.water_drop_rounded,
+      WeatherCondition.heavyRain => Icons.water_drop_rounded,
+      WeatherCondition.thunderstorm => Icons.bolt_rounded,
+      WeatherCondition.fog => Icons.cloud_outlined,
+      WeatherCondition.windy => Icons.air_rounded,
+      WeatherCondition.frosty => Icons.ac_unit_rounded,
+    };
 
 class WeatherDashboardScreen extends ConsumerWidget {
   const WeatherDashboardScreen({super.key});
 
+  static const _farmId = 'FARM-001';
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final alertsAsync = ref.watch(weatherAlertsProvider(null));
+    final weatherAsync = ref.watch(currentWeatherProvider(_farmId));
+    final forecastAsync = ref.watch(weatherForecastProvider(_farmId));
+    final alertsAsync = ref.watch(agriculturalAlertsProvider(_farmId));
 
     return FarmScaffold(
-      appBar: FarmAppBar(
-        title: 'Weather & Alerts',
-      ),
+      appBar: FarmAppBar(title: 'Weather & Alerts'),
       body: CustomScrollView(
         slivers: [
           // ── Current Conditions ─────────────────────────────────────────────
@@ -34,18 +51,26 @@ class WeatherDashboardScreen extends ConsumerWidget {
                 AppSpacing.md,
                 AppSpacing.sm,
               ),
-              child: _CurrentConditionsCard(),
+              child: weatherAsync.when(
+                loading: () => const LoadingShimmer(height: 160),
+                error: (e, _) => _ErrorTile(message: 'Failed to load weather: $e'),
+                data: (weather) => _CurrentConditionsCard(weather: weather),
+              ),
             ),
           ),
 
-          // ── 5-day Forecast ─────────────────────────────────────────────────
+          // ── 10-day Forecast ────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
                 vertical: AppSpacing.sm,
               ),
-              child: _ForecastRow(),
+              child: forecastAsync.when(
+                loading: () => const LoadingShimmer(height: 100),
+                error: (_, __) => const _ErrorTile(message: 'Failed to load forecast'),
+                data: (days) => _ForecastRow(days: days),
+              ),
             ),
           ),
 
@@ -66,7 +91,7 @@ class WeatherDashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Text(
                   'Failed to load alerts: $e',
-                  style: TextStyle(color: AppColors.error),
+                  style: const TextStyle(color: AppColors.error),
                 ),
               ),
             ),
@@ -110,17 +135,12 @@ class WeatherDashboardScreen extends ConsumerWidget {
                 AppSpacing.md,
                 AppSpacing.xl,
               ),
-              child: alertsAsync.when(
+              child: weatherAsync.when(
                 loading: () => const LoadingShimmer(height: 72),
-                error: (_, _) => const _SpraySuitabilityCard(suitable: true),
-                data: (alerts) {
-                  final unsuitable = alerts.any(
-                    (a) =>
-                        a.alertType == WeatherAlertType.sprayUnsuitable &&
-                        a.isActive,
-                  );
-                  return _SpraySuitabilityCard(suitable: !unsuitable);
-                },
+                error: (_, __) =>
+                    const _SpraySuitabilityCard(sprayWindow: SprayWindow.marginal),
+                data: (weather) =>
+                    _SpraySuitabilityCard(sprayWindow: weather.sprayWindow),
               ),
             ),
           ),
@@ -133,6 +153,10 @@ class WeatherDashboardScreen extends ConsumerWidget {
 // ── Current Conditions Card ──────────────────────────────────────────────────
 
 class _CurrentConditionsCard extends StatelessWidget {
+  const _CurrentConditionsCard({required this.weather});
+
+  final FarmWeather weather;
+
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
@@ -160,15 +184,26 @@ class _CurrentConditionsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Current Conditions',
-                style: tt.labelMedium?.copyWith(
-                  color: AppColors.onPrimary.withAlpha(217),
-                  letterSpacing: 0.5,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    weather.locationName,
+                    style: tt.labelMedium?.copyWith(
+                      color: AppColors.onPrimary.withAlpha(217),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Text(
+                    'Updated ${DateFormat('HH:mm').format(weather.fetchedAt)}',
+                    style: tt.labelSmall?.copyWith(
+                      color: AppColors.onPrimary.withAlpha(153),
+                    ),
+                  ),
+                ],
               ),
-              const Icon(
-                Icons.wb_sunny_rounded,
+              Icon(
+                _conditionIcon(weather.condition),
                 color: AppColors.onPrimary,
                 size: AppSpacing.iconLg,
               ),
@@ -176,28 +211,51 @@ class _CurrentConditionsCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '28°C',
+            '${weather.tempC.round()}°C',
             style: tt.displaySmall?.copyWith(
               color: AppColors.onPrimary,
               fontWeight: FontWeight.w700,
             ),
           ),
           Text(
-            'Mostly Sunny',
+            weather.condition.label,
             style: tt.bodyLarge?.copyWith(color: AppColors.onPrimary),
           ),
+          if (weather.feelsLikeC.round() != weather.tempC.round())
+            Text(
+              'Feels like ${weather.feelsLikeC.round()}°C',
+              style: tt.bodySmall?.copyWith(
+                color: AppColors.onPrimary.withAlpha(179),
+              ),
+            ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
             children: [
               _ConditionChip(
                 icon: Icons.water_drop_outlined,
-                label: '62% Humidity',
+                label: '${weather.humidity.round()}% Humidity',
               ),
-              const SizedBox(width: AppSpacing.sm),
               _ConditionChip(
                 icon: Icons.air_rounded,
-                label: 'Wind 12 km/h SW',
+                label:
+                    'Wind ${weather.windKmh.round()} km/h ${weather.windDirection}',
               ),
+              if (weather.rainfallMm24h > 0)
+                _ConditionChip(
+                  icon: Icons.umbrella_rounded,
+                  label: '${weather.rainfallMm24h}mm today',
+                ),
+              _ConditionChip(
+                icon: Icons.wb_sunny_outlined,
+                label: 'UV ${weather.uvIndex}',
+              ),
+              if (weather.frostRisk)
+                const _ConditionChip(
+                  icon: Icons.ac_unit_rounded,
+                  label: 'Frost Risk',
+                ),
             ],
           ),
         ],
@@ -242,82 +300,111 @@ class _ConditionChip extends StatelessWidget {
   }
 }
 
-// ── 5-day Forecast Row ────────────────────────────────────────────────────────
+// ── 10-day Forecast Row ───────────────────────────────────────────────────────
 
 class _ForecastRow extends StatelessWidget {
+  const _ForecastRow({required this.days});
+
+  final List<WeatherForecastDay> days;
+
   @override
   Widget build(BuildContext context) {
-    const forecastDays = [
-      _ForecastDay('Mon', Icons.wb_sunny_rounded, '31°', '18°'),
-      _ForecastDay('Tue', Icons.cloud_outlined, '28°', '16°'),
-      _ForecastDay('Wed', Icons.water_drop_rounded, '22°', '15°'),
-      _ForecastDay('Thu', Icons.cloud_rounded, '24°', '14°'),
-      _ForecastDay('Fri', Icons.wb_sunny_rounded, '29°', '17°'),
-    ];
-
-    return Row(
-      children: forecastDays
-          .map((d) => Expanded(child: _ForecastCard(day: d)))
-          .toList(),
+    return SizedBox(
+      height: 108,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: days.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (_, i) => _ForecastCard(day: days[i]),
+      ),
     );
   }
 }
 
-class _ForecastDay {
-  const _ForecastDay(this.day, this.icon, this.tempMax, this.tempMin);
-  final String day;
-  final IconData icon;
-  final String tempMax;
-  final String tempMin;
-}
-
 class _ForecastCard extends StatelessWidget {
   const _ForecastCard({required this.day});
-  final _ForecastDay day;
 
-  Color get _iconColor {
-    if (day.icon == Icons.water_drop_rounded) return AppColors.tertiary;
-    if (day.icon == Icons.cloud_rounded) return AppColors.onSurfaceVariant;
-    return AppColors.secondary;
-  }
+  final WeatherForecastDay day;
+
+  Color _iconColor(BuildContext context) => switch (day.condition) {
+        WeatherCondition.sunny || WeatherCondition.partlyCloudy =>
+          AppColors.secondary,
+        WeatherCondition.lightRain ||
+        WeatherCondition.rain ||
+        WeatherCondition.heavyRain =>
+          AppColors.tertiary,
+        WeatherCondition.thunderstorm => AppColors.error,
+        WeatherCondition.frosty => AppColors.primaryLight,
+        _ => Theme.of(context).colorScheme.onSurfaceVariant,
+      };
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final today = DateTime.now();
+    final isToday = DateUtils.isSameDay(day.date, today);
+    final dayLabel =
+        isToday ? 'Today' : DateFormat('E').format(day.date);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
+      width: 68,
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.sm,
         horizontal: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
+        color: isToday
+            ? AppColors.primary.withAlpha(20)
+            : cs.surfaceContainerLow,
         borderRadius: AppRadius.card,
-        border: Border.all(color: cs.outlineVariant),
+        border: Border.all(
+          color: isToday
+              ? AppColors.primary.withAlpha(102)
+              : cs.outlineVariant,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            day.day,
+            dayLabel,
             style: tt.labelSmall?.copyWith(
-              color: cs.onSurfaceVariant,
+              color: isToday ? AppColors.primary : cs.onSurfaceVariant,
               fontWeight: FontWeight.w600,
+              fontSize: 10,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
-          Icon(day.icon, size: 20, color: _iconColor),
+          // Emoji icon — unambiguous across condition types
+          Text(
+            day.condition.icon,
+            style: const TextStyle(fontSize: 20),
+          ),
+          if (day.frostRisk)
+            Icon(Icons.ac_unit_rounded,
+                size: 10, color: _iconColor(context)),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            day.tempMax,
+            '${day.maxTempC.round()}°',
             style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           Text(
-            day.tempMin,
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            '${day.minTempC.round()}°',
+            style: tt.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontSize: 10,
+            ),
           ),
+          if (day.rainfallMm > 0)
+            Text(
+              '${day.rainfallMm.round()}mm',
+              style: TextStyle(
+                color: AppColors.tertiary,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
         ],
       ),
     );
@@ -328,6 +415,7 @@ class _ForecastCard extends StatelessWidget {
 
 class _AlertCard extends StatelessWidget {
   const _AlertCard({required this.alert});
+
   final WeatherAlert alert;
 
   Color get _severityColor => switch (alert.severity) {
@@ -380,7 +468,8 @@ class _AlertCard extends StatelessWidget {
                     color: _severityContainerColor,
                     borderRadius: AppRadius.card,
                   ),
-                  child: Icon(_alertIcon, color: _severityColor, size: 22),
+                  child:
+                      Icon(_alertIcon, color: _severityColor, size: 22),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Container(
@@ -412,7 +501,8 @@ class _AlertCard extends StatelessWidget {
                 children: [
                   Text(
                     alert.title,
-                    style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    style: tt.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
@@ -464,19 +554,33 @@ class _AlertCard extends StatelessWidget {
 // ── Spray Suitability Card ────────────────────────────────────────────────────
 
 class _SpraySuitabilityCard extends StatelessWidget {
-  const _SpraySuitabilityCard({required this.suitable});
-  final bool suitable;
+  const _SpraySuitabilityCard({required this.sprayWindow});
+
+  final SprayWindow sprayWindow;
 
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    final color = suitable ? AppColors.success : AppColors.error;
-    final containerColor =
-        suitable ? AppColors.successContainer : AppColors.errorContainer;
-    final icon = suitable ? Icons.check_circle_rounded : Icons.cancel_rounded;
-    final label = suitable
-        ? 'Conditions Suitable for Spraying'
-        : 'Conditions Unsuitable for Spraying';
+
+    final (Color color, Color containerColor, IconData icon) = switch (
+      sprayWindow
+    ) {
+      SprayWindow.suitable => (
+          AppColors.success,
+          AppColors.successContainer,
+          Icons.check_circle_rounded,
+        ),
+      SprayWindow.unsuitable => (
+          AppColors.error,
+          AppColors.errorContainer,
+          Icons.cancel_rounded,
+        ),
+      SprayWindow.marginal => (
+          AppColors.warning,
+          AppColors.warningContainer,
+          Icons.warning_rounded,
+        ),
+    };
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -490,15 +594,49 @@ class _SpraySuitabilityCard extends StatelessWidget {
           Icon(icon, color: color, size: AppSpacing.iconLg),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Text(
-              label,
-              style: tt.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  sprayWindow.label,
+                  style: tt.titleSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (sprayWindow == SprayWindow.marginal)
+                  Text(
+                    'Check wind speed before starting',
+                    style: tt.bodySmall
+                        ?.copyWith(color: color.withAlpha(179)),
+                  ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Error tile ────────────────────────────────────────────────────────────────
+
+class _ErrorTile extends StatelessWidget {
+  const _ErrorTile({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.errorContainer,
+        borderRadius: AppRadius.card,
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(color: AppColors.error),
       ),
     );
   }

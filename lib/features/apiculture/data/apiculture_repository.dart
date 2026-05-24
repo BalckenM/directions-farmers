@@ -1,11 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/apiculture.dart';
 import 'apiculture_data_source.dart';
-import 'apiculture_mock_data_source.dart';
-import 'apiculture_remote_data_source.dart';
 
 class ApicultureRepository {
   ApicultureRepository(this._source);
@@ -54,9 +50,3 @@ class ApicultureRepository {
   }
 }
 
-final apicultureRepositoryProvider = Provider<ApicultureRepository>((ref) {
-  final ApicultureDataSource source = AppConstants.useMockData
-      ? ApicultureMockDataSource()
-      : ApicultureRemoteDataSource();
-  return ApicultureRepository(source);
-});

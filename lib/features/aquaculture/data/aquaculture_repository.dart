@@ -1,12 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/aquaculture_unit.dart';
 import '../models/water_quality_log.dart';
 import 'aquaculture_data_source.dart';
-import 'aquaculture_mock_data_source.dart';
-import 'aquaculture_remote_data_source.dart';
 
 class AquacultureRepository {
   AquacultureRepository(this._source);
@@ -43,9 +39,3 @@ class AquacultureRepository {
   }
 }
 
-final aquacultureRepositoryProvider = Provider<AquacultureRepository>((ref) {
-  final AquacultureDataSource source = AppConstants.useMockData
-      ? AquacultureMockDataSource()
-      : AquacultureRemoteDataSource();
-  return AquacultureRepository(source);
-});

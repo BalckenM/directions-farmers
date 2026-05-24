@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
+import '../providers/settings_ui_providers.dart';
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
@@ -199,17 +201,6 @@ final _speciesColors = {
   'Poultry': const Color(0xFF8B4513),
 };
 
-// ── Provider ──────────────────────────────────────────────────────────────────
-
-class _SpeciesNotifier extends Notifier<String> {
-  @override
-  String build() => 'Cattle';
-  void set(String v) => state = v;
-}
-
-final _selectedSpeciesProvider =
-    NotifierProvider<_SpeciesNotifier, String>(_SpeciesNotifier.new);
-
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 class BreedRegistryScreen extends ConsumerWidget {
@@ -217,7 +208,7 @@ class BreedRegistryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(_selectedSpeciesProvider);
+    final selected = ref.watch(selectedSpeciesProvider);
     final cs = Theme.of(context).colorScheme;
 
     return FarmScaffold(
@@ -233,22 +224,25 @@ class BreedRegistryScreen extends ConsumerWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
               child: Row(
                 children: _breedsBySpecies.keys.map((species) {
                   final isSelected = selected == species;
-                  final color =
-                      _speciesColors[species] ?? AppColors.primary;
+                  final color = _speciesColors[species] ?? AppColors.primary;
                   return Padding(
                     padding: const EdgeInsets.only(right: AppSpacing.sm),
                     child: GestureDetector(
                       onTap: () => ref
-                          .read(_selectedSpeciesProvider.notifier)
+                          .read(selectedSpeciesProvider.notifier)
                           .set(species),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected ? color : color.withAlpha(18),
                           borderRadius: AppRadius.chip,
@@ -256,18 +250,15 @@ class BreedRegistryScreen extends ConsumerWidget {
                         child: Row(
                           children: [
                             Icon(
-                              _speciesIcons[species] ??
-                                  Icons.category_rounded,
+                              _speciesIcons[species] ?? Icons.category_rounded,
                               size: 16,
-                              color:
-                                  isSelected ? Colors.white : color,
+                              color: isSelected ? Colors.white : color,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               species,
                               style: TextStyle(
-                                color:
-                                    isSelected ? Colors.white : color,
+                                color: isSelected ? Colors.white : color,
                                 fontWeight: isSelected
                                     ? FontWeight.w700
                                     : FontWeight.w500,
@@ -289,13 +280,10 @@ class BreedRegistryScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: _breedsBySpecies[selected]?.length ?? 0,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.sm),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, i) {
-                final breed =
-                    _breedsBySpecies[selected]![i];
-                final color =
-                    _speciesColors[selected] ?? AppColors.primary;
+                final breed = _breedsBySpecies[selected]![i];
+                final color = _speciesColors[selected] ?? AppColors.primary;
                 return _BreedCard(breed: breed, color: color);
               },
             ),
@@ -334,13 +322,14 @@ class _BreedCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   breed.name,
-                  style: tt.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm, vertical: 3),
+                  horizontal: AppSpacing.sm,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   color: color.withAlpha(18),
                   borderRadius: AppRadius.chip,
@@ -358,21 +347,20 @@ class _BreedCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(Icons.location_on_outlined,
-                  size: 13, color: cs.onSurfaceVariant),
+              Icon(
+                Icons.location_on_outlined,
+                size: 13,
+                color: cs.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
               Text(
                 breed.origin,
-                style: tt.bodySmall
-                    ?.copyWith(color: cs.onSurfaceVariant),
+                style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            breed.description,
-            style: tt.bodySmall,
-          ),
+          Text(breed.description, style: tt.bodySmall),
         ],
       ),
     );

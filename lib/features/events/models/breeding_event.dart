@@ -42,4 +42,30 @@ class BreedingEvent {
   }
 
   String get displayType => eventType.replaceAll('_', ' ').toUpperCase();
+
+  BreedingEvent copyWith({
+    String? id,
+    String? animalId,
+    String? animalType,
+    String? eventType,
+    String? serviceDate,
+    String? serviceMethod,
+    String? sireName,
+    String? sireBreed,
+    String? expectedBirthDate,
+    String? pregnancyResult,
+    String? notes,
+  }) => BreedingEvent(
+    id: id ?? this.id,
+    animalId: animalId ?? this.animalId,
+    animalType: animalType ?? this.animalType,
+    eventType: eventType ?? this.eventType,
+    serviceDate: serviceDate ?? this.serviceDate,
+    serviceMethod: serviceMethod ?? this.serviceMethod,
+    sireName: sireName ?? this.sireName,
+    sireBreed: sireBreed ?? this.sireBreed,
+    expectedBirthDate: expectedBirthDate ?? this.expectedBirthDate,
+    pregnancyResult: pregnancyResult ?? this.pregnancyResult,
+    notes: notes ?? this.notes,
+  );
 }

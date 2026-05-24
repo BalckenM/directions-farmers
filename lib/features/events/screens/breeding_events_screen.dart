@@ -1,35 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/livestock_constants.dart';
 import '../../../core/router/app_routes.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_state.dart';
-import '../../../shared/widgets/status_chip.dart';
-import '../data/events_repository.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
+import '../../../shared/widgets/status_chip.dart';
 import '../models/breeding_event.dart';
-
-// ── Provider ─────────────────────────────────────────────────────────────────
-
-final breedingEventsProvider =
-    FutureProvider.autoDispose<List<BreedingEvent>>((ref) {
-  return ref.watch(eventsRepositoryProvider).getBreedingEvents();
-});
-
-final breedingEventsBySpeciesProvider =
-    FutureProvider.autoDispose.family<List<BreedingEvent>, String>(
-        (ref, species) async {
-  final all = await ref.watch(eventsRepositoryProvider).getBreedingEvents();
-  if (species.isEmpty) return all;
-  return all.where((e) => e.animalType == species).toList();
-});
+import '../providers/events_providers.dart';
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 
@@ -41,8 +27,9 @@ class BreedingEventsScreen extends ConsumerWidget {
     final species =
         GoRouterState.of(context).uri.queryParameters['species'] ?? '';
     final eventsAsync = ref.watch(breedingEventsBySpeciesProvider(species));
-    final speciesLabel =
-        species.isNotEmpty ? LivestockConstants.displayName(species) : null;
+    final speciesLabel = species.isNotEmpty
+        ? LivestockConstants.displayName(species)
+        : null;
 
     return FarmScaffold(
       appBar: FarmAppBar(
@@ -126,20 +113,29 @@ class _BreedingTile extends StatelessWidget {
                   color: AppColors.secondary.withAlpha(30),
                   borderRadius: AppRadius.button,
                 ),
-                child: const Icon(Icons.favorite_rounded,
-                    color: AppColors.secondary, size: 20),
+                child: const Icon(
+                  Icons.favorite_rounded,
+                  color: AppColors.secondary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(event.animalId,
-                        style: tt.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w700)),
-                    Text(event.serviceDate,
-                        style: tt.labelSmall
-                            ?.copyWith(color: cs.onSurfaceVariant)),
+                    Text(
+                      event.animalId,
+                      style: tt.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      event.serviceDate,
+                      style: tt.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -159,10 +155,13 @@ class _BreedingTile extends StatelessWidget {
           ],
           if (event.serviceMethod != null) ...[
             const SizedBox(height: 2),
-            Text('Method: ${event.serviceMethod}',
-                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
+            Text(
+              'Method: ${event.serviceMethod}',
+              style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
           ],
-          if (event.pregnancyResult != null || event.expectedBirthDate != null) ...[
+          if (event.pregnancyResult != null ||
+              event.expectedBirthDate != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
@@ -174,9 +173,10 @@ class _BreedingTile extends StatelessWidget {
                   ),
                 if (event.expectedBirthDate != null) ...[
                   const SizedBox(width: AppSpacing.sm),
-                  Text('EBD: ${event.expectedBirthDate}',
-                      style: tt.labelSmall
-                          ?.copyWith(color: cs.onSurfaceVariant)),
+                  Text(
+                    'EBD: ${event.expectedBirthDate}',
+                    style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                  ),
                 ],
               ],
             ),

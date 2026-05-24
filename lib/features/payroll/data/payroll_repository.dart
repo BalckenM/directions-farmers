@@ -1,8 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../data/payroll_data_source.dart';
-import '../data/payroll_mock_data_source.dart';
-import '../data/payroll_remote_data_source.dart';
 import '../models/attendance_record.dart';
 import '../models/audit_log_entry.dart';
 import '../models/communication_log.dart';
@@ -230,17 +226,3 @@ class PayrollRepository {
       _source.updateEmployerConfig(config);
 }
 
-// ─── Providers ────────────────────────────────────────────────────────────────
-
-/// Set USE_MOCK_DATA=false in your run config / CI environment to
-/// use the real API backend instead of in-memory mock data.
-const _useMock = bool.fromEnvironment('USE_MOCK_DATA', defaultValue: true);
-
-final payrollDataSourceProvider = Provider<PayrollDataSource>((ref) {
-  if (_useMock) return PayrollMockDataSource();
-  return PayrollRemoteDataSource();
-});
-
-final payrollRepositoryProvider = Provider<PayrollRepository>((ref) {
-  return PayrollRepository(ref.watch(payrollDataSourceProvider));
-});

@@ -11,6 +11,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../models/spray_record.dart';
+import '../../providers/crop_action_providers.dart';
 import '../../providers/crop_providers.dart';
 
 class SprayListScreen extends ConsumerWidget {
@@ -54,9 +55,7 @@ class SprayListScreen extends ConsumerWidget {
                 ref.invalidate(sprayRecordsProvider);
                 await ref.read(sprayRecordsProvider(null).future);
               },
-              child: ListView(
-                children: const [_EmptySprayState()],
-              ),
+              child: ListView(children: const [_EmptySprayState()]),
             );
           }
           return RefreshIndicator(
@@ -84,13 +83,17 @@ class SprayListScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, WidgetRef ref, SprayRecord spray) async {
+    BuildContext context,
+    WidgetRef ref,
+    SprayRecord spray,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Spray Record'),
         content: Text(
-            'Delete the spray record for "${spray.productName}"? This cannot be undone.'),
+          'Delete the spray record for "${spray.productName}"? This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -105,8 +108,7 @@ class SprayListScreen extends ConsumerWidget {
       ),
     );
     if (confirmed == true) {
-      await ref.read(cropRepositoryProvider).deleteSprayRecord(spray.id);
-      ref.invalidate(sprayRecordsProvider);
+      await ref.read(cropActionProvider.notifier).deleteSprayRecord(spray.id);
     }
   }
 }
@@ -124,8 +126,7 @@ class _SprayCard extends StatelessWidget {
   final String? fieldName;
   final VoidCallback onDelete;
 
-  bool get _withholdingActive =>
-      DateTime.now().isBefore(spray.reEntryDate);
+  bool get _withholdingActive => DateTime.now().isBefore(spray.reEntryDate);
 
   @override
   Widget build(BuildContext context) {
@@ -166,14 +167,16 @@ class _SprayCard extends StatelessWidget {
                       children: [
                         Text(
                           spray.productName,
-                          style: tt.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                          style: tt.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         if (fieldName != null)
                           Text(
                             fieldName!,
-                            style: tt.bodySmall
-                                ?.copyWith(color: cs.onSurfaceVariant),
+                            style: tt.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                       ],
                     ),
@@ -182,7 +185,9 @@ class _SprayCard extends StatelessWidget {
                   if (_withholdingActive)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.warningContainer,
                         borderRadius: AppRadius.chip,
@@ -190,16 +195,19 @@ class _SprayCard extends StatelessWidget {
                       child: Text(
                         'PHI Active',
                         style: tt.labelSmall?.copyWith(
-                            color: AppColors.onWarningContainer,
-                            fontWeight: FontWeight.w700),
+                          color: AppColors.onWarningContainer,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   const SizedBox(width: AppSpacing.xs),
                   // More menu
                   PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert,
-                        size: AppSpacing.iconSm,
-                        color: cs.onSurfaceVariant),
+                    icon: Icon(
+                      Icons.more_vert,
+                      size: AppSpacing.iconSm,
+                      color: cs.onSurfaceVariant,
+                    ),
                     onSelected: (v) {
                       if (v == 'edit') {
                         context.push(AppRoutes.editSprayRecord, extra: spray);
@@ -219,10 +227,14 @@ class _SprayCard extends StatelessWidget {
                       const PopupMenuItem(
                         value: 'delete',
                         child: ListTile(
-                          leading: Icon(Icons.delete_outline,
-                              color: AppColors.error),
-                          title: Text('Delete',
-                              style: TextStyle(color: AppColors.error)),
+                          leading: Icon(
+                            Icons.delete_outline,
+                            color: AppColors.error,
+                          ),
+                          title: Text(
+                            'Delete',
+                            style: TextStyle(color: AppColors.error),
+                          ),
                           dense: true,
                         ),
                       ),
@@ -254,11 +266,13 @@ class _SprayCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.xs),
               Row(
                 children: [
-                  Icon(Icons.timer_outlined,
-                      size: AppSpacing.iconSm,
-                      color: _withholdingActive
-                          ? AppColors.warning
-                          : cs.onSurfaceVariant),
+                  Icon(
+                    Icons.timer_outlined,
+                    size: AppSpacing.iconSm,
+                    color: _withholdingActive
+                        ? AppColors.warning
+                        : cs.onSurfaceVariant,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                     'Re-entry: ${fmt.format(spray.reEntryDate)}  '
@@ -275,14 +289,15 @@ class _SprayCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
-                    Icon(Icons.person_outline,
-                        size: AppSpacing.iconSm,
-                        color: cs.onSurfaceVariant),
+                    Icon(
+                      Icons.person_outline,
+                      size: AppSpacing.iconSm,
+                      color: cs.onSurfaceVariant,
+                    ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       spray.applicatorName!,
-                      style: tt.bodySmall
-                          ?.copyWith(color: cs.onSurfaceVariant),
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -313,8 +328,7 @@ class _Detail extends StatelessWidget {
       children: [
         Icon(icon, size: AppSpacing.iconSm, color: cs.onSurfaceVariant),
         const SizedBox(width: AppSpacing.xs),
-        Text(label,
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+        Text(label, style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
       ],
     );
   }
@@ -336,14 +350,18 @@ class _EmptySprayState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.science_outlined,
-                size: AppSpacing.iconXl,
-                color: cs.onSurfaceVariant.withAlpha(128)),
+            Icon(
+              Icons.science_outlined,
+              size: AppSpacing.iconXl,
+              color: cs.onSurfaceVariant.withAlpha(128),
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               'No spray records yet',
               style: tt.titleMedium?.copyWith(
-                  color: cs.onSurfaceVariant, fontWeight: FontWeight.w600),
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(

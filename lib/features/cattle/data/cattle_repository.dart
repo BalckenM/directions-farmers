@@ -1,13 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/cattle_animal.dart';
 import '../models/cattle_records.dart';
 import 'cattle_data_source.dart';
-import 'cattle_mock_data_source.dart';
-import 'cattle_remote_data_source.dart';
 
 class CattleRepository {
   CattleRepository(this._source);
@@ -442,12 +438,3 @@ class CattleRepository {
     }
   }
 }
-
-// ── Riverpod provider ─────────────────────────────────────────────────────────
-
-final cattleRepositoryProvider = Provider<CattleRepository>((ref) {
-  final source = AppConstants.useMockData
-      ? CattleMockDataSource()
-      : CattleRemoteDataSource();
-  return CattleRepository(source);
-});

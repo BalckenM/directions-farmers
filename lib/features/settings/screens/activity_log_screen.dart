@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -6,10 +6,9 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
+import '../providers/settings_ui_providers.dart';
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-
-enum _ActivityCategory { livestock, payroll, financial, crop, settings }
+// â”€â”€ Mock data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ActivityEntry {
   final String id;
@@ -17,7 +16,7 @@ class _ActivityEntry {
   final String detail;
   final String actor;
   final DateTime timestamp;
-  final _ActivityCategory category;
+  final ActivityCategory category;
   final String? referenceId;
 
   const _ActivityEntry({
@@ -40,49 +39,49 @@ final _mockActivity = [
     detail: 'Bull calf #NGC-2024-089 added to Herd A',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(hours: 1)),
-    category: _ActivityCategory.livestock,
+    category: ActivityCategory.livestock,
     referenceId: 'NGC-2024-089',
   ),
   _ActivityEntry(
     id: 'ACT-002',
     title: 'Weight recorded',
-    detail: '34 animals weighed — avg 287 kg',
+    detail: '34 animals weighed â€” avg 287 kg',
     actor: 'Sipho Dlamini',
     timestamp: _now.subtract(const Duration(hours: 3)),
-    category: _ActivityCategory.livestock,
+    category: ActivityCategory.livestock,
   ),
   _ActivityEntry(
     id: 'ACT-003',
     title: 'Payslip generated',
-    detail: 'March 2024 payslips issued — 12 employees',
+    detail: 'March 2024 payslips issued â€” 12 employees',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(hours: 5)),
-    category: _ActivityCategory.payroll,
+    category: ActivityCategory.payroll,
     referenceId: 'PAY-2024-03',
   ),
   _ActivityEntry(
     id: 'ACT-004',
     title: 'Health treatment logged',
-    detail: 'Lumpy Skin vaccination — Camp 1 (32 head)',
+    detail: 'Lumpy Skin vaccination â€” Camp 1 (32 head)',
     actor: 'Dr. Zanele Mokoena',
     timestamp: _now.subtract(const Duration(hours: 8)),
-    category: _ActivityCategory.livestock,
+    category: ActivityCategory.livestock,
   ),
   _ActivityEntry(
     id: 'ACT-005',
     title: 'Expense recorded',
-    detail: 'Feed purchase — R4 200 (Camp 2 Lucerne)',
+    detail: 'Feed purchase â€” R4 200 (Camp 2 Lucerne)',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(days: 1, hours: 2)),
-    category: _ActivityCategory.financial,
+    category: ActivityCategory.financial,
   ),
   _ActivityEntry(
     id: 'ACT-006',
     title: 'Paddock status updated',
-    detail: 'Camp 2 — Lusern set to Resting (30 days)',
+    detail: 'Camp 2 â€” Lusern set to Resting (30 days)',
     actor: 'Sipho Dlamini',
     timestamp: _now.subtract(const Duration(days: 1, hours: 6)),
-    category: _ActivityCategory.settings,
+    category: ActivityCategory.settings,
   ),
   _ActivityEntry(
     id: 'ACT-007',
@@ -90,40 +89,40 @@ final _mockActivity = [
     detail: '18 cattle moved to Thornhill South Camp',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(days: 1, hours: 9)),
-    category: _ActivityCategory.livestock,
+    category: ActivityCategory.livestock,
     referenceId: 'MOV-2024-022',
   ),
   _ActivityEntry(
     id: 'ACT-008',
     title: 'Employee contract updated',
-    detail: 'Sipho Dlamini — wage rate updated (R5 200/month)',
+    detail: 'Sipho Dlamini â€” wage rate updated (R5 200/month)',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(days: 2, hours: 1)),
-    category: _ActivityCategory.payroll,
+    category: ActivityCategory.payroll,
   ),
   _ActivityEntry(
     id: 'ACT-009',
     title: 'Breeding event logged',
-    detail: 'Cow #BNS-2021-044 — AI breeding with Bonsmara bull',
+    detail: 'Cow #BNS-2021-044 â€” AI breeding with Bonsmara bull',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(days: 2, hours: 4)),
-    category: _ActivityCategory.livestock,
+    category: ActivityCategory.livestock,
   ),
   _ActivityEntry(
     id: 'ACT-010',
     title: 'Crop field created',
-    detail: 'Maize field — Block 3 (4.2 ha) added',
+    detail: 'Maize field â€” Block 3 (4.2 ha) added',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(days: 3, hours: 0)),
-    category: _ActivityCategory.crop,
+    category: ActivityCategory.crop,
   ),
   _ActivityEntry(
     id: 'ACT-011',
     title: 'Milk production recorded',
-    detail: '142 L — morning session, 8 cows',
+    detail: '142 L â€” morning session, 8 cows',
     actor: 'Sipho Dlamini',
     timestamp: _now.subtract(const Duration(days: 3, hours: 6)),
-    category: _ActivityCategory.livestock,
+    category: ActivityCategory.livestock,
   ),
   _ActivityEntry(
     id: 'ACT-012',
@@ -131,35 +130,35 @@ final _mockActivity = [
     detail: 'Phone number and location updated',
     actor: 'Thabo Nkosi',
     timestamp: _now.subtract(const Duration(days: 4, hours: 2)),
-    category: _ActivityCategory.settings,
+    category: ActivityCategory.settings,
   ),
 ];
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-IconData _categoryIcon(_ActivityCategory c) => switch (c) {
-      _ActivityCategory.livestock => Icons.pets_rounded,
-      _ActivityCategory.payroll => Icons.payments_rounded,
-      _ActivityCategory.financial => Icons.account_balance_wallet_rounded,
-      _ActivityCategory.crop => Icons.grass_rounded,
-      _ActivityCategory.settings => Icons.settings_rounded,
-    };
+IconData _categoryIcon(ActivityCategory c) => switch (c) {
+  ActivityCategory.livestock => Icons.pets_rounded,
+  ActivityCategory.payroll => Icons.payments_rounded,
+  ActivityCategory.financial => Icons.account_balance_wallet_rounded,
+  ActivityCategory.crop => Icons.grass_rounded,
+  ActivityCategory.settings => Icons.settings_rounded,
+};
 
-Color _categoryColor(_ActivityCategory c) => switch (c) {
-      _ActivityCategory.livestock => AppColors.primary,
-      _ActivityCategory.payroll => AppColors.secondary,
-      _ActivityCategory.financial => AppColors.success,
-      _ActivityCategory.crop => const Color(0xFF33691E),
-      _ActivityCategory.settings => AppColors.info,
-    };
+Color _categoryColor(ActivityCategory c) => switch (c) {
+  ActivityCategory.livestock => AppColors.primary,
+  ActivityCategory.payroll => AppColors.secondary,
+  ActivityCategory.financial => AppColors.success,
+  ActivityCategory.crop => const Color(0xFF33691E),
+  ActivityCategory.settings => AppColors.info,
+};
 
-String _categoryLabel(_ActivityCategory c) => switch (c) {
-      _ActivityCategory.livestock => 'Livestock',
-      _ActivityCategory.payroll => 'Payroll',
-      _ActivityCategory.financial => 'Financial',
-      _ActivityCategory.crop => 'Crop',
-      _ActivityCategory.settings => 'Settings',
-    };
+String _categoryLabel(ActivityCategory c) => switch (c) {
+  ActivityCategory.livestock => 'Livestock',
+  ActivityCategory.payroll => 'Payroll',
+  ActivityCategory.financial => 'Financial',
+  ActivityCategory.crop => 'Crop',
+  ActivityCategory.settings => 'Settings',
+};
 
 String _formatDate(DateTime dt) {
   final now = DateTime.now();
@@ -176,40 +175,31 @@ String _formatTime(DateTime dt) {
 }
 
 String _monthName(int month) => const [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ][month];
+  '',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+][month];
 
-// ── Providers ─────────────────────────────────────────────────────────────────
+// â”€â”€ Providers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-class _FilterNotifier extends Notifier<_ActivityCategory?> {
-  @override
-  _ActivityCategory? build() => null;
-  void set(_ActivityCategory? v) => state = v;
-}
-
-final _filterProvider =
-    NotifierProvider<_FilterNotifier, _ActivityCategory?>(_FilterNotifier.new);
-
-// ── Screen ────────────────────────────────────────────────────────────────────
+// â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class ActivityLogScreen extends ConsumerWidget {
   const ActivityLogScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(_filterProvider);
+    final filter = ref.watch(activityFilterProvider);
     final cs = Theme.of(context).colorScheme;
 
     final filtered = filter == null
@@ -236,7 +226,9 @@ class ActivityLogScreen extends ConsumerWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
               child: Row(
                 children: [
                   _FilterChip(
@@ -244,21 +236,21 @@ class ActivityLogScreen extends ConsumerWidget {
                     selected: filter == null,
                     color: AppColors.primary,
                     onTap: () =>
-                        ref.read(_filterProvider.notifier).set(null),
+                        ref.read(activityFilterProvider.notifier).set(null),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  ..._ActivityCategory.values.map((c) => Padding(
-                        padding:
-                            const EdgeInsets.only(right: AppSpacing.sm),
-                        child: _FilterChip(
-                          label: _categoryLabel(c),
-                          selected: filter == c,
-                          color: _categoryColor(c),
-                          onTap: () => ref
-                              .read(_filterProvider.notifier)
-                              .set(c),
-                        ),
-                      )),
+                  ...ActivityCategory.values.map(
+                    (c) => Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: _FilterChip(
+                        label: _categoryLabel(c),
+                        selected: filter == c,
+                        color: _categoryColor(c),
+                        onTap: () =>
+                            ref.read(activityFilterProvider.notifier).set(c),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -268,19 +260,20 @@ class ActivityLogScreen extends ConsumerWidget {
           Expanded(
             child: filtered.isEmpty
                 ? const Center(
-                    child: Text('No activity entries for this filter.'))
+                    child: Text('No activity entries for this filter.'),
+                  )
                 : ListView(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     children: [
                       for (final dateLabel in grouped.keys) ...[
                         Padding(
                           padding: const EdgeInsets.only(
-                              bottom: AppSpacing.sm, top: AppSpacing.xs),
+                            bottom: AppSpacing.sm,
+                            top: AppSpacing.xs,
+                          ),
                           child: Text(
                             dateLabel,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: cs.onSurfaceVariant,
                                   fontWeight: FontWeight.w700,
@@ -302,7 +295,7 @@ class ActivityLogScreen extends ConsumerWidget {
   }
 }
 
-// ── Filter chip ───────────────────────────────────────────────────────────────
+// â”€â”€ Filter chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
@@ -324,7 +317,9 @@ class _FilterChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
           color: selected ? color : color.withAlpha(18),
           borderRadius: AppRadius.chip,
@@ -342,7 +337,7 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-// ── Activity tile ─────────────────────────────────────────────────────────────
+// â”€â”€ Activity tile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ActivityTile extends StatelessWidget {
   const _ActivityTile({required this.entry});
@@ -370,27 +365,25 @@ class _ActivityTile extends StatelessWidget {
             color: color.withAlpha(18),
             borderRadius: AppRadius.button,
           ),
-          child: Icon(_categoryIcon(entry.category),
-              color: color, size: 20),
+          child: Icon(_categoryIcon(entry.category), color: color, size: 20),
         ),
-        title: Text(entry.title,
-            style: tt.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
+        title: Text(
+          entry.title,
+          style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(entry.detail, style: tt.bodySmall),
             const SizedBox(height: 2),
             Text(
-              '${entry.actor} · ${_formatTime(entry.timestamp)}',
-              style: tt.labelSmall
-                  ?.copyWith(color: cs.onSurfaceVariant),
+              '${entry.actor} Â· ${_formatTime(entry.timestamp)}',
+              style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
             ),
           ],
         ),
         trailing: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
             color: color.withAlpha(18),
             borderRadius: AppRadius.chip,
@@ -398,7 +391,10 @@ class _ActivityTile extends StatelessWidget {
           child: Text(
             _categoryLabel(entry.category),
             style: tt.labelSmall?.copyWith(
-                color: color, fontWeight: FontWeight.w600, fontSize: 9),
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 9,
+            ),
           ),
         ),
         isThreeLine: true,

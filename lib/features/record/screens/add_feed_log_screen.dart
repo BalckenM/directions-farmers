@@ -10,7 +10,7 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../livestock/providers/groups_provider.dart';
-import '../data/record_repository.dart';
+import '../providers/record_providers.dart';
 import '../models/feed_log.dart';
 import 'feed_log_screen.dart';
 
@@ -248,3 +248,4 @@ class _AddFeedLogScreenState extends ConsumerState<AddFeedLogScreen> {
     );
   }
 }
+

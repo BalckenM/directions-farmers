@@ -9,6 +9,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_task.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddEditTaskScreen extends ConsumerStatefulWidget {
   const AddEditTaskScreen({super.key, this.taskId});
@@ -61,7 +62,6 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
 
     setState(() => _isSaving = true);
 
-    final repo = ref.read(cropRepositoryProvider);
     final now = DateTime.now();
     final id = widget.taskId ?? 'task-${now.millisecondsSinceEpoch}';
 
@@ -84,12 +84,10 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
 
     try {
       if (_isEditing) {
-        await repo.updateTask(task);
+        await ref.read(cropActionProvider.notifier).updateTask(task);
       } else {
-        await repo.addTask(task);
+        await ref.read(cropActionProvider.notifier).addTask(task);
       }
-      ref.invalidate(cropTasksProvider);
-      ref.invalidate(openCropTasksProvider);
     } catch (_) {}
 
     if (!mounted) return;

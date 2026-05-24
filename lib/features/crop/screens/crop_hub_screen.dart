@@ -49,6 +49,16 @@ final List<_QuickAction> _quickActions = [
       route: AppRoutes.cropCalendar,
       color: AppColors.secondary),
   _QuickAction(
+      label: 'AI Advisor',
+      icon: Icons.agriculture_rounded,
+      route: AppRoutes.cropAiAdvisor,
+      color: AppColors.cropGreen),
+  _QuickAction(
+      label: 'Leaf Scanner',
+      icon: Icons.biotech_rounded,
+      route: AppRoutes.cropDiseaseScanner,
+      color: AppColors.success),
+  _QuickAction(
       label: 'Tasks',
       icon: Icons.task_alt_rounded,
       route: AppRoutes.cropTasks,

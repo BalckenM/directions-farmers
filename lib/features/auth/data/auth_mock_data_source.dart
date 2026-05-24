@@ -1,6 +1,9 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/auth_user.dart';
+import 'auth_data_source.dart';
 
 // ── Keys ──────────────────────────────────────────────────────────────────────
 const _kSessionKey = 'mock_auth_session';
@@ -178,7 +181,7 @@ const Map<String, List<String>> kCountryProvinces = {
 /// All data is stored in [SharedPreferences] so the session survives hot
 /// restarts. Replace this class with a real HTTP client when the backend
 /// is ready — the [AuthNotifier] will not need to change.
-class AuthMockDataSource {
+class AuthMockDataSource implements AuthDataSource {
   const AuthMockDataSource(this._prefs);
 
   final SharedPreferences _prefs;
@@ -304,6 +307,7 @@ class AuthMockDataSource {
   /// Authenticates with email + password.
   ///
   /// Returns [AuthUser] on success, throws [MockAuthException] on failure.
+  @override
   Future<AuthUser> signIn({
     required String email,
     required String password,
@@ -330,6 +334,7 @@ class AuthMockDataSource {
   /// Registers a new farmer account.
   ///
   /// Throws [MockAuthException] if the email is already taken.
+  @override
   Future<AuthUser> register({
     required String email,
     required String password,
@@ -379,6 +384,7 @@ class AuthMockDataSource {
   /// Restores a previously saved session.
   ///
   /// Returns [AuthUser] if a valid session token is found, null otherwise.
+  @override
   AuthUser? restoreSession() {
     final json = _prefs.getString(_kSessionKey);
     if (json == null) return null;
@@ -390,6 +396,7 @@ class AuthMockDataSource {
   }
 
   /// Clears the stored session (signs out).
+  @override
   Future<void> clearSession() async {
     await _prefs.remove(_kSessionKey);
   }

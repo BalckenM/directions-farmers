@@ -136,8 +136,7 @@ class MovementRecord {
       transporterName: json['transporter_name'] as String?,
       vehicleRegNo: json['vehicle_reg_no'] as String?,
       permitNumber: json['permit_number'] as String?,
-      veterinaryHealthCertRef:
-          json['veterinary_health_cert_ref'] as String?,
+      veterinaryHealthCertRef: json['veterinary_health_cert_ref'] as String?,
       moveInspectedBy: json['move_inspected_by'] as String?,
       distanceKm: (json['distance_km'] as num?)?.toDouble(),
       rmisSubmitted: json['rmis_submitted'] as bool? ?? false,
@@ -146,4 +145,50 @@ class MovementRecord {
       notes: json['notes'] as String?,
     );
   }
+
+  MovementRecord copyWith({
+    String? id,
+    String? farmId,
+    String? movementDate,
+    String? species,
+    List<String>? animalIds,
+    MovementType? movementType,
+    String? fromLocation,
+    String? toLocation,
+    String? fromFarmRegistrationNo,
+    String? toFarmRegistrationNo,
+    String? transporterName,
+    String? vehicleRegNo,
+    String? permitNumber,
+    String? veterinaryHealthCertRef,
+    String? moveInspectedBy,
+    double? distanceKm,
+    bool? rmisSubmitted,
+    String? rmisSubmitDate,
+    String? rmisTransactionId,
+    String? notes,
+  }) => MovementRecord(
+    id: id ?? this.id,
+    farmId: farmId ?? this.farmId,
+    movementDate: movementDate ?? this.movementDate,
+    species: species ?? this.species,
+    animalIds: animalIds ?? this.animalIds,
+    movementType: movementType ?? this.movementType,
+    fromLocation: fromLocation ?? this.fromLocation,
+    toLocation: toLocation ?? this.toLocation,
+    fromFarmRegistrationNo:
+        fromFarmRegistrationNo ?? this.fromFarmRegistrationNo,
+    toFarmRegistrationNo: toFarmRegistrationNo ?? this.toFarmRegistrationNo,
+    transporterName: transporterName ?? this.transporterName,
+    vehicleRegNo: vehicleRegNo ?? this.vehicleRegNo,
+    permitNumber: permitNumber ?? this.permitNumber,
+    veterinaryHealthCertRef:
+        veterinaryHealthCertRef ?? this.veterinaryHealthCertRef,
+    moveInspectedBy: moveInspectedBy ?? this.moveInspectedBy,
+    distanceKm: distanceKm ?? this.distanceKm,
+    rmisSubmitted: rmisSubmitted ?? this.rmisSubmitted,
+    rmisSubmitDate: rmisSubmitDate ?? this.rmisSubmitDate,
+    rmisTransactionId: rmisTransactionId ?? this.rmisTransactionId,
+    notes: notes ?? this.notes,
+  );
 }

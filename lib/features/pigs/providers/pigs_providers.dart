@@ -1,11 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/pigs_data_source.dart';
+import '../data/pigs_mock_data_source.dart';
 import '../data/pigs_repository.dart';
 import '../models/sow.dart';
+
+final pigsDataSourceProvider = Provider<PigsDataSource>(
+  (ref) => PigsMockDataSource(),
+);
+
+final pigsRepositoryProvider = Provider<PigsRepository>(
+  (ref) => PigsRepository(ref.watch(pigsDataSourceProvider)),
+);
 
 // ── Sows ──────────────────────────────────────────────────────────────────────
 
 final _mockSowsProvider = FutureProvider<List<Sow>>((ref) {
-  return ref.read(pigsRepositoryProvider).getSows();
+  return ref.watch(pigsRepositoryProvider).getSows();
 });
 
 final sowsProvider =
@@ -27,7 +37,7 @@ final sowDetailProvider =
 // ── Farrowing Records ─────────────────────────────────────────────────────────
 
 final _mockFarrowingProvider = FutureProvider<List<FarrowingRecord>>((ref) {
-  return ref.read(pigsRepositoryProvider).getFarrowingRecords();
+  return ref.watch(pigsRepositoryProvider).getFarrowingRecords();
 });
 
 /// Farrowing history for a specific sow, sorted newest-first.
@@ -48,7 +58,7 @@ final sowFarrowingHistoryProvider =
 
 final _mockServiceRecordsProvider =
     FutureProvider<List<SowServiceRecord>>((ref) {
-  return ref.read(pigsRepositoryProvider).getSowServiceRecords();
+  return ref.watch(pigsRepositoryProvider).getSowServiceRecords();
 });
 
 /// Service history for a specific sow.

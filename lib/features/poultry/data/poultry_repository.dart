@@ -1,11 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../models/poultry_flock.dart';
 import '../models/flock.dart';
 import '../models/inventory_item.dart';
 import 'poultry_data_source.dart';
-import 'poultry_mock_data_source.dart';
-import 'poultry_remote_data_source.dart';
 
 class PoultryRepository {
   PoultryRepository(this._source);
@@ -49,9 +45,3 @@ class PoultryRepository {
   Future<List<ChickSale>> getChickSales() => _source.getChickSales();
 }
 
-final poultryRepositoryProvider = Provider<PoultryRepository>((ref) {
-  final source = AppConstants.useMockData
-      ? PoultryMockDataSource()
-      : PoultryRemoteDataSource();
-  return PoultryRepository(source);
-});

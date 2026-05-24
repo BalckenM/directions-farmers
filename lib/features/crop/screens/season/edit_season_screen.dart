@@ -9,6 +9,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/crop_season.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class EditSeasonScreen extends ConsumerStatefulWidget {
   const EditSeasonScreen({super.key, required this.season});
@@ -21,10 +22,10 @@ class EditSeasonScreen extends ConsumerStatefulWidget {
 
 class _EditSeasonScreenState extends ConsumerState<EditSeasonScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final _nameController =
-      TextEditingController(text: widget.season.name);
-  late final _notesController =
-      TextEditingController(text: widget.season.notes ?? '');
+  late final _nameController = TextEditingController(text: widget.season.name);
+  late final _notesController = TextEditingController(
+    text: widget.season.notes ?? '',
+  );
 
   late String _seasonType = widget.season.seasonType;
   late String _status = widget.season.status;
@@ -69,15 +70,14 @@ class _EditSeasonScreenState extends ConsumerState<EditSeasonScreen> {
     );
 
     try {
-      await ref.read(cropRepositoryProvider).updateSeason(updated);
-      ref.invalidate(seasonsProvider);
+      await ref.read(cropActionProvider.notifier).updateSeason(updated);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Season updated')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Season updated')));
     Navigator.of(context).pop(true);
   }
 
@@ -111,8 +111,7 @@ class _EditSeasonScreenState extends ConsumerState<EditSeasonScreen> {
                 prefixIcon: Icon(Icons.wb_sunny_outlined),
               ),
               items: _seasonTypes
-                  .map((t) =>
-                      DropdownMenuItem(value: t.$1, child: Text(t.$2)))
+                  .map((t) => DropdownMenuItem(value: t.$1, child: Text(t.$2)))
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _seasonType = v);
@@ -127,8 +126,7 @@ class _EditSeasonScreenState extends ConsumerState<EditSeasonScreen> {
                 prefixIcon: Icon(Icons.track_changes_outlined),
               ),
               items: _statuses
-                  .map((s) =>
-                      DropdownMenuItem(value: s.$1, child: Text(s.$2)))
+                  .map((s) => DropdownMenuItem(value: s.$1, child: Text(s.$2)))
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _status = v);
@@ -174,19 +172,23 @@ class _EditSeasonScreenState extends ConsumerState<EditSeasonScreen> {
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(AppSpacing.minTouchTarget),
                 shape: const RoundedRectangleBorder(
-                    borderRadius: AppRadius.button),
+                  borderRadius: AppRadius.button,
+                ),
               ),
               child: _saving
                   ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.onPrimary),
+                        strokeWidth: 2,
+                        color: AppColors.onPrimary,
+                      ),
                     )
                   : Text(
                       'Save Changes',
-                      style: tt.labelLarge
-                          ?.copyWith(color: AppColors.onPrimary),
+                      style: tt.labelLarge?.copyWith(
+                        color: AppColors.onPrimary,
+                      ),
                     ),
             ),
           ],

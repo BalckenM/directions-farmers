@@ -1,13 +1,9 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
 import '../models/goat_animal.dart';
 import '../models/goat_records.dart';
 import 'goat_data_source.dart';
-import 'goat_mock_data_source.dart';
-import 'goat_remote_data_source.dart';
 
 class GoatRepository {
   GoatRepository(this._source);
@@ -460,10 +456,3 @@ class GoatRepository {
     }
   }
 }
-
-final goatRepositoryProvider = Provider<GoatRepository>((ref) {
-  final GoatDataSource source = AppConstants.useMockData
-      ? GoatMockDataSource()
-      : GoatRemoteDataSource();
-  return GoatRepository(source);
-});

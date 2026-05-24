@@ -8,7 +8,6 @@ import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../../../shared/widgets/primary_button.dart';
-import '../../data/payroll_repository.dart';
 import '../../models/incident_record.dart';
 import '../../providers/payroll_providers.dart';
 import '../../theme/payroll_tokens.dart';
@@ -958,3 +957,4 @@ class _AddIncidentSheetState extends ConsumerState<_AddIncidentSheet> {
     IncidentType.other => 'Other',
   };
 }
+

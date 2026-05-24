@@ -12,6 +12,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/pest_observation.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddPestObservationScreen extends ConsumerStatefulWidget {
   const AddPestObservationScreen({super.key});
@@ -90,14 +91,13 @@ class _AddPestObservationScreenState
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedField == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a field')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a field')));
       return;
     }
     setState(() => _saving = true);
 
-    final repo = ref.read(cropRepositoryProvider);
     final obs = PestObservation(
       id: 'pest-${DateTime.now().millisecondsSinceEpoch}',
       fieldId: _selectedField!,
@@ -117,15 +117,14 @@ class _AddPestObservationScreenState
     );
 
     try {
-      await repo.addPestObservation(obs);
-      ref.invalidate(pestObservationsProvider);
+      await ref.read(cropActionProvider.notifier).addPestObservation(obs);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Observation logged')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Observation logged')));
     Navigator.of(context).pop();
   }
 
@@ -134,9 +133,7 @@ class _AddPestObservationScreenState
     final fieldsAsync = ref.watch(cropFieldsProvider(null));
     return FarmScaffold(
       resizeToAvoidBottomInset: true,
-      appBar: FarmAppBar(
-        title: 'Log Observation',
-      ),
+      appBar: FarmAppBar(title: 'Log Observation'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -148,7 +145,9 @@ class _AddPestObservationScreenState
               initialValue: _selectedField,
               hint: const Text('Select field'),
               items: (fieldsAsync.value ?? [])
-                  .map((f) => DropdownMenuItem(value: f.id, child: Text(f.name)))
+                  .map(
+                    (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedField = v),
               validator: (v) => v == null ? 'Please select a field' : null,
@@ -196,8 +195,10 @@ class _AddPestObservationScreenState
 
             // ── Severity ─────────────────────────────────────────────────
             DropdownButtonFormField<String>(
-              decoration:
-                  _inputDecoration('Severity', Icons.warning_amber_rounded),
+              decoration: _inputDecoration(
+                'Severity',
+                Icons.warning_amber_rounded,
+              ),
               initialValue: _severity,
               items: _severities
                   .map(
@@ -297,17 +298,17 @@ class _AddPestObservationScreenState
   }
 
   String _categoryLabel(String c) => switch (c) {
-        'pest' => 'Pest',
-        'disease' => 'Disease',
-        _ => 'Weed',
-      };
+    'pest' => 'Pest',
+    'disease' => 'Disease',
+    _ => 'Weed',
+  };
 
   String _severityLabel(String s) => switch (s) {
-        'low' => 'Low',
-        'moderate' => 'Moderate',
-        'high' => 'High',
-        _ => 'Critical',
-      };
+    'low' => 'Low',
+    'moderate' => 'Moderate',
+    'high' => 'High',
+    _ => 'Critical',
+  };
 }
 
 // ── Image Picker Card ─────────────────────────────────────────────────────────
@@ -348,8 +349,11 @@ class _ImagePickerCard extends StatelessWidget {
               backgroundColor: AppColors.error,
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.close,
-                    size: 16, color: AppColors.onError),
+                icon: const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: AppColors.onError,
+                ),
                 onPressed: onRemove,
               ),
             ),
@@ -374,8 +378,11 @@ class _ImagePickerCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_a_photo_outlined,
-                size: AppSpacing.iconLg, color: cs.onSurfaceVariant),
+            Icon(
+              Icons.add_a_photo_outlined,
+              size: AppSpacing.iconLg,
+              color: cs.onSurfaceVariant,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Add Photo Evidence (optional)',
@@ -387,4 +394,3 @@ class _ImagePickerCard extends StatelessWidget {
     );
   }
 }
-

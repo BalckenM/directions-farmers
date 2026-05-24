@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../data/insights_repository.dart';
+import '../providers/insights_providers.dart';
 import '../../../shared/widgets/error_state.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
@@ -482,3 +482,4 @@ class _FeedInputsSection extends StatelessWidget {
         .join(' ');
   }
 }
+

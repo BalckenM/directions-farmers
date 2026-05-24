@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../data/financial_repository.dart';
+import '../providers/financial_providers.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_state.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
@@ -272,3 +272,4 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 }
+

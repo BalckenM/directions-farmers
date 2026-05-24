@@ -13,6 +13,7 @@ import '../../models/crop_field.dart';
 import '../../models/crop_season.dart';
 import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddSeasonScreen extends ConsumerStatefulWidget {
   const AddSeasonScreen({super.key});
@@ -77,8 +78,9 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
   }
 
   Future<void> _save() async {
-    final hasAllCrops =
-        _selectedFieldIds.every((id) => _fieldCropMap[id] != null);
+    final hasAllCrops = _selectedFieldIds.every(
+      (id) => _fieldCropMap[id] != null,
+    );
     if (!hasAllCrops) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Assign a crop to every selected field')),
@@ -88,7 +90,6 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
 
     setState(() => _isSaving = true);
 
-    final repo = ref.read(cropRepositoryProvider);
     final now = DateTime.now();
     final seasonId = 'season-${now.millisecondsSinceEpoch}';
 
@@ -106,7 +107,7 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
     );
 
     try {
-      await repo.addSeason(season);
+      await ref.read(cropActionProvider.notifier).addSeason(season);
 
       // Create a planting plan for each field + crop pairing
       for (final fieldId in _selectedFieldIds) {
@@ -122,11 +123,8 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
           status: 'planned',
           createdAt: now,
         );
-        await repo.addPlantingPlan(plan);
+        await ref.read(cropActionProvider.notifier).addPlantingPlan(plan);
       }
-
-      ref.invalidate(seasonsProvider);
-      ref.invalidate(plantingPlansProvider);
     } catch (_) {}
 
     if (!mounted) return;
@@ -144,9 +142,7 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
     final tt = Theme.of(context).textTheme;
 
     return FarmScaffold(
-      appBar: FarmAppBar(
-        title: 'New Season',
-      ),
+      appBar: FarmAppBar(title: 'New Season'),
       body: Column(
         children: [
           // ── Step indicator ──────────────────────────────────────────────
@@ -161,7 +157,11 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
               children: List.generate(3, (i) {
                 final active = i == _step;
                 final done = i < _step;
-                final labels = ['Season Details', 'Select Fields', 'Assign Crops'];
+                final labels = [
+                  'Season Details',
+                  'Select Fields',
+                  'Assign Crops',
+                ];
                 return Expanded(
                   child: Row(
                     children: [
@@ -238,25 +238,25 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
                       onEndChanged: (d) => setState(() => _endDate = d),
                     )
                   : _step == 1
-                      ? _StepSelectFields(
-                          key: const ValueKey(1),
-                          selectedFieldIds: _selectedFieldIds,
-                          onToggle: (id, selected) => setState(() {
-                            if (selected) {
-                              _selectedFieldIds.add(id);
-                            } else {
-                              _selectedFieldIds.remove(id);
-                              _fieldCropMap.remove(id);
-                            }
-                          }),
-                        )
-                      : _StepAssignCrops(
-                          key: const ValueKey(2),
-                          selectedFieldIds: _selectedFieldIds,
-                          fieldCropMap: _fieldCropMap,
-                          onAssign: (fieldId, cropId) =>
-                              setState(() => _fieldCropMap[fieldId] = cropId),
-                        ),
+                  ? _StepSelectFields(
+                      key: const ValueKey(1),
+                      selectedFieldIds: _selectedFieldIds,
+                      onToggle: (id, selected) => setState(() {
+                        if (selected) {
+                          _selectedFieldIds.add(id);
+                        } else {
+                          _selectedFieldIds.remove(id);
+                          _fieldCropMap.remove(id);
+                        }
+                      }),
+                    )
+                  : _StepAssignCrops(
+                      key: const ValueKey(2),
+                      selectedFieldIds: _selectedFieldIds,
+                      fieldCropMap: _fieldCropMap,
+                      onAssign: (fieldId, cropId) =>
+                          setState(() => _fieldCropMap[fieldId] = cropId),
+                    ),
             ),
           ),
 
@@ -275,26 +275,28 @@ class _AddSeasonScreenState extends ConsumerState<AddSeasonScreen> {
                   onPressed: _isSaving
                       ? null
                       : _step < 2
-                          ? _nextStep
-                          : _save,
+                      ? _nextStep
+                      : _save,
                   style: FilledButton.styleFrom(
-                    minimumSize:
-                        const Size.fromHeight(AppSpacing.minTouchTarget),
+                    minimumSize: const Size.fromHeight(
+                      AppSpacing.minTouchTarget,
+                    ),
                     shape: const RoundedRectangleBorder(
-                        borderRadius: AppRadius.button),
+                      borderRadius: AppRadius.button,
+                    ),
                   ),
                   child: _isSaving
                       ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: AppColors.onPrimary),
+                            strokeWidth: 2,
+                            color: AppColors.onPrimary,
+                          ),
                         )
                       : Text(
                           _step < 2 ? 'Next' : 'Create Season',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
+                          style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(color: AppColors.onPrimary),
                         ),
                 ),
@@ -361,8 +363,7 @@ class _StepDetails extends StatelessWidget {
               prefixIcon: Icon(Icons.wb_sunny_outlined),
             ),
             items: seasonTypes
-                .map((t) =>
-                    DropdownMenuItem(value: t.$1, child: Text(t.$2)))
+                .map((t) => DropdownMenuItem(value: t.$1, child: Text(t.$2)))
                 .toList(),
             onChanged: (v) {
               if (v != null) onSeasonTypeChanged(v);
@@ -428,8 +429,10 @@ class _StepSelectFields extends ConsumerWidget {
         child: LoadingShimmer.list(count: 4, itemHeight: 72),
       ),
       error: (e, _) => Center(
-        child: Text('Failed to load fields: $e',
-            style: const TextStyle(color: AppColors.error)),
+        child: Text(
+          'Failed to load fields: $e',
+          style: const TextStyle(color: AppColors.error),
+        ),
       ),
       data: (fields) {
         if (fields.isEmpty) {
@@ -438,8 +441,9 @@ class _StepSelectFields extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Text(
                 'No fields found. Add fields first.',
-                style:
-                    tt.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+                style: tt.bodyMedium?.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -450,15 +454,16 @@ class _StepSelectFields extends ConsumerWidget {
           children: [
             Text(
               'Choose the fields to include in this season:',
-              style: tt.bodyMedium
-                  ?.copyWith(color: AppColors.onSurfaceVariant),
+              style: tt.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
             ),
             const SizedBox(height: AppSpacing.md),
-            ...fields.map((f) => _FieldCheckTile(
-                  field: f,
-                  selected: selectedFieldIds.contains(f.id),
-                  onChanged: (v) => onToggle(f.id, v ?? false),
-                )),
+            ...fields.map(
+              (f) => _FieldCheckTile(
+                field: f,
+                selected: selectedFieldIds.contains(f.id),
+                onChanged: (v) => onToggle(f.id, v ?? false),
+              ),
+            ),
           ],
         );
       },
@@ -496,8 +501,10 @@ class _FieldCheckTile extends StatelessWidget {
           horizontal: AppSpacing.md,
           vertical: AppSpacing.xs,
         ),
-        title: Text(field.name,
-            style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        title: Text(
+          field.name,
+          style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(
           '${field.sizeHectares.toStringAsFixed(1)} ha · '
           '${field.soilTypeLabel} · ${field.irrigationLabel}',
@@ -547,18 +554,19 @@ class _StepAssignCrops extends ConsumerWidget {
       children: [
         Text(
           'Assign a crop to each selected field:',
-          style:
-              tt.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
+          style: tt.bodyMedium?.copyWith(color: AppColors.onSurfaceVariant),
         ),
         const SizedBox(height: AppSpacing.md),
-        ...fields.map((f) => _CropAssignTile(
-              field: f,
-              crops: crops,
-              selectedCropId: fieldCropMap[f.id],
-              onChanged: (cropId) {
-                if (cropId != null) onAssign(f.id, cropId);
-              },
-            )),
+        ...fields.map(
+          (f) => _CropAssignTile(
+            field: f,
+            crops: crops,
+            selectedCropId: fieldCropMap[f.id],
+            onChanged: (cropId) {
+              if (cropId != null) onAssign(f.id, cropId);
+            },
+          ),
+        ),
       ],
     );
   }
@@ -597,19 +605,22 @@ class _CropAssignTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.grid_on_rounded,
-                    size: AppSpacing.iconSm, color: AppColors.primary),
+                const Icon(
+                  Icons.grid_on_rounded,
+                  size: AppSpacing.iconSm,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   field.name,
-                  style:
-                      tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Spacer(),
                 Text(
                   '${field.sizeHectares.toStringAsFixed(1)} ha',
-                  style: tt.bodySmall
-                      ?.copyWith(color: AppColors.onSurfaceVariant),
+                  style: tt.bodySmall?.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -619,8 +630,7 @@ class _CropAssignTile extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Select Crop',
                 prefixIcon: const Icon(Icons.eco_outlined),
-                border:
-                    OutlineInputBorder(borderRadius: AppRadius.input),
+                border: OutlineInputBorder(borderRadius: AppRadius.input),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm,
@@ -628,10 +638,9 @@ class _CropAssignTile extends StatelessWidget {
                 isDense: true,
               ),
               items: crops
-                  .map((c) => DropdownMenuItem(
-                        value: c.id,
-                        child: Text(c.name),
-                      ))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: onChanged,
             ),
@@ -641,4 +650,3 @@ class _CropAssignTile extends StatelessWidget {
     );
   }
 }
-

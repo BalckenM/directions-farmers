@@ -10,6 +10,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class AddPlantingPlanScreen extends ConsumerStatefulWidget {
   const AddPlantingPlanScreen({super.key, this.preselectedFieldId});
@@ -22,8 +23,7 @@ class AddPlantingPlanScreen extends ConsumerStatefulWidget {
       _AddPlantingPlanScreenState();
 }
 
-class _AddPlantingPlanScreenState
-    extends ConsumerState<AddPlantingPlanScreen> {
+class _AddPlantingPlanScreenState extends ConsumerState<AddPlantingPlanScreen> {
   final _formKey = GlobalKey<FormState>();
   final _targetYieldCtrl = TextEditingController();
 
@@ -47,23 +47,23 @@ class _AddPlantingPlanScreenState
   }
 
   InputDecoration _dec(String label, {IconData? icon}) => InputDecoration(
-        labelText: label,
-        prefixIcon: icon != null ? Icon(icon) : null,
-        border: OutlineInputBorder(borderRadius: AppRadius.input),
-      );
+    labelText: label,
+    prefixIcon: icon != null ? Icon(icon) : null,
+    border: OutlineInputBorder(borderRadius: AppRadius.input),
+  );
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedField == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a field')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a field')));
       return;
     }
     if (_selectedCrop == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a crop')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a crop')));
       return;
     }
 
@@ -82,15 +82,14 @@ class _AddPlantingPlanScreenState
     );
 
     try {
-      await ref.read(cropRepositoryProvider).addPlantingPlan(plan);
-      ref.invalidate(plantingPlansProvider);
+      await ref.read(cropActionProvider.notifier).addPlantingPlan(plan);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Planting plan created')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Planting plan created')));
     Navigator.of(context).pop();
   }
 
@@ -116,13 +115,18 @@ class _AddPlantingPlanScreenState
           ),
           children: [
             // ── Field ─────────────────────────────────────────────────────────
-            Text('Field', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Field',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               initialValue: _selectedField,
               decoration: _dec('Select field', icon: Icons.map_outlined),
               items: fields
-                  .map((f) => DropdownMenuItem(value: f.id, child: Text(f.name)))
+                  .map(
+                    (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                  )
                   .toList(),
               onChanged: widget.preselectedFieldId != null
                   ? null
@@ -132,13 +136,18 @@ class _AddPlantingPlanScreenState
             const SizedBox(height: AppSpacing.md),
 
             // ── Crop ──────────────────────────────────────────────────────────
-            Text('Crop', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Crop',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               initialValue: _selectedCrop,
               decoration: _dec('Select crop', icon: Icons.grass_rounded),
               items: crops
-                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedCrop = v),
               validator: (v) => v == null ? 'Please select a crop' : null,
@@ -146,22 +155,32 @@ class _AddPlantingPlanScreenState
             const SizedBox(height: AppSpacing.md),
 
             // ── Season (optional) ─────────────────────────────────────────────
-            Text('Season (optional)', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Season (optional)',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<String>(
               initialValue: _selectedSeason,
-              decoration: _dec('Link to season', icon: Icons.date_range_rounded),
+              decoration: _dec(
+                'Link to season',
+                icon: Icons.date_range_rounded,
+              ),
               items: [
                 const DropdownMenuItem(value: null, child: Text('No season')),
-                ...seasons.map((s) =>
-                    DropdownMenuItem(value: s.id, child: Text(s.name))),
+                ...seasons.map(
+                  (s) => DropdownMenuItem(value: s.id, child: Text(s.name)),
+                ),
               ],
               onChanged: (v) => setState(() => _selectedSeason = v),
             ),
             const SizedBox(height: AppSpacing.md),
 
             // ── Planting date ─────────────────────────────────────────────────
-            Text('Dates', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Dates',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             DatePickerField(
               label: 'Planned Planting Date (optional)',
@@ -199,16 +218,26 @@ class _AddPlantingPlanScreenState
             const SizedBox(height: AppSpacing.md),
 
             // ── Target yield ──────────────────────────────────────────────────
-            Text('Target Yield', style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant)),
+            Text(
+              'Target Yield',
+              style: tt.titleSmall?.copyWith(color: AppColors.onSurfaceVariant),
+            ),
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
               controller: _targetYieldCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-              decoration: _dec('Target yield (optional)', icon: Icons.trending_up_rounded)
-                  .copyWith(suffixText: 't/ha'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+              ],
+              decoration: _dec(
+                'Target yield (optional)',
+                icon: Icons.trending_up_rounded,
+              ).copyWith(suffixText: 't/ha'),
               validator: (v) {
-                if (v != null && v.trim().isNotEmpty &&
+                if (v != null &&
+                    v.trim().isNotEmpty &&
                     double.tryParse(v.trim()) == null) {
                   return 'Enter a valid number';
                 }

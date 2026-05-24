@@ -1,76 +1,88 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/goat_data_source.dart';
+import '../data/goat_mock_data_source.dart';
 import '../data/goat_repository.dart';
 import '../models/goat_animal.dart';
 import '../models/goat_records.dart';
 
+// ── DI providers ──────────────────────────────────────────────────────────────
+
+final goatDataSourceProvider = Provider<GoatDataSource>(
+  (ref) => GoatMockDataSource(),
+);
+
+final goatRepositoryProvider = Provider<GoatRepository>(
+  (ref) => GoatRepository(ref.watch(goatDataSourceProvider)),
+);
+
 // ── Raw data providers (mock layer) ──────────────────────────────────────────
 
 final _mockAnimalsProvider = FutureProvider<List<GoatAnimal>>((ref) {
-  return ref.read(goatRepositoryProvider).getAnimals();
+  return ref.watch(goatRepositoryProvider).getAnimals();
 });
 
 final _mockWeightRecordsProvider = FutureProvider<List<WeightRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getWeightRecords();
+  return ref.watch(goatRepositoryProvider).getWeightRecords();
 });
 
 final _mockMatingRecordsProvider = FutureProvider<List<MatingRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getMatingRecords();
+  return ref.watch(goatRepositoryProvider).getMatingRecords();
 });
 
 final _mockPregnancyChecksProvider =
     FutureProvider<List<PregnancyCheck>>((ref) {
-  return ref.read(goatRepositoryProvider).getPregnancyChecks();
+  return ref.watch(goatRepositoryProvider).getPregnancyChecks();
 });
 
 final _mockKiddingEventsProvider = FutureProvider<List<KiddingEvent>>((ref) {
-  return ref.read(goatRepositoryProvider).getKiddingEvents();
+  return ref.watch(goatRepositoryProvider).getKiddingEvents();
 });
 
 final _mockMilkRecordsProvider = FutureProvider<List<DailyMilkRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getMilkRecords();
+  return ref.watch(goatRepositoryProvider).getMilkRecords();
 });
 
 final _mockShearingRecordsProvider =
     FutureProvider<List<ShearingRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getShearingRecords();
+  return ref.watch(goatRepositoryProvider).getShearingRecords();
 });
 
 final _mockHealthEventsProvider = FutureProvider<List<GoatHealthEvent>>((ref) {
-  return ref.read(goatRepositoryProvider).getHealthEvents();
+  return ref.watch(goatRepositoryProvider).getHealthEvents();
 });
 
 final _mockMedicationLogsProvider =
     FutureProvider<List<GoatMedicationLog>>((ref) {
-  return ref.read(goatRepositoryProvider).getMedicationLogs();
+  return ref.watch(goatRepositoryProvider).getMedicationLogs();
 });
 
 final _mockVaccinationsProvider =
     FutureProvider<List<GoatVaccination>>((ref) {
-  return ref.read(goatRepositoryProvider).getVaccinations();
+  return ref.watch(goatRepositoryProvider).getVaccinations();
 });
 
 final _mockSaleRecordsProvider = FutureProvider<List<GoatSaleRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getSaleRecords();
+  return ref.watch(goatRepositoryProvider).getSaleRecords();
 });
 
 final _mockFeedRecordsProvider = FutureProvider<List<GoatFeedRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getFeedRecords();
+  return ref.watch(goatRepositoryProvider).getFeedRecords();
 });
 
 final _mockPastureRecordsProvider =
     FutureProvider<List<PastureRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getPastureRecords();
+  return ref.watch(goatRepositoryProvider).getPastureRecords();
 });
 
 final _mockFamachaRecordsProvider =
     FutureProvider<List<FamachaRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getFamachaRecords();
+  return ref.watch(goatRepositoryProvider).getFamachaRecords();
 });
 
 final _mockBodyConditionRecordsProvider =
     FutureProvider<List<BodyConditionRecord>>((ref) {
-  return ref.read(goatRepositoryProvider).getBodyConditionRecords();
+  return ref.watch(goatRepositoryProvider).getBodyConditionRecords();
 });
 
 // ── In-session write state ────────────────────────────────────────────────────

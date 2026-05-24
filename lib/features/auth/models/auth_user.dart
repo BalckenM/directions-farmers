@@ -50,41 +50,72 @@ class AuthUser {
 
   // ── Serialisation ────────────────────────────────────────────────────────────
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
-        id: json['id'] as String? ?? '',
-        email: json['email'] as String? ?? '',
-        firstName: json['first_name'] as String? ?? '',
-        lastName: json['last_name'] as String? ?? '',
-        farmName: json['farm_name'] as String? ?? '',
-        country: json['country'] as String? ?? '',
-        province: json['province'] as String? ?? '',
-        subscriptionPlan: json['subscription_plan'] as String? ?? 'starter',
-        subscriptionStatus: json['subscription_status'] as String? ?? 'trial',
-        activatedModules: (json['activated_modules'] as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toList() ??
-            [],
-        mfaEnabled: json['mfa_enabled'] as bool? ?? false,
-        trialEndsAt: json['trial_ends_at'] != null
-            ? DateTime.tryParse(json['trial_ends_at'] as String)
-            : null,
-        phone: json['phone'] as String?,
-      );
+    id: json['id'] as String? ?? '',
+    email: json['email'] as String? ?? '',
+    firstName: json['first_name'] as String? ?? '',
+    lastName: json['last_name'] as String? ?? '',
+    farmName: json['farm_name'] as String? ?? '',
+    country: json['country'] as String? ?? '',
+    province: json['province'] as String? ?? '',
+    subscriptionPlan: json['subscription_plan'] as String? ?? 'starter',
+    subscriptionStatus: json['subscription_status'] as String? ?? 'trial',
+    activatedModules:
+        (json['activated_modules'] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList() ??
+        [],
+    mfaEnabled: json['mfa_enabled'] as bool? ?? false,
+    trialEndsAt: json['trial_ends_at'] != null
+        ? DateTime.tryParse(json['trial_ends_at'] as String)
+        : null,
+    phone: json['phone'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'email': email,
-        'first_name': firstName,
-        'last_name': lastName,
-        'farm_name': farmName,
-        'country': country,
-        'province': province,
-        'subscription_plan': subscriptionPlan,
-        'subscription_status': subscriptionStatus,
-        'activated_modules': activatedModules,
-        'mfa_enabled': mfaEnabled,
-        if (trialEndsAt != null) 'trial_ends_at': trialEndsAt!.toIso8601String(),
-        if (phone != null) 'phone': phone,
-      };
+    'id': id,
+    'email': email,
+    'first_name': firstName,
+    'last_name': lastName,
+    'farm_name': farmName,
+    'country': country,
+    'province': province,
+    'subscription_plan': subscriptionPlan,
+    'subscription_status': subscriptionStatus,
+    'activated_modules': activatedModules,
+    'mfa_enabled': mfaEnabled,
+    if (trialEndsAt != null) 'trial_ends_at': trialEndsAt!.toIso8601String(),
+    if (phone != null) 'phone': phone,
+  };
 
   String toJsonString() => jsonEncode(toJson());
+
+  AuthUser copyWith({
+    String? id,
+    String? email,
+    String? firstName,
+    String? lastName,
+    String? farmName,
+    String? country,
+    String? province,
+    String? subscriptionPlan,
+    String? subscriptionStatus,
+    List<String>? activatedModules,
+    bool? mfaEnabled,
+    DateTime? trialEndsAt,
+    String? phone,
+  }) => AuthUser(
+    id: id ?? this.id,
+    email: email ?? this.email,
+    firstName: firstName ?? this.firstName,
+    lastName: lastName ?? this.lastName,
+    farmName: farmName ?? this.farmName,
+    country: country ?? this.country,
+    province: province ?? this.province,
+    subscriptionPlan: subscriptionPlan ?? this.subscriptionPlan,
+    subscriptionStatus: subscriptionStatus ?? this.subscriptionStatus,
+    activatedModules: activatedModules ?? this.activatedModules,
+    mfaEnabled: mfaEnabled ?? this.mfaEnabled,
+    trialEndsAt: trialEndsAt ?? this.trialEndsAt,
+    phone: phone ?? this.phone,
+  );
 }

@@ -121,6 +121,10 @@ abstract final class AppRoutes {
   static const String cropProfitability = '/crop/profitability';
   static const String cropAdvisory = '/crop/advisory';
   static String cropAdvisoryDetailPath(String id) => '/crop/advisory/$id';
+  static const String cropDiseaseScanner = '/crop/disease/scanner';
+  static const String cropDiseaseResult = '/crop/disease/result';
+  static const String cropAiAdvisor = '/crop/advisor';
+  static const String cropAdvisorChat = '/crop/advisor/chat';
   static const String addPlantingPlan = '/crop/fields/plan/add';
   static const String editCropSeason = '/crop/seasons/edit';
   static const String editPlantingPlan = '/crop/fields/plan/edit';

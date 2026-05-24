@@ -12,7 +12,7 @@ import '../../../shared/widgets/farm_dropdown.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
-import '../data/traceability_repository.dart';
+import '../providers/traceability_providers.dart';
 import '../models/movement_record.dart';
 import 'movement_records_screen.dart';
 
@@ -466,3 +466,4 @@ class _FormCard extends StatelessWidget {
     );
   }
 }
+

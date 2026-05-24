@@ -10,7 +10,7 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
-import '../data/financial_repository.dart';
+import '../providers/financial_providers.dart';
 import '../models/financial_transaction.dart';
 import 'financial_screen.dart';
 
@@ -247,3 +247,4 @@ class _AddFinancialTransactionScreenState
     );
   }
 }
+

@@ -10,6 +10,7 @@ import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../models/planting_plan.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class EditPlantingPlanScreen extends ConsumerStatefulWidget {
   const EditPlantingPlanScreen({super.key, required this.plan});
@@ -25,7 +26,8 @@ class _EditPlantingPlanScreenState
     extends ConsumerState<EditPlantingPlanScreen> {
   final _formKey = GlobalKey<FormState>();
   late final _targetYieldCtrl = TextEditingController(
-      text: widget.plan.targetYieldTHa?.toString() ?? '');
+    text: widget.plan.targetYieldTHa?.toString() ?? '',
+  );
 
   late String _selectedField = widget.plan.fieldId;
   late String _selectedCrop = widget.plan.cropId;
@@ -73,15 +75,14 @@ class _EditPlantingPlanScreenState
     );
 
     try {
-      await ref.read(cropRepositoryProvider).updatePlantingPlan(updated);
-      ref.invalidate(plantingPlansProvider);
+      await ref.read(cropActionProvider.notifier).updatePlantingPlan(updated);
     } catch (_) {}
 
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Planting plan updated')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Planting plan updated')));
     Navigator.of(context).pop(true);
   }
 
@@ -106,8 +107,9 @@ class _EditPlantingPlanScreenState
               initialValue: _selectedField,
               decoration: _dec('Field', icon: Icons.grid_on_rounded),
               items: fields
-                  .map((f) =>
-                      DropdownMenuItem(value: f.id, child: Text(f.name)))
+                  .map(
+                    (f) => DropdownMenuItem(value: f.id, child: Text(f.name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _selectedField = v);
@@ -120,8 +122,9 @@ class _EditPlantingPlanScreenState
               initialValue: _selectedCrop,
               decoration: _dec('Crop', icon: Icons.eco_outlined),
               items: crops
-                  .map((c) =>
-                      DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _selectedCrop = v);
@@ -134,8 +137,9 @@ class _EditPlantingPlanScreenState
               initialValue: _selectedSeason,
               decoration: _dec('Season', icon: Icons.calendar_month_outlined),
               items: seasons
-                  .map((s) =>
-                      DropdownMenuItem(value: s.id, child: Text(s.name)))
+                  .map(
+                    (s) => DropdownMenuItem(value: s.id, child: Text(s.name)),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _selectedSeason = v);
@@ -147,8 +151,7 @@ class _EditPlantingPlanScreenState
               initialValue: _status,
               decoration: _dec('Status', icon: Icons.track_changes_outlined),
               items: _statuses
-                  .map((s) =>
-                      DropdownMenuItem(value: s.$1, child: Text(s.$2)))
+                  .map((s) => DropdownMenuItem(value: s.$1, child: Text(s.$2)))
                   .toList(),
               onChanged: (v) {
                 if (v != null) setState(() => _status = v);
@@ -176,13 +179,17 @@ class _EditPlantingPlanScreenState
 
             TextFormField(
               controller: _targetYieldCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))
+                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
               ],
-              decoration: _dec('Target Yield (optional)',
-                  icon: Icons.trending_up_rounded, suffix: 't/ha'),
+              decoration: _dec(
+                'Target Yield (optional)',
+                icon: Icons.trending_up_rounded,
+                suffix: 't/ha',
+              ),
               validator: (v) {
                 if (v != null &&
                     v.trim().isNotEmpty &&
@@ -199,19 +206,23 @@ class _EditPlantingPlanScreenState
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(AppSpacing.minTouchTarget),
                 shape: const RoundedRectangleBorder(
-                    borderRadius: AppRadius.button),
+                  borderRadius: AppRadius.button,
+                ),
               ),
               child: _saving
                   ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.onPrimary),
+                        strokeWidth: 2,
+                        color: AppColors.onPrimary,
+                      ),
                     )
                   : Text(
                       'Save Changes',
-                      style: tt.labelLarge
-                          ?.copyWith(color: AppColors.onPrimary),
+                      style: tt.labelLarge?.copyWith(
+                        color: AppColors.onPrimary,
+                      ),
                     ),
             ),
           ],

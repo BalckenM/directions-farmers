@@ -13,6 +13,7 @@ import '../../../../shared/widgets/loading_shimmer.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../models/crop_expense.dart';
 import '../../providers/crop_providers.dart';
+import '../../providers/crop_action_providers.dart';
 
 class ExpenseTrackerScreen extends ConsumerStatefulWidget {
   const ExpenseTrackerScreen({super.key});
@@ -23,8 +24,11 @@ class ExpenseTrackerScreen extends ConsumerStatefulWidget {
 }
 
 class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
-  final currencyFmt =
-      NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
+  final currencyFmt = NumberFormat.currency(
+    locale: 'en_ZA',
+    symbol: 'R ',
+    decimalDigits: 2,
+  );
 
   Future<bool> _confirmDelete(CropExpense expense) async {
     return await showDialog<bool>(
@@ -32,16 +36,18 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
           builder: (_) => AlertDialog(
             title: const Text('Delete Expense?'),
             content: Text(
-                'Remove "${expense.description}" (${currencyFmt.format(expense.amountZar)})?'),
+              'Remove "${expense.description}" (${currencyFmt.format(expense.amountZar)})?',
+            ),
             actions: [
               TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
               FilledButton(
-                  style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.error),
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete')),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
             ],
           ),
         ) ??
@@ -49,11 +55,7 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
   }
 
   Future<void> _delete(CropExpense expense) async {
-    final repo = ref.read(cropRepositoryProvider);
-    await repo.deleteExpense(expense.id);
-    ref.invalidate(cropExpensesProvider);
-    ref.invalidate(totalExpensesProvider);
-    ref.invalidate(grossMarginProvider);
+    await ref.read(cropActionProvider.notifier).deleteExpense(expense.id);
   }
 
   @override
@@ -61,9 +63,7 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
     final expensesAsync = ref.watch(cropExpensesProvider(null));
 
     return FarmScaffold(
-      appBar: FarmAppBar(
-        title: 'Expense Tracker',
-      ),
+      appBar: FarmAppBar(title: 'Expense Tracker'),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.addCropExpense),
         icon: const Icon(Icons.add_rounded),
@@ -81,8 +81,10 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
           ),
         ),
         data: (expenses) {
-          final total =
-              expenses.fold<double>(0.0, (sum, e) => sum + e.amountZar);
+          final total = expenses.fold<double>(
+            0.0,
+            (sum, e) => sum + e.amountZar,
+          );
 
           return Stack(
             children: [
@@ -94,73 +96,78 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
                   await ref.read(cropExpensesProvider(null).future);
                 },
                 child: CustomScrollView(
-                slivers: [
-                  // ── Summary card ───────────────────────────────────────
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: _SummaryCard(
-                        expenses: expenses,
-                        total: total,
-                        currencyFmt: currencyFmt,
-                      ),
-                    ),
-                  ),
-
-                  // ── All Expenses header ────────────────────────────────
-                  const SliverToBoxAdapter(
-                    child: SectionHeader(title: 'All Expenses'),
-                  ),
-
-                  // ── Expense list ───────────────────────────────────────
-                  if (expenses.isEmpty)
-                    const SliverToBoxAdapter(
+                  slivers: [
+                    // ── Summary card ───────────────────────────────────────
+                    SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.all(AppSpacing.md),
-                        child: Text(
-                          'No expenses recorded yet.',
-                          style:
-                              TextStyle(color: AppColors.onSurfaceVariant),
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: _SummaryCard(
+                          expenses: expenses,
+                          total: total,
+                          currencyFmt: currencyFmt,
                         ),
                       ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.xs,
-                        AppSpacing.md,
-                        // bottom padding accounts for FAB + footer bar
-                        120,
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
+                    ),
+
+                    // ── All Expenses header ────────────────────────────────
+                    const SliverToBoxAdapter(
+                      child: SectionHeader(title: 'All Expenses'),
+                    ),
+
+                    // ── Expense list ───────────────────────────────────────
+                    if (expenses.isEmpty)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(AppSpacing.md),
+                          child: Text(
+                            'No expenses recorded yet.',
+                            style: TextStyle(color: AppColors.onSurfaceVariant),
+                          ),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.xs,
+                          AppSpacing.md,
+                          // bottom padding accounts for FAB + footer bar
+                          120,
+                        ),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
                             final expense = expenses[index];
                             return Padding(
                               padding: const EdgeInsets.only(
-                                  bottom: AppSpacing.sm),
+                                bottom: AppSpacing.sm,
+                              ),
                               child: Dismissible(
                                 key: ValueKey(expense.id),
                                 direction: DismissDirection.endToStart,
-                                confirmDismiss: (_) =>
-                                    _confirmDelete(expense),
+                                confirmDismiss: (_) => _confirmDelete(expense),
                                 onDismissed: (_) => _delete(expense),
                                 background: Container(
                                   alignment: Alignment.centerRight,
                                   padding: const EdgeInsets.only(
-                                      right: AppSpacing.md),
+                                    right: AppSpacing.md,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppColors.error,
                                     borderRadius: AppRadius.card,
                                   ),
-                                  child: const Icon(Icons.delete_rounded,
-                                      color: Colors.white),
+                                  child: const Icon(
+                                    Icons.delete_rounded,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 child: GestureDetector(
                                   onLongPress: () => context.push(
-                                      AppRoutes.editCropExpense,
-                                      extra: expense),
+                                    AppRoutes.editCropExpense,
+                                    extra: expense,
+                                  ),
                                   child: _ExpenseCard(
                                     expense: expense,
                                     currencyFmt: currencyFmt,
@@ -168,13 +175,11 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
                                 ),
                               ),
                             );
-                          },
-                          childCount: expenses.length,
+                          }, childCount: expenses.length),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
               ),
 
               // ── Fixed total footer ─────────────────────────────────────
@@ -242,8 +247,9 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text(
             'Total Spent',
-            style: tt.labelMedium
-                ?.copyWith(color: AppColors.onPrimary.withAlpha(204)),
+            style: tt.labelMedium?.copyWith(
+              color: AppColors.onPrimary.withAlpha(204),
+            ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
@@ -373,8 +379,7 @@ class _ExpenseCard extends StatelessWidget {
                 children: [
                   Text(
                     expense.description,
-                    style: tt.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -382,9 +387,7 @@ class _ExpenseCard extends StatelessWidget {
                   Text(
                     '${dateFmt.format(expense.date)}'
                     '${expense.supplier != null ? ' · ${expense.supplier}' : ''}',
-                    style: tt.bodySmall?.copyWith(
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -425,9 +428,7 @@ class _TotalFooter extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        border: Border(
-          top: BorderSide(color: cs.outlineVariant),
-        ),
+        border: Border(top: BorderSide(color: cs.outlineVariant)),
         boxShadow: [
           BoxShadow(
             color: cs.shadow.withAlpha(20),
@@ -459,25 +460,25 @@ class _TotalFooter extends StatelessWidget {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 Color _categoryColor(ExpenseCategory cat) => switch (cat) {
-      ExpenseCategory.seed => AppColors.success,
-      ExpenseCategory.fertilizer => const Color(0xFF8BC34A), // lime
-      ExpenseCategory.chemical => AppColors.secondaryDark,
-      ExpenseCategory.fuel => AppColors.warning,
-      ExpenseCategory.labor => AppColors.tertiary,
-      ExpenseCategory.machinery => AppColors.rabbitColor, // purple
-      ExpenseCategory.irrigation => AppColors.tertiaryContainer,
-      ExpenseCategory.transport => AppColors.sheepColor,
-      ExpenseCategory.other => AppColors.onSurfaceVariant,
-    };
+  ExpenseCategory.seed => AppColors.success,
+  ExpenseCategory.fertilizer => const Color(0xFF8BC34A), // lime
+  ExpenseCategory.chemical => AppColors.secondaryDark,
+  ExpenseCategory.fuel => AppColors.warning,
+  ExpenseCategory.labor => AppColors.tertiary,
+  ExpenseCategory.machinery => AppColors.rabbitColor, // purple
+  ExpenseCategory.irrigation => AppColors.tertiaryContainer,
+  ExpenseCategory.transport => AppColors.sheepColor,
+  ExpenseCategory.other => AppColors.onSurfaceVariant,
+};
 
 IconData _categoryIcon(ExpenseCategory cat) => switch (cat) {
-      ExpenseCategory.seed => Icons.grass_rounded,
-      ExpenseCategory.fertilizer => Icons.science_rounded,
-      ExpenseCategory.chemical => Icons.bubble_chart_rounded,
-      ExpenseCategory.fuel => Icons.local_gas_station_rounded,
-      ExpenseCategory.labor => Icons.people_rounded,
-      ExpenseCategory.machinery => Icons.agriculture_rounded,
-      ExpenseCategory.irrigation => Icons.water_rounded,
-      ExpenseCategory.transport => Icons.local_shipping_rounded,
-      ExpenseCategory.other => Icons.more_horiz_rounded,
-    };
+  ExpenseCategory.seed => Icons.grass_rounded,
+  ExpenseCategory.fertilizer => Icons.science_rounded,
+  ExpenseCategory.chemical => Icons.bubble_chart_rounded,
+  ExpenseCategory.fuel => Icons.local_gas_station_rounded,
+  ExpenseCategory.labor => Icons.people_rounded,
+  ExpenseCategory.machinery => Icons.agriculture_rounded,
+  ExpenseCategory.irrigation => Icons.water_rounded,
+  ExpenseCategory.transport => Icons.local_shipping_rounded,
+  ExpenseCategory.other => Icons.more_horiz_rounded,
+};

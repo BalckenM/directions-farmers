@@ -8,19 +8,12 @@ import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../data/events_repository.dart';
+import '../providers/events_providers.dart';
 import '../../../shared/widgets/error_state.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../models/weight_record.dart';
-
-// ── Provider ─────────────────────────────────────────────────────────────────
-
-final weightRecordsProvider =
-    FutureProvider.autoDispose<List<WeightRecord>>((ref) {
-  return ref.watch(eventsRepositoryProvider).getWeightRecords();
-});
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 
@@ -99,8 +92,11 @@ class _WeightTile extends StatelessWidget {
               color: speciesColor.withAlpha(30),
               borderRadius: AppRadius.button,
             ),
-            child: Icon(Icons.monitor_weight_rounded,
-                color: speciesColor, size: 22),
+            child: Icon(
+              Icons.monitor_weight_rounded,
+              color: speciesColor,
+              size: 22,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -115,14 +111,16 @@ class _WeightTile extends StatelessWidget {
                   children: [
                     Text(
                       LivestockConstants.displayName(record.animalType),
-                      style: tt.labelSmall
-                          ?.copyWith(color: cs.onSurfaceVariant),
+                      style: tt.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       record.weighDate,
-                      style: tt.labelSmall
-                          ?.copyWith(color: cs.onSurfaceVariant),
+                      style: tt.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -153,9 +151,7 @@ class _WeightTile extends StatelessWidget {
               if (record.bodyConditionScore != null)
                 Text(
                   'BCS ${record.bodyConditionScore}',
-                  style: tt.labelSmall?.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
+                  style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
             ],
           ),
