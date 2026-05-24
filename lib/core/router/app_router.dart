@@ -53,22 +53,21 @@ import '../../features/cattle/screens/weight_records_screen.dart'
 import '../../features/crop/models/crop_expense.dart';
 import '../../features/crop/models/crop_sale.dart';
 import '../../features/crop/models/crop_season.dart';
+import '../../features/crop/models/disease_detection.dart';
 import '../../features/crop/models/harvest_record.dart';
 import '../../features/crop/models/pest_observation.dart';
 import '../../features/crop/models/planting_plan.dart';
 import '../../features/crop/models/spray_record.dart';
-import '../../features/crop/models/advisor_models.dart';
-import '../../features/crop/models/disease_detection.dart';
 import '../../features/crop/screens/advisor/advisor_chat_screen.dart';
 import '../../features/crop/screens/advisor/crop_advisor_screen.dart';
 import '../../features/crop/screens/advisory/advisory_detail_screen.dart';
 import '../../features/crop/screens/advisory/advisory_hub_screen.dart';
 import '../../features/crop/screens/calendar/planting_calendar_screen.dart';
-import '../../features/crop/screens/disease/crop_scanner_screen.dart';
-import '../../features/crop/screens/disease/disease_result_screen.dart';
 import '../../features/crop/screens/catalog/crop_catalog_screen.dart';
 import '../../features/crop/screens/catalog/crop_detail_screen.dart';
 import '../../features/crop/screens/crop_hub_screen.dart';
+import '../../features/crop/screens/disease/crop_scanner_screen.dart';
+import '../../features/crop/screens/disease/disease_result_screen.dart';
 import '../../features/crop/screens/expenses/add_expense_screen.dart';
 import '../../features/crop/screens/expenses/edit_expense_screen.dart';
 import '../../features/crop/screens/expenses/expense_tracker_screen.dart';
@@ -303,41 +302,41 @@ class _FloatingNavBar extends StatelessWidget {
     final bottomPad = MediaQuery.paddingOf(context).bottom;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, bottomPad > 0 ? bottomPad : 14),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPad > 0 ? bottomPad : 12),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            height: 64,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
               color: isDark
-                  ? cs.surface.withValues(alpha: 0.90)
-                  : cs.surface.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(26),
+                  ? cs.surface.withValues(alpha: 0.88)
+                  : cs.surface.withValues(alpha: 0.96),
+              borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : cs.outlineVariant.withValues(alpha: 0.22),
-                width: 0.75,
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : cs.outlineVariant.withValues(alpha: 0.30),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.09),
-                  blurRadius: 36,
-                  spreadRadius: -6,
-                  offset: const Offset(0, 14),
+                  color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.10),
+                  blurRadius: 32,
+                  spreadRadius: -4,
+                  offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.04),
-                  blurRadius: 6,
+                  color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.04),
+                  blurRadius: 4,
                   offset: const Offset(0, 1),
                 ),
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _NavItem(
                   icon: Icons.home_outlined,
@@ -387,47 +386,71 @@ class _CenterFabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Transform.translate(
-        offset: const Offset(0, -6),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeInOutCubic,
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: selected
-                  ? [const Color(0xFF166534), const Color(0xFF15803D)]
-                  : [const Color(0xFF22C55E), const Color(0xFF16A34A)],
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF16A34A).withValues(
-                  alpha: selected ? 0.22 : 0.42,
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Transform.translate(
+              offset: const Offset(0, -2),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeInOutCubic,
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: selected
+                        ? [const Color(0xFF14532D), const Color(0xFF166534)]
+                        : [const Color(0xFF22C55E), const Color(0xFF15803D)],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(
+                        0xFF16A34A,
+                      ).withValues(alpha: selected ? 0.20 : 0.45),
+                      blurRadius: selected ? 6 : 16,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                blurRadius: selected ? 8 : 18,
-                spreadRadius: 0,
-                offset: const Offset(0, 5),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: Icon(
+                    selected ? Icons.edit_note_rounded : Icons.add_rounded,
+                    key: ValueKey(selected),
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
               ),
-            ],
-          ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, anim) =>
-                ScaleTransition(scale: anim, child: child),
-            child: Icon(
-              selected ? Icons.edit_note_rounded : Icons.add_rounded,
-              key: ValueKey(selected),
-              color: Colors.white,
-              size: 26,
             ),
-          ),
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: selected
+                    ? AppColors.primary
+                    : Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withValues(alpha: 0.60),
+                letterSpacing: -0.1,
+                height: 1.0,
+              ),
+              child: const Text('Record'),
+            ),
+          ],
         ),
       ),
     );
@@ -452,57 +475,53 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 58,
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            // Icon with animated stadium-pill indicator
+            // Animated pill indicator behind icon
             AnimatedContainer(
               duration: const Duration(milliseconds: 230),
               curve: Curves.easeInOutCubic,
-              padding: EdgeInsets.symmetric(
-                horizontal: selected ? 16 : 10,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
                 color: selected
-                    ? AppColors.primary.withValues(alpha: 0.13)
+                    ? AppColors.primary.withValues(alpha: 0.12)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(100),
               ),
-              child: Icon(
-                selected ? filledIcon : icon,
-                size: 22,
-                color: selected
-                    ? AppColors.primary
-                    : cs.onSurfaceVariant.withValues(alpha: 0.70),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: Icon(
+                  selected ? filledIcon : icon,
+                  key: ValueKey(selected),
+                  size: 22,
+                  color: selected
+                      ? AppColors.primary
+                      : cs.onSurfaceVariant.withValues(alpha: 0.60),
+                ),
               ),
             ),
-            // Label collapses to zero height when not selected
-            AnimatedSize(
+            const SizedBox(height: 3),
+            // Label always visible — no height shift on selection
+            AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              child: selected
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 3),
-                      child: Text(
-                        label,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                          letterSpacing: -0.1,
-                          height: 1.0,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected
+                    ? AppColors.primary
+                    : cs.onSurfaceVariant.withValues(alpha: 0.60),
+                letterSpacing: -0.1,
+                height: 1.0,
+              ),
+              child: Text(label, maxLines: 1),
             ),
           ],
         ),
@@ -1596,9 +1615,8 @@ List<RouteBase> _buildRoutes() {
                   routes: [
                     GoRoute(
                       path: 'chat',
-                      builder: (_, state) => AdvisorChatScreen(
-                        payload: state.extra!,
-                      ),
+                      builder: (_, state) =>
+                          AdvisorChatScreen(payload: state.extra!),
                     ),
                   ],
                 ),
@@ -1640,7 +1658,7 @@ List<RouteBase> _buildRoutes() {
             ),
             GoRoute(
               path: 'disputes',
-              builder: (_, __) => const WorkerDisputesScreen(),
+              builder: (_, _) => const WorkerDisputesScreen(),
             ),
             GoRoute(
               path: ':id',

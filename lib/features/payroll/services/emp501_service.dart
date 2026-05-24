@@ -33,6 +33,7 @@ class Emp501EmployeeLine {
   final double annualUif;
   final double annualSdl;
   final double employerEtiCredit;
+
   /// 'IRP5' when PAYE was deducted; 'IT3(a)' when no PAYE deducted.
   final String certificateType;
   final int payslipCount;
@@ -51,12 +52,13 @@ class Emp501Report {
     required this.generatedAt,
   });
 
-  final int taxYear;           // e.g. 2026 (for 2025/2026 year)
-  final String employerRef;    // SARS PAYE reference number
+  final int taxYear; // e.g. 2026 (for 2025/2026 year)
+  final String employerRef; // SARS PAYE reference number
   final String tradingName;
   final DateTime periodStart;
   final DateTime periodEnd;
   final List<Emp501EmployeeLine> lines;
+
   /// Total PAYE already declared on monthly EMP201 returns.
   /// The shortfall = totalCertificatePaye - totalEmp201Paye.
   final double totalEmp201Paye;
@@ -93,7 +95,7 @@ class Emp501Service {
     required double totalEmp201Paye,
   }) {
     final periodStart = DateTime(taxYear - 1, 3, 1);
-    final periodEnd   = DateTime(taxYear, 2, 28);
+    final periodEnd = DateTime(taxYear, 2, 28);
 
     // Group payslips by employee
     final grouped = <String, List<Payslip>>{};
@@ -106,7 +108,7 @@ class Emp501Service {
       final slips = entry.value;
 
       final annualGross = slips.fold(0.0, (s, p) => s + p.grossPay);
-      final annualPaye  = slips.fold(0.0, (s, p) {
+      final annualPaye = slips.fold(0.0, (s, p) {
         final paye = p.deductions
             .where((d) => d.code == 'PAYE')
             .fold(0.0, (ds, d) => ds + d.amount);
@@ -140,8 +142,7 @@ class Emp501Service {
         certificateType: annualPaye > 0 ? 'IRP5' : 'IT3(a)',
         payslipCount: slips.length,
       );
-    }).toList()
-      ..sort((a, b) => a.displayName.compareTo(b.displayName));
+    }).toList()..sort((a, b) => a.displayName.compareTo(b.displayName));
 
     return Emp501Report(
       taxYear: taxYear,
@@ -177,6 +178,5 @@ class Emp501Service {
     return sb.toString();
   }
 
-  static double _r2(double v) =>
-      double.parse(v.toStringAsFixed(2));
+  static double _r2(double v) => double.parse(v.toStringAsFixed(2));
 }

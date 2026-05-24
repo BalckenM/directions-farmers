@@ -132,7 +132,7 @@ class _WorkerDisputesScreenState
                     AppSpacing.md, AppSpacing.md, AppSpacing.md, 96,
                   ),
                   itemCount:        filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, idx) => _DisputeTile(
                     dispute:  filtered[idx],
                     onTap:    () => _showUpdateSheet(context, filtered[idx]),
@@ -584,7 +584,7 @@ class _FileDisputeSheetState extends ConsumerState<_FileDisputeSheet> {
               ),
             ),
             hint:    const Text('Select employee'),
-            value:   _selectedEmployeeId,
+            initialValue:   _selectedEmployeeId,
             items: employees.map((e) {
               return DropdownMenuItem(
                 value: e.id,
@@ -613,7 +613,7 @@ class _FileDisputeSheetState extends ConsumerState<_FileDisputeSheet> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            value: _type,
+            initialValue: _type,
             items: DisputeType.values.map((t) {
               return DropdownMenuItem(value: t, child: Text(t.label));
             }).toList(),

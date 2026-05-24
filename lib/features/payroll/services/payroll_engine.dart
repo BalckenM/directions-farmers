@@ -118,7 +118,8 @@ class SaStatutory {
     final double totalRebate;
     if (age >= 75) {
       threshold = payeThreshold75;
-      totalRebate = payePrimaryRebate + payeSecondaryRebate + payeTertiaryRebate;
+      totalRebate =
+          payePrimaryRebate + payeSecondaryRebate + payeTertiaryRebate;
     } else if (age >= 65) {
       threshold = payeThreshold65;
       totalRebate = payePrimaryRebate + payeSecondaryRebate;
@@ -146,10 +147,11 @@ class SaStatutory {
     DateTime? assessmentDate,
   }) {
     return computeAnnualPaye(
-      monthlyGross * 12,
-      dateOfBirth: dateOfBirth,
-      assessmentDate: assessmentDate,
-    ) / 12;
+          monthlyGross * 12,
+          dateOfBirth: dateOfBirth,
+          assessmentDate: assessmentDate,
+        ) /
+        12;
   }
 
   // ─── BCEA overtime multipliers ──────────────────────────────────────────
@@ -195,8 +197,7 @@ class SaStatutory {
   /// Returns the completed age of a person born on [dob] as of [at].
   static int _ageAt(DateTime dob, DateTime at) {
     int age = at.year - dob.year;
-    if (at.month < dob.month ||
-        (at.month == dob.month && at.day < dob.day)) {
+    if (at.month < dob.month || (at.month == dob.month && at.day < dob.day)) {
       age--;
     }
     return max(0, age.toDouble()).toInt();
@@ -394,9 +395,7 @@ class TerminationCalculator {
   }) {
     if (outstandingLeaveDays <= 0 || monthlyGross <= 0) return 0.0;
     final dailyRate = monthlyGross / 21.75;
-    return double.parse(
-      (dailyRate * outstandingLeaveDays).toStringAsFixed(2),
-    );
+    return double.parse((dailyRate * outstandingLeaveDays).toStringAsFixed(2));
   }
 
   /// BCEA §41: severance pay — 1 week's wages per completed year of service.
@@ -848,7 +847,11 @@ class PayrollEngine {
     }
 
     final grossPay = _round2(
-      basicWage + overtimePay + holidayPay + inKindHousing + inKindFood +
+      basicWage +
+          overtimePay +
+          holidayPay +
+          inKindHousing +
+          inKindFood +
           nightShiftPay,
     );
 

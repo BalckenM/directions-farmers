@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,9 +44,7 @@ class _LoginScreenState extends State<LoginScreen>
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.06),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic),
-    );
+    ).animate(CurvedAnimation(parent: _enterCtrl, curve: Curves.easeOutCubic));
     _enterCtrl.forward();
   }
 
@@ -63,10 +61,9 @@ class _LoginScreenState extends State<LoginScreen>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final container = ProviderScope.containerOf(context);
-    await container.read(authProvider.notifier).signIn(
-          email: _emailCtrl.text.trim(),
-          password: _passwordCtrl.text,
-        );
+    await container
+        .read(authProvider.notifier)
+        .signIn(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
     if (!mounted) return;
     setState(() => _loading = false);
     final authState = container.read(authProvider).value;
@@ -158,10 +155,7 @@ class _LoginScreenState extends State<LoginScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Expanded(
-                      flex: 38,
-                      child: _BrandHero(),
-                    ),
+                    const Expanded(flex: 38, child: _BrandHero()),
                     Expanded(
                       flex: 62,
                       child: _FormCard(
@@ -291,9 +285,7 @@ class _BrandHeroState extends State<_BrandHero>
     return Stack(
       children: [
         // Subtle agricultural field-line background
-        Positioned.fill(
-          child: CustomPaint(painter: _FieldLinePainter()),
-        ),
+        Positioned.fill(child: CustomPaint(painter: _FieldLinePainter())),
 
         // Centred brand content
         Center(
@@ -317,9 +309,9 @@ class _BrandHeroState extends State<_BrandHero>
                       boxShadow: [
                         // Breathing outer glow
                         BoxShadow(
-                          color: const Color(0xFF22C55E).withValues(
-                            alpha: 0.22 + _glowAnim.value * 0.22,
-                          ),
+                          color: const Color(
+                            0xFF22C55E,
+                          ).withValues(alpha: 0.22 + _glowAnim.value * 0.22),
                           blurRadius: 30 + _glowAnim.value * 28,
                           spreadRadius: _glowAnim.value * 8,
                           offset: const Offset(0, 4),
@@ -506,179 +498,183 @@ class _FormCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              // Drag handle
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(top: 12, bottom: 22),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.10)
-                        : Colors.black.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-
-              // Header
-              Text(
-                'Welcome back',
-                style: tt.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.7,
-                  color: isDark ? Colors.white : const Color(0xFF0D1A10),
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Sign in to manage your farm',
-                style: tt.bodyMedium?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Email field
-              FarmTextField(
-                controller: emailCtrl,
-                label: 'Email address',
-                hint: 'you@example.com',
-                prefixIcon: Icon(
-                  Icons.email_outlined,
-                  color: cs.onSurfaceVariant,
-                  size: 20,
-                ),
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Email is required';
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
-                    return 'Enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-
-              // Password field
-              FarmTextField(
-                controller: passwordCtrl,
-                label: 'Password',
-                hint: 'Enter your password',
-                prefixIcon: Icon(
-                  Icons.lock_outline_rounded,
-                  color: cs.onSurfaceVariant,
-                  size: 20,
-                ),
-                textInputAction: TextInputAction.done,
-                obscureText: true,
-                onFieldSubmitted: (_) => onSignIn(),
-                validator: (v) =>
-                    (v == null || v.length < 6) ? 'Minimum 6 characters' : null,
-              ),
-
-              // Forgot password
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => context.push(AppRoutes.forgotPassword),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 8,
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12, bottom: 22),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : Colors.black.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
-              ),
-              const SizedBox(height: 2),
 
-              // Sign in button
-              _SignInButton(isLoading: loading, onPressed: onSignIn),
+                // Header
+                Text(
+                  'Welcome back',
+                  style: tt.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.7,
+                    color: isDark ? Colors.white : const Color(0xFF0D1A10),
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Sign in to manage your farm',
+                  style: tt.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-              const SizedBox(height: 14),
-
-              // ── Dev quick-login panel ─────────────────────────────────
-              if (AppConstants.useMockData) ...[
-                _DevQuickLogin(
-                  onSelect: (email, password) {
-                    emailCtrl.text = email;
-                    passwordCtrl.text = password;
-                    onSignIn();
+                // Email field
+                FarmTextField(
+                  controller: emailCtrl,
+                  label: 'Email address',
+                  hint: 'you@example.com',
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: cs.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email is required';
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
+                      return 'Enter a valid email';
+                    }
+                    return null;
                   },
                 ),
-                const SizedBox(height: 8),
-              ],
+                const SizedBox(height: 10),
 
-              // OR divider
-              Row(
-                children: [
-                  Expanded(
-                    child: Divider(
-                      color: cs.outlineVariant.withValues(alpha: 0.40),
-                    ),
+                // Password field
+                FarmTextField(
+                  controller: passwordCtrl,
+                  label: 'Password',
+                  hint: 'Enter your password',
+                  prefixIcon: Icon(
+                    Icons.lock_outline_rounded,
+                    color: cs.onSurfaceVariant,
+                    size: 20,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      'or continue with',
-                      style: tt.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Divider(
-                      color: cs.outlineVariant.withValues(alpha: 0.40),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
+                  textInputAction: TextInputAction.done,
+                  obscureText: true,
+                  onFieldSubmitted: (_) => onSignIn(),
+                  validator: (v) => (v == null || v.length < 6)
+                      ? 'Minimum 6 characters'
+                      : null,
+                ),
 
-              // Social auth
-              SocialAuthRow(
-                onGoogle: () {},
-                onApple: () {},
-                onFacebook: () {},
-              ),
-
-              const SizedBox(height: 12),
-
-              // Sign-up link
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Don't have an account?",
-                    style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go(AppRoutes.register),
+                // Forgot password
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push(AppRoutes.forgotPassword),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 8,
+                      ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: const Text(
-                      'Sign up',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+                      'Forgot password?',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
+                ),
+                const SizedBox(height: 2),
+
+                // Sign in button
+                _SignInButton(isLoading: loading, onPressed: onSignIn),
+
+                const SizedBox(height: 14),
+
+                // ── Dev quick-login panel ─────────────────────────────────
+                if (AppConstants.useMockData) ...[
+                  _DevQuickLogin(
+                    onSelect: (email, password) {
+                      emailCtrl.text = email;
+                      passwordCtrl.text = password;
+                      onSignIn();
+                    },
+                  ),
+                  const SizedBox(height: 8),
                 ],
-              ),
-            ],
-          ), // end Column
-        ), // end SingleChildScrollView
+
+                // OR divider
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: cs.outlineVariant.withValues(alpha: 0.40),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: Text(
+                        'or continue with',
+                        style: tt.labelSmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: cs.outlineVariant.withValues(alpha: 0.40),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // Social auth
+                SocialAuthRow(
+                  onGoogle: () {},
+                  onApple: () {},
+                  onFacebook: () {},
+                ),
+
+                const SizedBox(height: 12),
+
+                // Sign-up link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Don't have an account?",
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                    TextButton(
+                      onPressed: () => context.go(AppRoutes.register),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Sign up',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ), // end Column
+          ), // end SingleChildScrollView
         ),
       ),
     );
@@ -706,8 +702,11 @@ class _DevQuickLogin extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.developer_mode_rounded,
-                  size: 13, color: Color(0xFF15803D)),
+              const Icon(
+                Icons.developer_mode_rounded,
+                size: 13,
+                color: Color(0xFF15803D),
+              ),
               const SizedBox(width: 5),
               const Text(
                 'DEV · Quick Login',

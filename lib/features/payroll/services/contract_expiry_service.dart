@@ -28,6 +28,7 @@ class ComplianceAlert {
   final String title;
   final String detail;
   final DateTime contractEndDate;
+
   /// Negative when the contract has already expired.
   final int daysUntilExpiry;
 
@@ -69,12 +70,14 @@ class ContractExpiryService {
       if (diff < 0) {
         severity = AlertSeverity.critical;
         title = 'Contract Expired';
-        detail = 'Contract expired ${(-diff)} day${(-diff) == 1 ? '' : 's'} ago '
+        detail =
+            'Contract expired ${(-diff)} day${(-diff) == 1 ? '' : 's'} ago '
             '(${_fmt(end)}). Employee is working without a valid contract.';
       } else if (diff == 0) {
         severity = AlertSeverity.critical;
         title = 'Contract Expires Today';
-        detail = 'Contract expires today (${_fmt(end)}). Renew or terminate immediately.';
+        detail =
+            'Contract expires today (${_fmt(end)}). Renew or terminate immediately.';
       } else if (diff <= 7) {
         severity = AlertSeverity.critical;
         title = 'Contract Expiring in $diff Day${diff == 1 ? '' : 's'}';
@@ -85,15 +88,17 @@ class ContractExpiryService {
         detail = 'Contract expires on ${_fmt(end)}. Schedule renewal.';
       }
 
-      alerts.add(ComplianceAlert(
-        employeeId: emp.id,
-        employeeName: name,
-        severity: severity,
-        title: title,
-        detail: detail,
-        contractEndDate: end,
-        daysUntilExpiry: diff,
-      ));
+      alerts.add(
+        ComplianceAlert(
+          employeeId: emp.id,
+          employeeName: name,
+          severity: severity,
+          title: title,
+          detail: detail,
+          contractEndDate: end,
+          daysUntilExpiry: diff,
+        ),
+      );
     }
 
     // Sort: most urgent first (expired → today → soonest)

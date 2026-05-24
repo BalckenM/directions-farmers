@@ -16,8 +16,7 @@ class PayrollRoleNotifier extends Notifier<PayrollRole> {
   void setRole(PayrollRole role) => state = role;
 }
 
-final payrollRoleProvider =
-    NotifierProvider<PayrollRoleNotifier, PayrollRole>(
+final payrollRoleProvider = NotifierProvider<PayrollRoleNotifier, PayrollRole>(
   PayrollRoleNotifier.new,
 );
 

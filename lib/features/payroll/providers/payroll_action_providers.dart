@@ -60,7 +60,10 @@ class PayRunNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<PayRun?> approvePayRun(String payRunId, {String approverId = 'usr_manager'}) async {
+  Future<PayRun?> approvePayRun(
+    String payRunId, {
+    String approverId = 'usr_manager',
+  }) async {
     state = const AsyncValue.loading();
     try {
       final run = _repo.approvePayRun(payRunId, approverId);
@@ -107,17 +110,19 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final rec = _repo.addAttendanceRecord(AttendanceRecord(
-        id: 'att_${employeeId}_${date.millisecondsSinceEpoch}',
-        employeeId: employeeId,
-        date: date,
-        status: AttendanceStatus.present,
-        clockInTime: clockInTime,
-        recordedByUserId: supervisorId,
-        method: method,
-        notes: notes,
-        createdAt: DateTime.now(),
-      ));
+      final rec = _repo.addAttendanceRecord(
+        AttendanceRecord(
+          id: 'att_${employeeId}_${date.millisecondsSinceEpoch}',
+          employeeId: employeeId,
+          date: date,
+          status: AttendanceStatus.present,
+          clockInTime: clockInTime,
+          recordedByUserId: supervisorId,
+          method: method,
+          notes: notes,
+          createdAt: DateTime.now(),
+        ),
+      );
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return rec;
@@ -137,13 +142,13 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       final repo = ref.read(payrollRepositoryProvider);
-      final all  = repo.getAttendanceRecords();
-      final rec  = all.firstWhere((r) => r.id == attendanceId);
+      final all = repo.getAttendanceRecords();
+      final rec = all.firstWhere((r) => r.id == attendanceId);
       final updated = rec.copyWith(
-        clockOutTime:  clockOutTime,
-        hoursWorked:   hoursWorked,
+        clockOutTime: clockOutTime,
+        hoursWorked: hoursWorked,
         overtimeHours: overtimeHours,
-        notes:         notes ?? rec.notes,
+        notes: notes ?? rec.notes,
       );
       final saved = _repo.updateAttendanceRecord(updated);
       ref.invalidate(payrollRepositoryProvider);
@@ -164,16 +169,18 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final rec = _repo.addAttendanceRecord(AttendanceRecord(
-        id: 'att_${employeeId}_${date.millisecondsSinceEpoch}',
-        employeeId: employeeId,
-        date: date,
-        status: reason,
-        recordedByUserId: supervisorId,
-        method: AttendanceMethod.manual,
-        notes: notes,
-        createdAt: DateTime.now(),
-      ));
+      final rec = _repo.addAttendanceRecord(
+        AttendanceRecord(
+          id: 'att_${employeeId}_${date.millisecondsSinceEpoch}',
+          employeeId: employeeId,
+          date: date,
+          status: reason,
+          recordedByUserId: supervisorId,
+          method: AttendanceMethod.manual,
+          notes: notes,
+          createdAt: DateTime.now(),
+        ),
+      );
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return rec;
@@ -205,7 +212,9 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final attendanceNotifierProvider =
-    NotifierProvider<AttendanceNotifier, AsyncValue<void>>(AttendanceNotifier.new);
+    NotifierProvider<AttendanceNotifier, AsyncValue<void>>(
+      AttendanceNotifier.new,
+    );
 
 // ─── Leave notifier ───────────────────────────────────────────────────────────
 class LeaveNotifier extends Notifier<AsyncValue<void>> {
@@ -224,17 +233,19 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final req = _repo.addLeaveRequest(LeaveRequest(
-        id: 'lr_${employeeId}_${DateTime.now().millisecondsSinceEpoch}',
-        employeeId: employeeId,
-        leaveTypeId: leaveTypeId,
-        startDate: startDate,
-        endDate: endDate,
-        daysRequested: daysRequested,
-        reason: reason,
-        status: LeaveStatus.pending,
-        submittedAt: DateTime.now(),
-      ));
+      final req = _repo.addLeaveRequest(
+        LeaveRequest(
+          id: 'lr_${employeeId}_${DateTime.now().millisecondsSinceEpoch}',
+          employeeId: employeeId,
+          leaveTypeId: leaveTypeId,
+          startDate: startDate,
+          endDate: endDate,
+          daysRequested: daysRequested,
+          reason: reason,
+          status: LeaveStatus.pending,
+          submittedAt: DateTime.now(),
+        ),
+      );
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return req;
@@ -244,7 +255,10 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<LeaveRequest?> approve(String requestId, {String approverId = 'usr_manager'}) async {
+  Future<LeaveRequest?> approve(
+    String requestId, {
+    String approverId = 'usr_manager',
+  }) async {
     state = const AsyncValue.loading();
     try {
       final req = _repo.approveLeaveRequest(requestId, approverId);
@@ -257,7 +271,11 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<LeaveRequest?> reject(String requestId, String reason, {String approverId = 'usr_manager'}) async {
+  Future<LeaveRequest?> reject(
+    String requestId,
+    String reason, {
+    String approverId = 'usr_manager',
+  }) async {
     state = const AsyncValue.loading();
     try {
       final req = _repo.rejectLeaveRequest(requestId, approverId, reason);
@@ -297,8 +315,9 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   }
 }
 
-final leaveNotifierProvider =
-    NotifierProvider<LeaveNotifier, AsyncValue<void>>(LeaveNotifier.new);
+final leaveNotifierProvider = NotifierProvider<LeaveNotifier, AsyncValue<void>>(
+  LeaveNotifier.new,
+);
 
 // ─── Deduction notifier ───────────────────────────────────────────────────────
 class DeductionNotifier extends Notifier<AsyncValue<void>> {
@@ -348,7 +367,9 @@ class DeductionNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final deductionNotifierProvider =
-    NotifierProvider<DeductionNotifier, AsyncValue<void>>(DeductionNotifier.new);
+    NotifierProvider<DeductionNotifier, AsyncValue<void>>(
+      DeductionNotifier.new,
+    );
 
 // ─── Employee notifier ────────────────────────────────────────────────────────
 class EmployeeNotifier extends Notifier<AsyncValue<void>> {
@@ -384,7 +405,10 @@ class EmployeeNotifier extends Notifier<AsyncValue<void>> {
   }
 
   Future<PayrollEmployee?> terminate(
-      String id, DateTime terminationDate, String reason) async {
+    String id,
+    DateTime terminationDate,
+    String reason,
+  ) async {
     state = const AsyncValue.loading();
     try {
       final saved = _repo.terminateEmployee(id, terminationDate, reason);
@@ -549,7 +573,9 @@ class TaskAssignmentNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final taskAssignmentNotifierProvider =
-    NotifierProvider<TaskAssignmentNotifier, AsyncValue<void>>(TaskAssignmentNotifier.new);
+    NotifierProvider<TaskAssignmentNotifier, AsyncValue<void>>(
+      TaskAssignmentNotifier.new,
+    );
 
 // ─── Pay Structure notifier ───────────────────────────────────────────────────
 class PayStructureNotifier extends Notifier<AsyncValue<void>> {
@@ -586,7 +612,9 @@ class PayStructureNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final payStructureNotifierProvider =
-    NotifierProvider<PayStructureNotifier, AsyncValue<void>>(PayStructureNotifier.new);
+    NotifierProvider<PayStructureNotifier, AsyncValue<void>>(
+      PayStructureNotifier.new,
+    );
 
 // ─── Shift / Roster notifier ──────────────────────────────────────────────────
 class ShiftNotifier extends Notifier<AsyncValue<void>> {
@@ -635,8 +663,9 @@ class ShiftNotifier extends Notifier<AsyncValue<void>> {
   }
 }
 
-final shiftNotifierProvider =
-    NotifierProvider<ShiftNotifier, AsyncValue<void>>(ShiftNotifier.new);
+final shiftNotifierProvider = NotifierProvider<ShiftNotifier, AsyncValue<void>>(
+  ShiftNotifier.new,
+);
 
 // ─── Piecework notifier ──────────────────────────────────────────────────────────────
 class PieceworkNotifier extends Notifier<AsyncValue<void>> {
@@ -673,7 +702,9 @@ class PieceworkNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final pieceworkNotifierProvider =
-    NotifierProvider<PieceworkNotifier, AsyncValue<void>>(PieceworkNotifier.new);
+    NotifierProvider<PieceworkNotifier, AsyncValue<void>>(
+      PieceworkNotifier.new,
+    );
 
 // ─── Employer Config notifier ───────────────────────────────────────────────────────
 class EmployerConfigNotifier extends Notifier<AsyncValue<void>> {
@@ -699,7 +730,9 @@ class EmployerConfigNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final employerConfigNotifierProvider =
-    NotifierProvider<EmployerConfigNotifier, AsyncValue<void>>(EmployerConfigNotifier.new);
+    NotifierProvider<EmployerConfigNotifier, AsyncValue<void>>(
+      EmployerConfigNotifier.new,
+    );
 
 // ─── Garnishee Order notifier ────────────────────────────────────────────────────────
 class GarnisheeNotifier extends Notifier<AsyncValue<void>> {
@@ -736,7 +769,9 @@ class GarnisheeNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final garnisheeNotifierProvider =
-    NotifierProvider<GarnisheeNotifier, AsyncValue<void>>(GarnisheeNotifier.new);
+    NotifierProvider<GarnisheeNotifier, AsyncValue<void>>(
+      GarnisheeNotifier.new,
+    );
 
 // ─── Incident notifier ─────────────────────────────────────────────────────────────────
 class IncidentNotifier extends Notifier<AsyncValue<void>> {
@@ -796,7 +831,10 @@ class ComplianceAlertNotifier extends Notifier<AsyncValue<void>> {
   PayrollRepository get _repo => ref.read(payrollRepositoryProvider);
 
   Future<ComplianceAlert?> resolve(
-      String id, String resolvedByUserId, String resolution) async {
+    String id,
+    String resolvedByUserId,
+    String resolution,
+  ) async {
     state = const AsyncValue.loading();
     try {
       final saved = _repo.resolveAlert(id, resolvedByUserId, resolution);
@@ -811,7 +849,9 @@ class ComplianceAlertNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final complianceAlertNotifierProvider =
-    NotifierProvider<ComplianceAlertNotifier, AsyncValue<void>>(ComplianceAlertNotifier.new);
+    NotifierProvider<ComplianceAlertNotifier, AsyncValue<void>>(
+      ComplianceAlertNotifier.new,
+    );
 
 // ─── Communication notifier ──────────────────────────────────────────────────
 class CommunicationNotifier extends Notifier<AsyncValue<void>> {
@@ -849,4 +889,6 @@ class CommunicationNotifier extends Notifier<AsyncValue<void>> {
 }
 
 final communicationNotifierProvider =
-    NotifierProvider<CommunicationNotifier, AsyncValue<void>>(CommunicationNotifier.new);
+    NotifierProvider<CommunicationNotifier, AsyncValue<void>>(
+      CommunicationNotifier.new,
+    );

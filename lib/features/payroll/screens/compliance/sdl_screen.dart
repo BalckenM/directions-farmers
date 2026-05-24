@@ -17,9 +17,13 @@ import '../../models/pay_run.dart';
 import '../../providers/payroll_providers.dart';
 import '../../theme/payroll_tokens.dart';
 
-final _zarD = NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
+final _zarD = NumberFormat.currency(
+  locale: 'en_ZA',
+  symbol: 'R ',
+  decimalDigits: 2,
+);
 
-const double _sdlRate            = 0.01;
+const double _sdlRate = 0.01;
 const double _sdlAnnualThreshold = 500000.0;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,21 +35,24 @@ class SdlScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allPayRuns = ref.watch(allPayRunsProvider);
 
-    final disbursed = allPayRuns
-        .where((r) =>
-            r.status == PayRunStatus.disbursed ||
-            r.status == PayRunStatus.approved ||
-            r.status == PayRunStatus.calculated)
-        .toList()
-      ..sort((a, b) => b.payDate.compareTo(a.payDate));
+    final disbursed =
+        allPayRuns
+            .where(
+              (r) =>
+                  r.status == PayRunStatus.disbursed ||
+                  r.status == PayRunStatus.approved ||
+                  r.status == PayRunStatus.calculated,
+            )
+            .toList()
+          ..sort((a, b) => b.payDate.compareTo(a.payDate));
 
     // Rolling 12-month gross payroll
-    final cutoff      = DateTime.now().subtract(const Duration(days: 365));
+    final cutoff = DateTime.now().subtract(const Duration(days: 365));
     final last12Gross = disbursed
         .where((r) => r.payDate.isAfter(cutoff))
         .fold(0.0, (s, r) => s + r.totalGross);
 
-    final isLiable  = last12Gross > _sdlAnnualThreshold;
+    final isLiable = last12Gross > _sdlAnnualThreshold;
     final annualSdl = isLiable ? last12Gross * _sdlRate : 0.0;
 
     return FarmScaffold(
@@ -56,9 +63,9 @@ class SdlScreen extends ConsumerWidget {
           _StatusHeader(isLiable: isLiable, annualGross: last12Gross),
           const SizedBox(height: 14),
           _MetricsRow(
-            isLiable:    isLiable,
+            isLiable: isLiable,
             annualGross: last12Gross,
-            annualSdl:   annualSdl,
+            annualSdl: annualSdl,
           ),
           const SizedBox(height: 18),
           _PayRunBreakdown(disbursed: disbursed, isLiable: isLiable),
@@ -76,12 +83,12 @@ class SdlScreen extends ConsumerWidget {
 class _StatusHeader extends StatelessWidget {
   const _StatusHeader({required this.isLiable, required this.annualGross});
 
-  final bool   isLiable;
+  final bool isLiable;
   final double annualGross;
 
   @override
   Widget build(BuildContext context) {
-    final tt          = Theme.of(context).textTheme;
+    final tt = Theme.of(context).textTheme;
     final statusColor = isLiable ? PayrollTokens.rose : PayrollTokens.green;
 
     return Container(
@@ -107,7 +114,11 @@ class _StatusHeader extends StatelessWidget {
                   color: Colors.white.withAlpha(22),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.school_outlined, color: Colors.white, size: 24),
+                child: const Icon(
+                  Icons.school_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -147,7 +158,10 @@ class _StatusHeader extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: (annualGross / (_sdlAnnualThreshold * 1.5)).clamp(0.0, 1.0),
+              value: (annualGross / (_sdlAnnualThreshold * 1.5)).clamp(
+                0.0,
+                1.0,
+              ),
               minHeight: 6,
               backgroundColor: Colors.white.withAlpha(30),
               valueColor: AlwaysStoppedAnimation<Color>(
@@ -175,7 +189,7 @@ class _MetricsRow extends StatelessWidget {
     required this.annualSdl,
   });
 
-  final bool   isLiable;
+  final bool isLiable;
   final double annualGross;
   final double annualSdl;
 
@@ -185,28 +199,28 @@ class _MetricsRow extends StatelessWidget {
       children: [
         Expanded(
           child: _MetricCard(
-            icon:        Icons.account_balance_wallet_outlined,
+            icon: Icons.account_balance_wallet_outlined,
             accentColor: PayrollTokens.teal,
-            label:       'Annual Gross',
-            value:       _zarD.format(annualGross),
+            label: 'Annual Gross',
+            value: _zarD.format(annualGross),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _MetricCard(
-            icon:        Icons.percent_rounded,
+            icon: Icons.percent_rounded,
             accentColor: PayrollTokens.indigo,
-            label:       'SDL Rate',
-            value:       '1.0%',
+            label: 'SDL Rate',
+            value: '1.0%',
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _MetricCard(
-            icon:        Icons.payments_outlined,
+            icon: Icons.payments_outlined,
             accentColor: isLiable ? PayrollTokens.rose : PayrollTokens.green,
-            label:       'Annual SDL',
-            value:       isLiable ? _zarD.format(annualSdl) : 'Exempt',
+            label: 'Annual SDL',
+            value: isLiable ? _zarD.format(annualSdl) : 'Exempt',
           ),
         ),
       ],
@@ -223,14 +237,14 @@ class _MetricCard extends StatelessWidget {
   });
 
   final IconData icon;
-  final Color    accentColor;
-  final String   label;
-  final String   value;
+  final Color accentColor;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -240,9 +254,9 @@ class _MetricCard extends StatelessWidget {
         border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(10),
             blurRadius: 6,
-            offset:     const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -250,10 +264,10 @@ class _MetricCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width:  34,
+            width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color:        accentColor.withAlpha(22),
+              color: accentColor.withAlpha(22),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 18, color: accentColor),
@@ -263,10 +277,10 @@ class _MetricCard extends StatelessWidget {
             value,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w800,
-              color:      cs.onSurface,
+              color: cs.onSurface,
             ),
-            maxLines:  1,
-            overflow:  TextOverflow.ellipsis,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
@@ -287,25 +301,25 @@ class _PayRunBreakdown extends StatelessWidget {
   const _PayRunBreakdown({required this.disbursed, required this.isLiable});
 
   final List<PayRun> disbursed;
-  final bool         isLiable;
+  final bool isLiable;
 
   static final _df = DateFormat('dd MMM yy');
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color:        cs.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: cs.outlineVariant),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(10),
             blurRadius: 6,
-            offset:     const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -318,15 +332,15 @@ class _PayRunBreakdown extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width:  34,
+                  width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color:        PayrollTokens.navy.withAlpha(18),
+                    color: PayrollTokens.navy.withAlpha(18),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.receipt_long_outlined,
-                    size:  18,
+                    size: 18,
                     color: PayrollTokens.navy,
                   ),
                 ),
@@ -365,8 +379,8 @@ class _PayRunBreakdown extends StatelessWidget {
                   child: Text(
                     'Period',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:       cs.onSurfaceVariant,
-                      fontWeight:  FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -377,8 +391,8 @@ class _PayRunBreakdown extends StatelessWidget {
                     'Gross',
                     textAlign: TextAlign.right,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:       cs.onSurfaceVariant,
-                      fontWeight:  FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -389,8 +403,8 @@ class _PayRunBreakdown extends StatelessWidget {
                     'SDL (1%)',
                     textAlign: TextAlign.right,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:       cs.onSurfaceVariant,
-                      fontWeight:  FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 0.4,
                     ),
                   ),
@@ -405,24 +419,25 @@ class _PayRunBreakdown extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: EmptyState(
-                icon:     const Icon(Icons.receipt_long_outlined, size: 56),
-                title:    'No pay runs found',
+                icon: const Icon(Icons.receipt_long_outlined, size: 56),
+                title: 'No pay runs found',
                 subtitle: 'Completed pay runs will appear here.',
               ),
             )
           else
             ListView.separated(
               shrinkWrap: true,
-              physics:    const NeverScrollableScrollPhysics(),
-              itemCount:  disbursed.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: disbursed.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) {
-                final r   = disbursed[i];
+                final r = disbursed[i];
                 final sdl = isLiable ? r.totalGross * _sdlRate : 0.0;
                 return _PayRunRow(
-                  period: '${_df.format(r.periodStart)} – ${_df.format(r.periodEnd)}',
-                  gross:  _zarD.format(r.totalGross),
-                  sdl:    sdl > 0 ? _zarD.format(sdl) : '—',
+                  period:
+                      '${_df.format(r.periodStart)} – ${_df.format(r.periodEnd)}',
+                  gross: _zarD.format(r.totalGross),
+                  sdl: sdl > 0 ? _zarD.format(sdl) : '—',
                   liable: isLiable,
                 );
               },
@@ -444,12 +459,12 @@ class _PayRunRow extends StatelessWidget {
   final String period;
   final String gross;
   final String sdl;
-  final bool   liable;
+  final bool liable;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -460,7 +475,7 @@ class _PayRunRow extends StatelessWidget {
             child: Text(
               period,
               style: theme.textTheme.bodySmall?.copyWith(
-                color:      cs.onSurface,
+                color: cs.onSurface,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -481,7 +496,7 @@ class _PayRunRow extends StatelessWidget {
               sdl,
               textAlign: TextAlign.right,
               style: theme.textTheme.bodySmall?.copyWith(
-                color:      liable ? PayrollTokens.rose : cs.onSurfaceVariant,
+                color: liable ? PayrollTokens.rose : cs.onSurfaceVariant,
                 fontWeight: liable ? FontWeight.w700 : FontWeight.normal,
               ),
             ),
@@ -489,7 +504,7 @@ class _PayRunRow extends StatelessWidget {
           const SizedBox(width: 8),
           Icon(
             liable ? Icons.check_circle_outline : Icons.remove_circle_outline,
-            size:  16,
+            size: 16,
             color: liable ? PayrollTokens.rose : PayrollTokens.green,
           ),
         ],
@@ -506,14 +521,14 @@ class _RegulatoryNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        PayrollTokens.sky.withAlpha(12),
+        color: PayrollTokens.sky.withAlpha(12),
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: PayrollTokens.sky.withAlpha(40)),
+        border: Border.all(color: PayrollTokens.sky.withAlpha(40)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,7 +541,7 @@ class _RegulatoryNote extends StatelessWidget {
               'and UIF. Employers with an annual payroll below '
               'R500,000 are fully exempt. Rate: 1% of gross monthly payroll.',
               style: theme.textTheme.bodySmall?.copyWith(
-                color:  cs.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 height: 1.5,
               ),
             ),

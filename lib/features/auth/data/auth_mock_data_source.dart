@@ -406,17 +406,13 @@ class AuthMockDataSource implements AuthDataSource {
 
   /// Merges seed users (read-only) with any persisted registered users.
   Map<String, Map<String, dynamic>> _allUsers() {
-    return {
-      ..._seedUsers,
-      ..._loadRegistry(),
-    };
+    return {..._seedUsers, ..._loadRegistry()};
   }
 
   /// Returns all staff accounts belonging to [farmOwnerId].
   @override
   List<AuthUser> getTeamMembers(String farmOwnerId) {
-    return _allUsers()
-        .values
+    return _allUsers().values
         .map((e) => e['user'] as AuthUser)
         .where((u) => u.farmOwnerId == farmOwnerId)
         .toList();
@@ -438,7 +434,9 @@ class AuthMockDataSource implements AuthDataSource {
     final all = _allUsers();
 
     if (!all.containsKey(normalised)) {
-      throw const MockAuthException('No account found with that email address.');
+      throw const MockAuthException(
+        'No account found with that email address.',
+      );
     }
 
     final record = all[normalised]!;
@@ -474,7 +472,8 @@ class AuthMockDataSource implements AuthDataSource {
 
     if (all.containsKey(normalised)) {
       throw const MockAuthException(
-          'An account with that email already exists. Please sign in.');
+        'An account with that email already exists. Please sign in.',
+      );
     }
 
     final user = AuthUser(

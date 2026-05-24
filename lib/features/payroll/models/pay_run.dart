@@ -1,4 +1,11 @@
-enum PayRunStatus { draft, calculated, pendingApproval, approved, disbursed, cancelled }
+enum PayRunStatus {
+  draft,
+  calculated,
+  pendingApproval,
+  approved,
+  disbursed,
+  cancelled,
+}
 
 // ─── Multi-signatory approval chain ──────────────────────────────────────────
 
@@ -33,22 +40,22 @@ class ApprovalEntry {
   final String? comment;
 
   factory ApprovalEntry.fromJson(Map<String, dynamic> json) => ApprovalEntry(
-        userId: json['userId'] as String,
-        displayName: json['displayName'] as String,
-        role: json['role'] as String,
-        decidedAt: DateTime.parse(json['decidedAt'] as String),
-        approved: json['approved'] as bool,
-        comment: json['comment'] as String?,
-      );
+    userId: json['userId'] as String,
+    displayName: json['displayName'] as String,
+    role: json['role'] as String,
+    decidedAt: DateTime.parse(json['decidedAt'] as String),
+    approved: json['approved'] as bool,
+    comment: json['comment'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'userId': userId,
-        'displayName': displayName,
-        'role': role,
-        'decidedAt': decidedAt.toIso8601String(),
-        'approved': approved,
-        'comment': comment,
-      };
+    'userId': userId,
+    'displayName': displayName,
+    'role': role,
+    'decidedAt': decidedAt.toIso8601String(),
+    'approved': approved,
+    'comment': comment,
+  };
 
   ApprovalEntry copyWith({
     String? userId,
@@ -57,15 +64,14 @@ class ApprovalEntry {
     DateTime? decidedAt,
     bool? approved,
     String? comment,
-  }) =>
-      ApprovalEntry(
-        userId: userId ?? this.userId,
-        displayName: displayName ?? this.displayName,
-        role: role ?? this.role,
-        decidedAt: decidedAt ?? this.decidedAt,
-        approved: approved ?? this.approved,
-        comment: comment ?? this.comment,
-      );
+  }) => ApprovalEntry(
+    userId: userId ?? this.userId,
+    displayName: displayName ?? this.displayName,
+    role: role ?? this.role,
+    decidedAt: decidedAt ?? this.decidedAt,
+    approved: approved ?? this.approved,
+    comment: comment ?? this.comment,
+  );
 }
 
 class PayslipLineItem {
@@ -85,7 +91,8 @@ class PayslipLineItem {
   final double amount;
   final bool isStatutory;
 
-  factory PayslipLineItem.fromJson(Map<String, dynamic> json) => PayslipLineItem(
+  factory PayslipLineItem.fromJson(Map<String, dynamic> json) =>
+      PayslipLineItem(
         code: json['code'] as String,
         description: json['description'] as String,
         quantity: (json['quantity'] as num).toDouble(),
@@ -95,13 +102,13 @@ class PayslipLineItem {
       );
 
   Map<String, dynamic> toJson() => {
-        'code': code,
-        'description': description,
-        'quantity': quantity,
-        'rate': rate,
-        'amount': amount,
-        'isStatutory': isStatutory,
-      };
+    'code': code,
+    'description': description,
+    'quantity': quantity,
+    'rate': rate,
+    'amount': amount,
+    'isStatutory': isStatutory,
+  };
 }
 
 class PayRun {
@@ -147,14 +154,19 @@ class PayRun {
   final String? notes;
   final List<String> complianceAlertIds;
   final List<PayslipLineItem> lineItems;
+
   /// Employer-only SDL levy for this pay run period (1% of gross if annual payroll > R500k).
   final double sdlContribution;
+
   /// Total ETI credit reducing employer PAYE liability this period.
   final double etiCredit;
+
   /// Total COIDA assessment contribution across all employees this period.
   final double totalCoidaContribution;
+
   /// Ordered list of approval/rejection decisions.
   final List<ApprovalEntry> approvalChain;
+
   /// Number of distinct approvers required before the pay run may be disbursed.
   /// Default 1; set to 2 for farms requiring dual-signatory (e.g. owner + manager).
   final int requiredApprovers;
@@ -170,63 +182,69 @@ class PayRun {
       status == PayRunStatus.draft || status == PayRunStatus.calculated;
 
   factory PayRun.fromJson(Map<String, dynamic> json) => PayRun(
-        id: json['id'] as String,
-        payGroupId: json['payGroupId'] as String,
-        periodStart: DateTime.parse(json['periodStart'] as String),
-        periodEnd: DateTime.parse(json['periodEnd'] as String),
-        payDate: DateTime.parse(json['payDate'] as String),
-        status: PayRunStatus.values.byName(json['status'] as String),
-        totalGross: (json['totalGross'] as num).toDouble(),
-        totalDeductions: (json['totalDeductions'] as num).toDouble(),
-        totalNet: (json['totalNet'] as num).toDouble(),
-        employeeCount: json['employeeCount'] as int,
-        approvedByUserId: json['approvedByUserId'] as String?,
-        approvedAt: json['approvedAt'] != null ? DateTime.parse(json['approvedAt'] as String) : null,
-        disbursedAt: json['disbursedAt'] != null ? DateTime.parse(json['disbursedAt'] as String) : null,
-        notes: json['notes'] as String?,
-        complianceAlertIds: (json['complianceAlertIds'] as List<dynamic>)
-            .map((e) => e as String)
-            .toList(),
-        lineItems: (json['lineItems'] as List<dynamic>)
-            .map((e) => PayslipLineItem.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        sdlContribution: (json['sdlContribution'] as num?)?.toDouble() ?? 0.0,
-        etiCredit: (json['etiCredit'] as num?)?.toDouble() ?? 0.0,
-        totalCoidaContribution: (json['totalCoidaContribution'] as num?)?.toDouble() ?? 0.0,
-        approvalChain: (json['approvalChain'] as List<dynamic>?)
-                ?.map((e) => ApprovalEntry.fromJson(e as Map<String, dynamic>))
-                .toList() ??
-            const [],
-        requiredApprovers: json['requiredApprovers'] as int? ?? 1,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        updatedAt: DateTime.parse(json['updatedAt'] as String),
-      );
+    id: json['id'] as String,
+    payGroupId: json['payGroupId'] as String,
+    periodStart: DateTime.parse(json['periodStart'] as String),
+    periodEnd: DateTime.parse(json['periodEnd'] as String),
+    payDate: DateTime.parse(json['payDate'] as String),
+    status: PayRunStatus.values.byName(json['status'] as String),
+    totalGross: (json['totalGross'] as num).toDouble(),
+    totalDeductions: (json['totalDeductions'] as num).toDouble(),
+    totalNet: (json['totalNet'] as num).toDouble(),
+    employeeCount: json['employeeCount'] as int,
+    approvedByUserId: json['approvedByUserId'] as String?,
+    approvedAt: json['approvedAt'] != null
+        ? DateTime.parse(json['approvedAt'] as String)
+        : null,
+    disbursedAt: json['disbursedAt'] != null
+        ? DateTime.parse(json['disbursedAt'] as String)
+        : null,
+    notes: json['notes'] as String?,
+    complianceAlertIds: (json['complianceAlertIds'] as List<dynamic>)
+        .map((e) => e as String)
+        .toList(),
+    lineItems: (json['lineItems'] as List<dynamic>)
+        .map((e) => PayslipLineItem.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    sdlContribution: (json['sdlContribution'] as num?)?.toDouble() ?? 0.0,
+    etiCredit: (json['etiCredit'] as num?)?.toDouble() ?? 0.0,
+    totalCoidaContribution:
+        (json['totalCoidaContribution'] as num?)?.toDouble() ?? 0.0,
+    approvalChain:
+        (json['approvalChain'] as List<dynamic>?)
+            ?.map((e) => ApprovalEntry.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        const [],
+    requiredApprovers: json['requiredApprovers'] as int? ?? 1,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    updatedAt: DateTime.parse(json['updatedAt'] as String),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'payGroupId': payGroupId,
-        'periodStart': periodStart.toIso8601String(),
-        'periodEnd': periodEnd.toIso8601String(),
-        'payDate': payDate.toIso8601String(),
-        'status': status.name,
-        'totalGross': totalGross,
-        'totalDeductions': totalDeductions,
-        'totalNet': totalNet,
-        'employeeCount': employeeCount,
-        'approvedByUserId': approvedByUserId,
-        'approvedAt': approvedAt?.toIso8601String(),
-        'disbursedAt': disbursedAt?.toIso8601String(),
-        'notes': notes,
-        'complianceAlertIds': complianceAlertIds,
-        'lineItems': lineItems.map((e) => e.toJson()).toList(),
-        'sdlContribution': sdlContribution,
-        'etiCredit': etiCredit,
-        'totalCoidaContribution': totalCoidaContribution,
-        'approvalChain': approvalChain.map((e) => e.toJson()).toList(),
-        'requiredApprovers': requiredApprovers,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-      };
+    'id': id,
+    'payGroupId': payGroupId,
+    'periodStart': periodStart.toIso8601String(),
+    'periodEnd': periodEnd.toIso8601String(),
+    'payDate': payDate.toIso8601String(),
+    'status': status.name,
+    'totalGross': totalGross,
+    'totalDeductions': totalDeductions,
+    'totalNet': totalNet,
+    'employeeCount': employeeCount,
+    'approvedByUserId': approvedByUserId,
+    'approvedAt': approvedAt?.toIso8601String(),
+    'disbursedAt': disbursedAt?.toIso8601String(),
+    'notes': notes,
+    'complianceAlertIds': complianceAlertIds,
+    'lineItems': lineItems.map((e) => e.toJson()).toList(),
+    'sdlContribution': sdlContribution,
+    'etiCredit': etiCredit,
+    'totalCoidaContribution': totalCoidaContribution,
+    'approvalChain': approvalChain.map((e) => e.toJson()).toList(),
+    'requiredApprovers': requiredApprovers,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
 
   PayRun copyWith({
     String? id,
@@ -272,7 +290,8 @@ class PayRun {
       lineItems: lineItems ?? this.lineItems,
       sdlContribution: sdlContribution ?? this.sdlContribution,
       etiCredit: etiCredit ?? this.etiCredit,
-      totalCoidaContribution: totalCoidaContribution ?? this.totalCoidaContribution,
+      totalCoidaContribution:
+          totalCoidaContribution ?? this.totalCoidaContribution,
       approvalChain: approvalChain ?? this.approvalChain,
       requiredApprovers: requiredApprovers ?? this.requiredApprovers,
       createdAt: createdAt ?? this.createdAt,

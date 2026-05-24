@@ -9,13 +9,13 @@ class SaPublicHolidays {
   // ─── Fixed holidays (month, day) ─────────────────────────────────────────
 
   static const List<(int month, int day, String name)> _fixed = [
-    (1,  1,  'New Year\'s Day'),
-    (3,  21, 'Human Rights Day'),
-    (4,  27, 'Freedom Day'),
-    (5,  1,  'Workers\' Day'),
-    (6,  16, 'Youth Day'),
-    (8,  9,  'National Women\'s Day'),
-    (9,  24, 'Heritage Day'),
+    (1, 1, 'New Year\'s Day'),
+    (3, 21, 'Human Rights Day'),
+    (4, 27, 'Freedom Day'),
+    (5, 1, 'Workers\' Day'),
+    (6, 16, 'Youth Day'),
+    (8, 9, 'National Women\'s Day'),
+    (9, 24, 'Heritage Day'),
     (12, 16, 'Day of Reconciliation'),
     (12, 25, 'Christmas Day'),
     (12, 26, 'Day of Goodwill'),
@@ -62,7 +62,7 @@ class SaPublicHolidays {
     // Easter-relative
     final easter = easterSunday(year);
     holidays.add(easter.subtract(const Duration(days: 2))); // Good Friday
-    holidays.add(easter.add(const Duration(days: 1)));       // Family Day
+    holidays.add(easter.add(const Duration(days: 1))); // Family Day
 
     holidays.sort();
     return holidays;
@@ -93,8 +93,7 @@ class SaPublicHolidays {
   }
 
   /// Returns true if [date] is a SA public holiday (observed).
-  static bool isPublicHoliday(DateTime date) =>
-      nameFor(date) != null;
+  static bool isPublicHoliday(DateTime date) => nameFor(date) != null;
 
   /// Returns the number of public holidays within [start]..[end] (inclusive).
   static int countHolidaysInRange(DateTime start, DateTime end) {

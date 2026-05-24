@@ -25,9 +25,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     final ds = ref.read(authDataSourceProvider);
     final user = ds.restoreSession();
     if (user != null) {
-      ref
+      // Defer setRole past the current build frame — Riverpod 3.x forbids
+      // modifying another provider synchronously during initialization.
+      Future.microtask(() => ref
           .read(userRoleProvider.notifier)
-          .setRole(UserRoleX.fromString(user.role));
+          .setRole(UserRoleX.fromString(user.role)));
       return AuthAuthenticated(
         user: user,
         accessToken: 'mock_token_${user.id}',

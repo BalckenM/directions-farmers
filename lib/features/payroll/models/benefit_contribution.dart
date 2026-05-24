@@ -20,27 +20,27 @@ enum BenefitType {
 extension BenefitTypeX on BenefitType {
   /// Short display label.
   String get label => switch (this) {
-        BenefitType.pension          => 'Pension Fund',
-        BenefitType.provident        => 'Provident Fund',
-        BenefitType.medicalAid       => 'Medical Aid',
-        BenefitType.retirementAnnuity => 'Retirement Annuity',
-      };
+    BenefitType.pension => 'Pension Fund',
+    BenefitType.provident => 'Provident Fund',
+    BenefitType.medicalAid => 'Medical Aid',
+    BenefitType.retirementAnnuity => 'Retirement Annuity',
+  };
 
   /// SARS IRP5 deduction code.
   String get sarsCode => switch (this) {
-        BenefitType.pension           => '4001',
-        BenefitType.provident         => '4003',
-        BenefitType.medicalAid        => '4005',
-        BenefitType.retirementAnnuity => '4006',
-      };
+    BenefitType.pension => '4001',
+    BenefitType.provident => '4003',
+    BenefitType.medicalAid => '4005',
+    BenefitType.retirementAnnuity => '4006',
+  };
 
   /// Payslip deduction line code (used as [PayslipDeductionLine.code]).
   String get payslipCode => switch (this) {
-        BenefitType.pension           => 'PENSION_EE',
-        BenefitType.provident         => 'PROVIDENT_EE',
-        BenefitType.medicalAid        => 'MEDICAL_AID_EE',
-        BenefitType.retirementAnnuity => 'RA_EE',
-      };
+    BenefitType.pension => 'PENSION_EE',
+    BenefitType.provident => 'PROVIDENT_EE',
+    BenefitType.medicalAid => 'MEDICAL_AID_EE',
+    BenefitType.retirementAnnuity => 'RA_EE',
+  };
 }
 
 // ─── Contribution model ───────────────────────────────────────────────────────
@@ -96,18 +96,17 @@ class BenefitContribution {
     DateTime? effectiveTo,
     String? fundName,
     String? memberNumber,
-  }) =>
-      BenefitContribution(
-        id: id ?? this.id,
-        employeeId: employeeId ?? this.employeeId,
-        type: type ?? this.type,
-        employeeAmount: employeeAmount ?? this.employeeAmount,
-        employerAmount: employerAmount ?? this.employerAmount,
-        effectiveFrom: effectiveFrom ?? this.effectiveFrom,
-        effectiveTo: effectiveTo ?? this.effectiveTo,
-        fundName: fundName ?? this.fundName,
-        memberNumber: memberNumber ?? this.memberNumber,
-      );
+  }) => BenefitContribution(
+    id: id ?? this.id,
+    employeeId: employeeId ?? this.employeeId,
+    type: type ?? this.type,
+    employeeAmount: employeeAmount ?? this.employeeAmount,
+    employerAmount: employerAmount ?? this.employerAmount,
+    effectiveFrom: effectiveFrom ?? this.effectiveFrom,
+    effectiveTo: effectiveTo ?? this.effectiveTo,
+    fundName: fundName ?? this.fundName,
+    memberNumber: memberNumber ?? this.memberNumber,
+  );
 
   factory BenefitContribution.fromJson(Map<String, dynamic> json) =>
       BenefitContribution(
@@ -125,14 +124,14 @@ class BenefitContribution {
       );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'employeeId': employeeId,
-        'type': type.name,
-        'employeeAmount': employeeAmount,
-        'employerAmount': employerAmount,
-        'effectiveFrom': effectiveFrom.toIso8601String(),
-        'effectiveTo': effectiveTo?.toIso8601String(),
-        'fundName': fundName,
-        'memberNumber': memberNumber,
-      };
+    'id': id,
+    'employeeId': employeeId,
+    'type': type.name,
+    'employeeAmount': employeeAmount,
+    'employerAmount': employerAmount,
+    'effectiveFrom': effectiveFrom.toIso8601String(),
+    'effectiveTo': effectiveTo?.toIso8601String(),
+    'fundName': fundName,
+    'memberNumber': memberNumber,
+  };
 }

@@ -545,7 +545,7 @@ class _CertificateList extends StatelessWidget {
               shrinkWrap: true,
               physics:    const NeverScrollableScrollPhysics(),
               itemCount:  report.lines.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) => _CertificateRow(line: report.lines[i]),
             ),
         ],

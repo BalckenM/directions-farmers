@@ -661,4 +661,3 @@ class _AlertCard extends ConsumerWidget {
     );
   }
 }
-

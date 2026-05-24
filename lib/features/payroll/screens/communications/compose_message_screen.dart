@@ -532,4 +532,3 @@ class _LabeledDropdown<T> extends StatelessWidget {
     );
   }
 }
-

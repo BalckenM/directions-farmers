@@ -97,15 +97,19 @@ class DisputeNotifier extends Notifier<List<WorkerDispute>> {
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-final disputeProvider =
-    NotifierProvider<DisputeNotifier, List<WorkerDispute>>(
+final disputeProvider = NotifierProvider<DisputeNotifier, List<WorkerDispute>>(
   DisputeNotifier.new,
 );
 
 /// Convenience: disputes for a specific employee (family provider).
-final employeeDisputesProvider =
-    Provider.family<List<WorkerDispute>, String>((ref, employeeId) {
-  return ref.watch(disputeProvider).where((d) => d.employeeId == employeeId).toList();
+final employeeDisputesProvider = Provider.family<List<WorkerDispute>, String>((
+  ref,
+  employeeId,
+) {
+  return ref
+      .watch(disputeProvider)
+      .where((d) => d.employeeId == employeeId)
+      .toList();
 });
 
 /// All open / under-review disputes (resolver queue).

@@ -25,12 +25,13 @@ class AttendanceRecord {
   final String employeeId;
   final DateTime date;
   final AttendanceStatus status;
-  final String? clockInTime;   // 'HH:mm'
-  final String? clockOutTime;  // 'HH:mm'
+  final String? clockInTime; // 'HH:mm'
+  final String? clockOutTime; // 'HH:mm'
   final String recordedByUserId;
   final AttendanceMethod method;
   final double? hoursWorked;
   final double? overtimeHours;
+
   /// Hours worked between 18:00 and 06:00 — attracts BCEA §17 night-shift premium (10%).
   final double? nightShiftHours;
   final String? shiftId;
@@ -38,7 +39,8 @@ class AttendanceRecord {
   final String? notes;
   final DateTime createdAt;
 
-  bool get isPresent => status == AttendanceStatus.present ||
+  bool get isPresent =>
+      status == AttendanceStatus.present ||
       status == AttendanceStatus.late ||
       status == AttendanceStatus.halfDay;
 

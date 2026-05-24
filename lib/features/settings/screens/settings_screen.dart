@@ -1,8 +1,10 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -66,7 +68,8 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.tertiary,
                       label: 'Breed Registry',
                       subtitle: 'Registered breeds and standards',
-                      onTap: () => context.push(AppRoutes.settingsBreedRegistry),
+                      onTap: () =>
+                          context.push(AppRoutes.settingsBreedRegistry),
                     ),
                   ],
                 ),
@@ -141,7 +144,8 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.info,
                       label: 'Regulatory Reports',
                       subtitle: 'Compliance documentation',
-                      onTap: () => context.push(AppRoutes.settingsRegulatoryReports),
+                      onTap: () =>
+                          context.push(AppRoutes.settingsRegulatoryReports),
                     ),
                   ],
                 ),
@@ -252,7 +256,6 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
-
 }
 
 // ── Farm profile header ───────────────────────────────────────────────────────
@@ -287,8 +290,10 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
             if (ref.read(profileImageProvider) != null)
               ListTile(
                 leading: const Icon(Icons.delete_rounded, color: Colors.red),
-                title: const Text('Remove photo',
-                    style: TextStyle(color: Colors.red)),
+                title: const Text(
+                  'Remove photo',
+                  style: TextStyle(color: Colors.red),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   ref.read(profileImageProvider.notifier).clearImage();
@@ -372,8 +377,7 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                              color: cs.surface, width: 2),
+                          border: Border.all(color: cs.surface, width: 2),
                         ),
                         child: const Icon(
                           Icons.camera_alt_rounded,
@@ -400,9 +404,7 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
                     const SizedBox(height: 2),
                     Text(
                       location,
-                      style: tt.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                     const SizedBox(height: 6),
                     _ProBadge(),
@@ -426,11 +428,7 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
                 label: 'Animals',
               ),
               Container(width: 1, height: 32, color: cs.outlineVariant),
-              _StatPill(
-                icon: Icons.group_rounded,
-                value: '8',
-                label: 'Team',
-              ),
+              _StatPill(icon: Icons.group_rounded, value: '8', label: 'Team'),
               Container(width: 1, height: 32, color: cs.outlineVariant),
               _StatPill(
                 icon: Icons.landscape_rounded,
@@ -464,16 +462,15 @@ class _ProBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_rounded,
-              color: AppColors.secondary, size: 12),
+          const Icon(Icons.star_rounded, color: AppColors.secondary, size: 12),
           const SizedBox(width: 3),
           Text(
             'Pro Plan',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                ),
+              color: AppColors.secondary,
+              fontWeight: FontWeight.w700,
+              fontSize: 10,
+            ),
           ),
         ],
       ),
@@ -586,8 +583,7 @@ class _QuickBtn extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppRadius.card,
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           decoration: BoxDecoration(
             color: color.withAlpha(14),
             borderRadius: AppRadius.card,
@@ -654,16 +650,17 @@ class _SettingsSection extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-              for (int i = 0; i < items.length; i++) ...[
-                items[i],
-                if (i < items.length - 1)
-                  Divider(
-                    height: 1,
-                    indent: AppSpacing.pagePaddingHorizontal + 40 + AppSpacing.md,
-                    color: cs.outlineVariant,
-                  ),
+                for (int i = 0; i < items.length; i++) ...[
+                  items[i],
+                  if (i < items.length - 1)
+                    Divider(
+                      height: 1,
+                      indent:
+                          AppSpacing.pagePaddingHorizontal + 40 + AppSpacing.md,
+                      color: cs.outlineVariant,
+                    ),
+                ],
               ],
-            ],
             ),
           ),
         ),
