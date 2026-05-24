@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -9,10 +8,10 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../providers/auth_provider.dart';
 
-/// Shown on cold start for ~1.8 s, then routes based on auth state.
-/// If logged in  → Dashboard
-/// If not logged in + never seen intro → IntroScreen
-/// If not logged in + seen intro       → Login
+/// Cold-start splash shown for ~1.8 s, then routes based on auth state.
+/// • Authenticated        → Dashboard
+/// • New user (no intro)  → IntroScreen
+/// • Returning user       → Login
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -22,47 +21,62 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _animCtrl;
-  late final AnimationController _orbitCtrl;
-  late final Animation<double> _scaleAnim;
-  late final Animation<double> _fadeAnim;
-  late final Animation<double> _taglineAnim;
+  late final AnimationController _logoCtrl;
+  late final AnimationController _pulseCtrl;
+  late final AnimationController _textCtrl;
+  late final AnimationController _progressCtrl;
+
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+  late final Animation<double> _textOpacity;
+  late final Animation<Offset> _textSlide;
+
   Timer? _navTimer;
 
   @override
   void initState() {
     super.initState();
-    _animCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-    _orbitCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
 
-    _scaleAnim = Tween<double>(begin: 0.65, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animCtrl,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
-      ),
+    _logoCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
     );
-    _fadeAnim = CurvedAnimation(
-      parent: _animCtrl,
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    )..repeat();
+    _textCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _progressCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
+
+    _logoScale = Tween<double>(begin: 0.45, end: 1.0).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOutBack),
+    );
+    _logoOpacity = CurvedAnimation(
+      parent: _logoCtrl,
       curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
     );
-    _taglineAnim = CurvedAnimation(
-      parent: _animCtrl,
-      curve: const Interval(0.45, 1.0, curve: Curves.easeOut),
-    );
+    _textOpacity = CurvedAnimation(parent: _textCtrl, curve: Curves.easeOut);
+    _textSlide = Tween<Offset>(
+      begin: const Offset(0, 0.25),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _textCtrl, curve: Curves.easeOutCubic));
 
-    _animCtrl.forward();
+    _logoCtrl.forward().then((_) {
+      _textCtrl.forward();
+      _progressCtrl.forward();
+    });
 
-    final delay = kIsWeb ? Duration.zero : const Duration(milliseconds: 1800);
-    _navTimer = Timer(delay, _navigateAfterSplash);
+    final delay = kIsWeb ? Duration.zero : const Duration(milliseconds: 1900);
+    _navTimer = Timer(delay, _navigate);
   }
 
-  Future<void> _navigateAfterSplash() async {
+  Future<void> _navigate() async {
     if (!mounted) return;
     final container = ProviderScope.containerOf(context);
     final authState = await container.read(authProvider.future);
@@ -78,175 +92,159 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _navTimer?.cancel();
-    _animCtrl.dispose();
-    _orbitCtrl.dispose();
+    _logoCtrl.dispose();
+    _pulseCtrl.dispose();
+    _textCtrl.dispose();
+    _progressCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
+    final botPad = MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1B5E20),
+      backgroundColor: const Color(0xFF060F08),
       body: Stack(
         children: [
-          // ── Gradient background ─────────────────────────────────────────────
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1B5E20),
-                  Color(0xFF2E7D32),
-                  Color(0xFF1565C0),
-                ],
-                stops: [0.0, 0.6, 1.0],
+          // ── Radial gradient background ─────────────────────────────────────
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.1,
+                  colors: [Color(0xFF0F2D1A), Color(0xFF060F08)],
+                  stops: [0.0, 1.0],
+                ),
               ),
             ),
           ),
-          // ── Orbiting decorative ring ────────────────────────────────────────
+
+          // ── Pulsing rings ─────────────────────────────────────────────────
           Positioned.fill(
             child: AnimatedBuilder(
-              animation: _orbitCtrl,
-              builder: (_, _) {
-                return CustomPaint(
-                  painter: _OrbitPainter(
-                    progress: _orbitCtrl.value,
-                    color: Colors.white.withAlpha(16),
-                    radius: size.width * 0.42,
-                  ),
-                );
-              },
-            ),
-          ),
-          // ── Decor circles ───────────────────────────────────────────────────
-          Positioned(
-            top: -size.height * 0.1,
-            right: -size.width * 0.15,
-            child: Container(
-              width: size.width * 0.65,
-              height: size.width * 0.65,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withAlpha(10),
+              animation: _pulseCtrl,
+              builder: (_, _) => CustomPaint(
+                painter: _PulseRingPainter(_pulseCtrl.value),
               ),
             ),
           ),
+
+          // ── Decorative corner glow ─────────────────────────────────────────
           Positioned(
-            bottom: -size.height * 0.05,
-            left: -size.width * 0.2,
+            top: -100,
+            right: -100,
             child: Container(
-              width: size.width * 0.55,
-              height: size.width * 0.55,
+              width: 300,
+              height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF1565C0).withAlpha(25),
-              ),
-            ),
-          ),
-          // ── Main content ────────────────────────────────────────────────────
-          Center(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: ScaleTransition(
-                scale: _scaleAnim,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Icon with glow ring
-                    Container(
-                      width: 112,
-                      height: 112,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withAlpha(18),
-                        border: Border.all(
-                          color: const Color(0xFF81C784).withAlpha(100),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF81C784).withAlpha(80),
-                            blurRadius: 40,
-                            spreadRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.agriculture_rounded,
-                        size: 60,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    // Title
-                    const Text(
-                      '4Directions',
-                      style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
-                        color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    // Animated tagline
-                    FadeTransition(
-                      opacity: _taglineAnim,
-                      child: SlideTransition(
-                        position:
-                            Tween<Offset>(
-                              begin: const Offset(0, 0.4),
-                              end: Offset.zero,
-                            ).animate(
-                              CurvedAnimation(
-                                parent: _animCtrl,
-                                curve: const Interval(
-                                  0.45,
-                                  1.0,
-                                  curve: Curves.easeOut,
-                                ),
-                              ),
-                            ),
-                        child: Text(
-                          'Farm Management',
-                          style: TextStyle(
-                            color: const Color(0xFF81C784).withAlpha(220),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 2.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 64),
-                    // Dots loader
-                    _DotsLoader(color: Colors.white.withAlpha(160)),
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF22C55E).withValues(alpha: 0.07),
+                    Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-          // ── Bottom version tag ──────────────────────────────────────────────
           Positioned(
-            bottom: 32,
-            left: 0,
-            right: 0,
-            child: FadeTransition(
-              opacity: _taglineAnim,
-              child: Text(
-                'Powered by 4Directions',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withAlpha(80),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.5,
+            bottom: -80,
+            left: -80,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF16A34A).withValues(alpha: 0.06),
+                    Colors.transparent,
+                  ],
                 ),
               ),
+            ),
+          ),
+
+          // ── Main content ──────────────────────────────────────────────────
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Logo badge
+                FadeTransition(
+                  opacity: _logoOpacity,
+                  child: ScaleTransition(
+                    scale: _logoScale,
+                    child: _LogoBadge(),
+                  ),
+                ),
+                const SizedBox(height: 36),
+
+                // Brand name + tagline
+                FadeTransition(
+                  opacity: _textOpacity,
+                  child: SlideTransition(
+                    position: _textSlide,
+                    child: const Column(
+                      children: [
+                        Text(
+                          '4Directions',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 38,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1.4,
+                            height: 1.0,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        _TaglinePill(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Bottom — progress + credit ────────────────────────────────────
+          Positioned(
+            bottom: botPad + 28,
+            left: 44,
+            right: 44,
+            child: AnimatedBuilder(
+              animation: _progressCtrl,
+              builder: (_, _) {
+                return Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: _progressCtrl.value,
+                        minHeight: 2,
+                        backgroundColor:
+                            Colors.white.withValues(alpha: 0.07),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF4ADE80),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Powered by 4Directions',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -255,100 +253,102 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-// ── Dots loader ───────────────────────────────────────────────────────────────
+// ── Logo badge ─────────────────────────────────────────────────────────────────
 
-class _DotsLoader extends StatefulWidget {
-  const _DotsLoader({required this.color});
-  final Color color;
-
-  @override
-  State<_DotsLoader> createState() => _DotsLoaderState();
-}
-
-class _DotsLoaderState extends State<_DotsLoader>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+class _LogoBadge extends StatelessWidget {
+  const _LogoBadge();
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, _) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(3, (i) {
-            final delay = i / 3.0;
-            final value = math
-                .sin((_ctrl.value - delay) * 2 * math.pi)
-                .clamp(-1.0, 1.0);
-            final scale = 0.5 + (value + 1) * 0.25;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Transform.scale(
-                scale: scale,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: widget.color,
-                  ),
-                ),
-              ),
-            );
-          }),
-        );
-      },
+    return Container(
+      width: 104,
+      height: 104,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4ADE80), Color(0xFF15803D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF22C55E).withValues(alpha: 0.30),
+            blurRadius: 60,
+            spreadRadius: 12,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.40),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.agriculture_rounded,
+        size: 54,
+        color: Colors.white,
+      ),
     );
   }
 }
 
-// ── Orbit painter ─────────────────────────────────────────────────────────────
+// ── Tagline pill ───────────────────────────────────────────────────────────────
 
-class _OrbitPainter extends CustomPainter {
-  _OrbitPainter({
-    required this.progress,
-    required this.color,
-    required this.radius,
-  });
+class _TaglinePill extends StatelessWidget {
+  const _TaglinePill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF22C55E).withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color: const Color(0xFF4ADE80).withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        'SMART FARM PLATFORM',
+        style: TextStyle(
+          color: const Color(0xFF86EFAC).withValues(alpha: 0.90),
+          fontSize: 10.5,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 2.8,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Pulse ring painter ─────────────────────────────────────────────────────────
+
+class _PulseRingPainter extends CustomPainter {
+  const _PulseRingPainter(this.progress);
   final double progress;
-  final Color color;
-  final double radius;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    canvas.drawCircle(center, radius, paint);
-    // Orbiting dot
-    final angle = progress * 2 * math.pi;
-    final dx = center.dx + math.cos(angle) * radius;
-    final dy = center.dy + math.sin(angle) * radius;
-    canvas.drawCircle(
-      Offset(dx, dy),
-      5.5,
-      Paint()..color = color.withAlpha(180),
-    );
+    final maxRadius = size.shortestSide * 0.52;
+
+    for (int i = 0; i < 3; i++) {
+      final phase = (progress + i * 0.333) % 1.0;
+      final radius = maxRadius * (0.28 + phase * 0.72);
+      final opacity = (1.0 - phase) * 0.13;
+
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = const Color(0xFF4ADE80).withValues(alpha: opacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2,
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(_OrbitPainter old) => old.progress != progress;
+  bool shouldRepaint(_PulseRingPainter old) => old.progress != progress;
 }

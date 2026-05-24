@@ -262,6 +262,116 @@ class AuthMockDataSource implements AuthDataSource {
         phone: '+27 71 555 0202',
       ),
     },
+
+    // ── Staff accounts for Green Valley Farm (owner: farmer_demo_001) ──────
+    'manager@greenvalley.com': {
+      'password': 'staff1234',
+      'user': AuthUser(
+        id: 'staff_gvf_001',
+        email: 'manager@greenvalley.com',
+        firstName: 'Sipho',
+        lastName: 'Ndlovu',
+        farmName: 'Green Valley Farm',
+        country: 'South Africa',
+        province: 'KwaZulu-Natal',
+        subscriptionPlan: 'growth',
+        subscriptionStatus: 'active',
+        activatedModules: [
+          FarmerModules.cattle,
+          FarmerModules.goat,
+          FarmerModules.poultry,
+          FarmerModules.pigs,
+          FarmerModules.crop,
+          FarmerModules.financial,
+          FarmerModules.insights,
+        ],
+        phone: '+27 82 555 0201',
+        role: 'farmManager',
+        farmOwnerId: 'farmer_demo_001',
+        jobTitle: 'Farm Manager',
+      ),
+    },
+    'worker@greenvalley.com': {
+      'password': 'staff1234',
+      'user': AuthUser(
+        id: 'staff_gvf_002',
+        email: 'worker@greenvalley.com',
+        firstName: 'Nomsa',
+        lastName: 'Khumalo',
+        farmName: 'Green Valley Farm',
+        country: 'South Africa',
+        province: 'KwaZulu-Natal',
+        subscriptionPlan: 'growth',
+        subscriptionStatus: 'active',
+        activatedModules: [
+          FarmerModules.cattle,
+          FarmerModules.goat,
+          FarmerModules.poultry,
+          FarmerModules.pigs,
+        ],
+        phone: '+27 82 555 0202',
+        role: 'farmWorker',
+        farmOwnerId: 'farmer_demo_001',
+        jobTitle: 'Field Worker',
+      ),
+    },
+
+    // ── Staff accounts for Nkosi Agri Holdings (owner: farmer_demo_003) ───
+    'manager@nkosi.com': {
+      'password': 'staff1234',
+      'user': AuthUser(
+        id: 'staff_nah_001',
+        email: 'manager@nkosi.com',
+        firstName: 'Solomon',
+        lastName: 'Mokoena',
+        farmName: 'Nkosi Agri Holdings',
+        country: 'South Africa',
+        province: 'Limpopo',
+        subscriptionPlan: 'enterprise',
+        subscriptionStatus: 'active',
+        activatedModules: [
+          FarmerModules.cattle,
+          FarmerModules.goat,
+          FarmerModules.poultry,
+          FarmerModules.pigs,
+          FarmerModules.crop,
+          FarmerModules.financial,
+          FarmerModules.insights,
+          FarmerModules.traceability,
+          FarmerModules.reports,
+        ],
+        phone: '+27 71 555 0301',
+        role: 'farmManager',
+        farmOwnerId: 'farmer_demo_003',
+        jobTitle: 'Operations Manager',
+      ),
+    },
+    'vet@nkosi.com': {
+      'password': 'staff1234',
+      'user': AuthUser(
+        id: 'staff_nah_002',
+        email: 'vet@nkosi.com',
+        firstName: 'Priya',
+        lastName: 'Naidoo',
+        farmName: 'Nkosi Agri Holdings',
+        country: 'South Africa',
+        province: 'Limpopo',
+        subscriptionPlan: 'enterprise',
+        subscriptionStatus: 'active',
+        activatedModules: [
+          FarmerModules.cattle,
+          FarmerModules.goat,
+          FarmerModules.poultry,
+          FarmerModules.pigs,
+          FarmerModules.aquaculture,
+          FarmerModules.apiculture,
+        ],
+        phone: '+27 71 555 0302',
+        role: 'veterinarian',
+        farmOwnerId: 'farmer_demo_003',
+        jobTitle: 'Farm Veterinarian',
+      ),
+    },
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -300,6 +410,16 @@ class AuthMockDataSource implements AuthDataSource {
       ..._seedUsers,
       ..._loadRegistry(),
     };
+  }
+
+  /// Returns all staff accounts belonging to [farmOwnerId].
+  @override
+  List<AuthUser> getTeamMembers(String farmOwnerId) {
+    return _allUsers()
+        .values
+        .map((e) => e['user'] as AuthUser)
+        .where((u) => u.farmOwnerId == farmOwnerId)
+        .toList();
   }
 
   // ── Public API ───────────────────────────────────────────────────────────

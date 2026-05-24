@@ -19,6 +19,7 @@ import '../models/pay_structure.dart';
 import '../models/payroll_employee.dart';
 import '../models/piecework_log.dart';
 import '../models/shift.dart';
+import '../models/communication_log.dart';
 import '../models/task_assignment.dart';
 
 // ─── Generic async action result ─────────────────────────────────────────────
@@ -811,3 +812,41 @@ class ComplianceAlertNotifier extends Notifier<AsyncValue<void>> {
 
 final complianceAlertNotifierProvider =
     NotifierProvider<ComplianceAlertNotifier, AsyncValue<void>>(ComplianceAlertNotifier.new);
+
+// ─── Communication notifier ──────────────────────────────────────────────────
+class CommunicationNotifier extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
+
+  PayrollRepository get _repo => ref.read(payrollRepositoryProvider);
+
+  Future<CommunicationLog?> send({
+    required CommunicationChannel channel,
+    required String templateCode,
+    required String subject,
+    required String body,
+    required List<String> recipientEmployeeIds,
+    String sentByUserId = 'usr_manager',
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final log = _repo.sendCommunication(
+        channel: channel,
+        templateCode: templateCode,
+        subject: subject,
+        body: body,
+        recipientEmployeeIds: recipientEmployeeIds,
+        sentByUserId: sentByUserId,
+      );
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return log;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+}
+
+final communicationNotifierProvider =
+    NotifierProvider<CommunicationNotifier, AsyncValue<void>>(CommunicationNotifier.new);

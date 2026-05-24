@@ -79,7 +79,7 @@ class SettingsScreen extends ConsumerWidget {
                       iconColor: AppColors.secondary,
                       label: 'Users & Roles',
                       subtitle: 'Manage farm team access',
-                      onTap: () => context.push(AppRoutes.settingsAccount),
+                      onTap: () => context.push(AppRoutes.settingsUsersRoles),
                     ),
                     _SettingsTile(
                       icon: Icons.history_rounded,
@@ -644,13 +644,16 @@ class _SettingsSection extends StatelessWidget {
         ),
         Container(
           decoration: BoxDecoration(
-            color: cs.surface,
             borderRadius: AppRadius.card,
             boxShadow: AppShadows.level1,
             border: Border.all(color: cs.outlineVariant, width: 1),
           ),
-          child: Column(
-            children: [
+          child: Material(
+            color: cs.surface,
+            borderRadius: AppRadius.card,
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
               for (int i = 0; i < items.length; i++) ...[
                 items[i],
                 if (i < items.length - 1)
@@ -661,6 +664,7 @@ class _SettingsSection extends StatelessWidget {
                   ),
               ],
             ],
+            ),
           ),
         ),
       ],

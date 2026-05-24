@@ -4,6 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 enum UserRole { superAdmin, farmManager, farmWorker, veterinarian }
 
 extension UserRoleX on UserRole {
+  /// Serialise to the JSON slug stored in [AuthUser.role].
+  String get slug => switch (this) {
+        UserRole.superAdmin => 'superAdmin',
+        UserRole.farmManager => 'farmManager',
+        UserRole.farmWorker => 'farmWorker',
+        UserRole.veterinarian => 'veterinarian',
+      };
+
   String get displayName => switch (this) {
         UserRole.superAdmin => 'Super Admin',
         UserRole.farmManager => 'Farm Manager',
@@ -34,6 +42,14 @@ extension UserRoleX on UserRole {
 
   /// Can manage farm settings and paddocks.
   bool get canManageSettings => this == UserRole.superAdmin;
+
+  /// Parses a role slug back to the enum (defaults to [UserRole.farmWorker]).
+  static UserRole fromString(String slug) => switch (slug) {
+        'superAdmin' => UserRole.superAdmin,
+        'farmManager' => UserRole.farmManager,
+        'veterinarian' => UserRole.veterinarian,
+        _ => UserRole.farmWorker,
+      };
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────

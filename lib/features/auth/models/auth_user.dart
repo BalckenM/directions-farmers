@@ -19,6 +19,9 @@ class AuthUser {
     this.mfaEnabled = false,
     this.trialEndsAt,
     this.phone,
+    this.role = 'superAdmin',
+    this.farmOwnerId,
+    this.jobTitle,
   });
 
   /// UUID string — will match the primary key from the real API.
@@ -43,10 +46,21 @@ class AuthUser {
   final DateTime? trialEndsAt;
   final String? phone;
 
+  /// Role slug: 'superAdmin' | 'farmManager' | 'farmWorker' | 'veterinarian'
+  final String role;
+
+  /// Non-null for staff accounts — points to the owning farmer's [id].
+  /// Null means this IS the farm owner account.
+  final String? farmOwnerId;
+
+  /// Optional job title displayed on the staff profile, e.g. 'Head Shepherd'.
+  final String? jobTitle;
+
   // ── Convenience ─────────────────────────────────────────────────────────────
   String get fullName => '$firstName $lastName';
   bool get isOnTrial => subscriptionStatus == 'trial';
   bool hasModule(String module) => activatedModules.contains(module);
+  bool get isOwner => farmOwnerId == null;
 
   // ── Serialisation ────────────────────────────────────────────────────────────
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
@@ -69,6 +83,9 @@ class AuthUser {
         ? DateTime.tryParse(json['trial_ends_at'] as String)
         : null,
     phone: json['phone'] as String?,
+    role: json['role'] as String? ?? 'superAdmin',
+    farmOwnerId: json['farm_owner_id'] as String?,
+    jobTitle: json['job_title'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -85,6 +102,9 @@ class AuthUser {
     'mfa_enabled': mfaEnabled,
     if (trialEndsAt != null) 'trial_ends_at': trialEndsAt!.toIso8601String(),
     if (phone != null) 'phone': phone,
+    'role': role,
+    if (farmOwnerId != null) 'farm_owner_id': farmOwnerId,
+    if (jobTitle != null) 'job_title': jobTitle,
   };
 
   String toJsonString() => jsonEncode(toJson());
@@ -103,6 +123,9 @@ class AuthUser {
     bool? mfaEnabled,
     DateTime? trialEndsAt,
     String? phone,
+    String? role,
+    Object? farmOwnerId = _sentinel,
+    String? jobTitle,
   }) => AuthUser(
     id: id ?? this.id,
     email: email ?? this.email,
@@ -117,5 +140,13 @@ class AuthUser {
     mfaEnabled: mfaEnabled ?? this.mfaEnabled,
     trialEndsAt: trialEndsAt ?? this.trialEndsAt,
     phone: phone ?? this.phone,
+    role: role ?? this.role,
+    farmOwnerId: farmOwnerId == _sentinel
+        ? this.farmOwnerId
+        : farmOwnerId as String?,
+    jobTitle: jobTitle ?? this.jobTitle,
   );
 }
+
+// Sentinel to distinguish "not passed" from an explicit null in copyWith.
+const Object _sentinel = Object();

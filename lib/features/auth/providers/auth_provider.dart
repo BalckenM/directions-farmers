@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/user_role.dart';
 import '../../../core/providers/shared_preferences_provider.dart';
 import '../data/auth_data_source.dart';
 import '../data/auth_mock_data_source.dart';
@@ -23,11 +24,15 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     // Restore session from SharedPreferences on cold start.
     final ds = ref.read(authDataSourceProvider);
     final user = ds.restoreSession();
-    if (user != null)
+    if (user != null) {
+      ref
+          .read(userRoleProvider.notifier)
+          .setRole(UserRoleX.fromString(user.role));
       return AuthAuthenticated(
         user: user,
         accessToken: 'mock_token_${user.id}',
       );
+    }
     return const AuthUnauthenticated();
   }
 
@@ -37,6 +42,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     try {
       final ds = ref.read(authDataSourceProvider);
       final user = await ds.signIn(email: email, password: password);
+      ref
+          .read(userRoleProvider.notifier)
+          .setRole(UserRoleX.fromString(user.role));
       state = AsyncValue.data(
         AuthAuthenticated(user: user, accessToken: 'mock_token_${user.id}'),
       );
@@ -77,6 +85,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       );
       // Mark onboarding done so splash skips the intro next time.
       markOnboardingDone();
+      ref
+          .read(userRoleProvider.notifier)
+          .setRole(UserRoleX.fromString(user.role));
       state = AsyncValue.data(
         AuthAuthenticated(user: user, accessToken: 'mock_token_${user.id}'),
       );
@@ -100,6 +111,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   // ── Sign Out ─────────────────────────────────────────────────────────────────
   Future<void> signOut() async {
     await ref.read(authDataSourceProvider).clearSession();
+    ref
+        .read(userRoleProvider.notifier)
+        .setRole(UserRole.farmWorker); // reset on sign-out
     state = const AsyncValue.data(AuthUnauthenticated());
   }
 
@@ -144,4 +158,14 @@ final onboardingDoneProvider = Provider<bool>((ref) {
 final hasSeenIntroProvider = Provider<bool>((ref) {
   final prefs = ref.read(sharedPreferencesProvider);
   return prefs.getBool(_kIntroKey) ?? false;
+});
+
+/// All staff accounts on the current farm.
+/// Returns an empty list if the current user is not signed in.
+final teamMembersProvider = Provider<List<AuthUser>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const [];
+  // Owner's own farmOwnerId is their id; staff farmOwnerId points to the owner.
+  final ownerId = user.isOwner ? user.id : (user.farmOwnerId ?? user.id);
+  return ref.read(authDataSourceProvider).getTeamMembers(ownerId);
 });

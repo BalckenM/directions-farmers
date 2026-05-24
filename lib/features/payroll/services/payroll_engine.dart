@@ -45,6 +45,18 @@ class SaStatutory {
   /// Primary rebate (under-65)
   static const double payePrimaryRebate = 17_235.0;
 
+  /// Secondary rebate — age 65 – 74. 2025/2026 tax year.
+  static const double payeSecondaryRebate = 9_444.0;
+
+  /// Tertiary rebate — age 75+. 2025/2026 tax year.
+  static const double payeTertiaryRebate = 3_145.0;
+
+  /// Annual income threshold — no PAYE due (age 65 – 74). 2025/2026.
+  static const double payeThreshold65 = 148_217.0;
+
+  /// Annual income threshold — no PAYE due (age 75+). 2025/2026.
+  static const double payeThreshold75 = 165_689.0;
+
   // Tax bracket boundaries and marginal rates (under-65)
   static const List<_TaxBracket> _brackets = [
     _TaxBracket(floor: 0, ceiling: 237_100, baseTax: 0, marginalRate: 0.18),
@@ -86,9 +98,35 @@ class SaStatutory {
     ),
   ];
 
-  /// Compute annual PAYE for an individual (under-65) given annualGross.
-  static double computeAnnualPaye(double annualGross) {
-    if (annualGross <= payeThresholdAnnual) return 0.0;
+  /// Compute annual PAYE for an individual given [annualGross].
+  ///
+  /// Applies age-appropriate rebates when [dateOfBirth] is supplied:
+  ///  • under 65  → primary rebate only (R17,235)
+  ///  • 65 – 74   → primary + secondary (R26,679 total)
+  ///  • 75+        → primary + secondary + tertiary (R29,824 total)
+  ///
+  /// [assessmentDate] is used to determine age; defaults to today.
+  static double computeAnnualPaye(
+    double annualGross, {
+    DateTime? dateOfBirth,
+    DateTime? assessmentDate,
+  }) {
+    final int age = dateOfBirth != null
+        ? _ageAt(dateOfBirth, assessmentDate ?? DateTime.now())
+        : 0;
+    final double threshold;
+    final double totalRebate;
+    if (age >= 75) {
+      threshold = payeThreshold75;
+      totalRebate = payePrimaryRebate + payeSecondaryRebate + payeTertiaryRebate;
+    } else if (age >= 65) {
+      threshold = payeThreshold65;
+      totalRebate = payePrimaryRebate + payeSecondaryRebate;
+    } else {
+      threshold = payeThresholdAnnual;
+      totalRebate = payePrimaryRebate;
+    }
+    if (annualGross <= threshold) return 0.0;
     double grossTax = 0.0;
     for (final bracket in _brackets) {
       if (annualGross <= bracket.floor) break;
@@ -96,13 +134,22 @@ class SaStatutory {
       grossTax = bracket.baseTax + taxable * bracket.marginalRate;
       if (annualGross <= bracket.ceiling) break;
     }
-    final netTax = grossTax - payePrimaryRebate;
+    final netTax = grossTax - totalRebate;
     return max(0.0, netTax);
   }
 
-  /// Monthly PAYE from monthly gross
-  static double computeMonthlyPaye(double monthlyGross) {
-    return computeAnnualPaye(monthlyGross * 12) / 12;
+  /// Monthly PAYE from monthly gross.
+  /// Pass [dateOfBirth] to apply the correct age rebate.
+  static double computeMonthlyPaye(
+    double monthlyGross, {
+    DateTime? dateOfBirth,
+    DateTime? assessmentDate,
+  }) {
+    return computeAnnualPaye(
+      monthlyGross * 12,
+      dateOfBirth: dateOfBirth,
+      assessmentDate: assessmentDate,
+    ) / 12;
   }
 
   // ─── BCEA overtime multipliers ──────────────────────────────────────────
@@ -135,6 +182,25 @@ class SaStatutory {
 
   /// Maximum monthly salary for ETI eligibility.
   static const double etiMaxMonthlySalary = 6_500.0;
+
+  // ─── ETI sliding scale mid-point ─────────────────────────────────────────
+  /// Salary midpoint for ETI sliding scale (above this, credit tapers to R0).
+  static const double etiMidSalary = 4_500.0;
+
+  // ─── BCEA §17 night shift allowance ─────────────────────────────────────
+  /// Night shift premium rate — 10% of ordinary hourly rate (BCEA §17).
+  static const double nightShiftPremiumRate = 0.10;
+
+  // ─── Age calculation helper ──────────────────────────────────────────────
+  /// Returns the completed age of a person born on [dob] as of [at].
+  static int _ageAt(DateTime dob, DateTime at) {
+    int age = at.year - dob.year;
+    if (at.month < dob.month ||
+        (at.month == dob.month && at.day < dob.day)) {
+      age--;
+    }
+    return max(0, age.toDouble()).toInt();
+  }
 
   // ─── COIDA calculation helpers ───────────────────────────────────────────
 
@@ -298,6 +364,117 @@ class PayRunCalculationResult {
   final List<ComplianceAlert> complianceAlerts;
 }
 
+// ─── Leave carry-over result ──────────────────────────────────────────────────
+class LeaveCarryOverResult {
+  const LeaveCarryOverResult({
+    required this.carryOverDays,
+    required this.excessDays,
+    required this.excessPayout,
+  });
+
+  /// Days that will carry over into the next cycle (≤ policy cap).
+  final double carryOverDays;
+
+  /// Excess days beyond the cap.
+  final double excessDays;
+
+  /// Monetary payout for excess days (0 when [payoutExcess] is false).
+  final double excessPayout;
+}
+
+// ─── Termination benefits calculator (BCEA §37 / §40 / §41) ─────────────────
+class TerminationCalculator {
+  const TerminationCalculator();
+
+  /// BCEA §40: leave payout — outstanding leave days paid at daily rate.
+  /// [dailyRate] = monthlyGross / 21.75 (SA average working days/month).
+  static double computeLeavePayout({
+    required double monthlyGross,
+    required double outstandingLeaveDays,
+  }) {
+    if (outstandingLeaveDays <= 0 || monthlyGross <= 0) return 0.0;
+    final dailyRate = monthlyGross / 21.75;
+    return double.parse(
+      (dailyRate * outstandingLeaveDays).toStringAsFixed(2),
+    );
+  }
+
+  /// BCEA §41: severance pay — 1 week's wages per completed year of service.
+  /// Only applicable for dismissal for operational requirements (retrenchment).
+  /// [weeklyWage] = monthlyGross × 12 / 52.
+  static double computeSeverancePay({
+    required double monthlyGross,
+    required DateTime startDate,
+    required DateTime terminationDate,
+  }) {
+    final years = _completedYears(startDate, terminationDate);
+    if (years <= 0) return 0.0;
+    final weeklyWage = (monthlyGross * 12) / 52;
+    return double.parse((weeklyWage * years).toStringAsFixed(2));
+  }
+
+  /// BCEA §37: notice pay — based on length of service.
+  /// < 6 months → 1 week; 6–12 months → 2 weeks; > 12 months → 4 weeks.
+  static double computeNoticePay({
+    required double monthlyGross,
+    required DateTime startDate,
+    required DateTime terminationDate,
+  }) {
+    final months = _completedMonths(startDate, terminationDate);
+    final int noticeWeeks;
+    if (months < 6) {
+      noticeWeeks = 1;
+    } else if (months < 12) {
+      noticeWeeks = 2;
+    } else {
+      noticeWeeks = 4;
+    }
+    final weeklyWage = (monthlyGross * 12) / 52;
+    return double.parse((weeklyWage * noticeWeeks).toStringAsFixed(2));
+  }
+
+  /// Returns a summary of all termination benefits.
+  static Map<String, double> computeAll({
+    required double monthlyGross,
+    required double outstandingLeaveDays,
+    required DateTime startDate,
+    required DateTime terminationDate,
+    bool includeSeverance = true,
+  }) {
+    return {
+      'leavePayout': computeLeavePayout(
+        monthlyGross: monthlyGross,
+        outstandingLeaveDays: outstandingLeaveDays,
+      ),
+      'noticePay': computeNoticePay(
+        monthlyGross: monthlyGross,
+        startDate: startDate,
+        terminationDate: terminationDate,
+      ),
+      if (includeSeverance)
+        'severancePay': computeSeverancePay(
+          monthlyGross: monthlyGross,
+          startDate: startDate,
+          terminationDate: terminationDate,
+        ),
+    };
+  }
+
+  static int _completedYears(DateTime start, DateTime end) {
+    int years = end.year - start.year;
+    if (end.month < start.month ||
+        (end.month == start.month && end.day < start.day)) {
+      years--;
+    }
+    return years < 0 ? 0 : years;
+  }
+
+  static int _completedMonths(DateTime start, DateTime end) {
+    final months = (end.year - start.year) * 12 + (end.month - start.month);
+    return months < 0 ? 0 : months;
+  }
+}
+
 // ─── The Engine ──────────────────────────────────────────────────────────────
 class PayrollEngine {
   const PayrollEngine();
@@ -331,6 +508,50 @@ class PayrollEngine {
   static double bcea20DaysWorkedAccrual(int daysWorked) {
     if (daysWorked <= 0) return 0.0;
     return double.parse((daysWorked / 17.0).toStringAsFixed(4));
+  }
+
+  // ─── Leave monetization & carry-over enforcement ────────────────────────
+
+  /// Compute the monetary value of leave days (e.g. for termination payout).
+  /// Uses 21.75 average working days/month as per SA practice.
+  static double computeLeaveMonetaryValue({
+    required double monthlyGross,
+    required double leaveDays,
+  }) {
+    if (leaveDays <= 0 || monthlyGross <= 0) return 0.0;
+    final dailyRate = monthlyGross / 21.75;
+    return double.parse((dailyRate * leaveDays).toStringAsFixed(2));
+  }
+
+  /// Enforce BCEA leave carry-over cap at cycle end.
+  ///
+  /// Returns [LeaveCarryOverResult] with days carried over, excess days, and
+  /// monetary payout for excess (when [payoutExcess] is true).
+  static LeaveCarryOverResult enforceLeaveCarryOver({
+    required double accruedDays,
+    required double maxCarryOver,
+    required double monthlyGross,
+    bool payoutExcess = false,
+  }) {
+    if (accruedDays <= maxCarryOver) {
+      return LeaveCarryOverResult(
+        carryOverDays: accruedDays,
+        excessDays: 0,
+        excessPayout: 0,
+      );
+    }
+    final excess = accruedDays - maxCarryOver;
+    final payout = payoutExcess
+        ? computeLeaveMonetaryValue(
+            monthlyGross: monthlyGross,
+            leaveDays: excess,
+          )
+        : 0.0;
+    return LeaveCarryOverResult(
+      carryOverDays: maxCarryOver,
+      excessDays: double.parse(excess.toStringAsFixed(4)),
+      excessPayout: payout,
+    );
   }
 
   // ─── Static helpers: SDL, COIDA, ETI ────────────────────────────────────
@@ -382,7 +603,22 @@ class PayrollEngine {
         1;
     if (monthsEmployed < 1 || monthsEmployed > 24) return 0.0;
 
-    return monthsEmployed <= 12 ? 1_500.0 : 750.0;
+    // SARS ETI sliding scale (post-2022 ETI Act amendment):
+    //   Months 1–12:  R2,001–R4,500 → R1,500 fixed
+    //                 R4,501–R6,500 → R1,500 − 75% × (wage − R4,500) tapering to R0
+    //   Months 13–24: all amounts halved
+    final double baseCredit;
+    if (monthlySalary <= SaStatutory.etiMidSalary) {
+      baseCredit = 1_500.0;
+    } else {
+      baseCredit = max(
+        0.0,
+        1_500.0 - 0.75 * (monthlySalary - SaStatutory.etiMidSalary),
+      );
+    }
+    return double.parse(
+      (monthsEmployed <= 12 ? baseCredit : baseCredit / 2).toStringAsFixed(2),
+    );
   }
 
   // ─── Main entry: calculate a pay run from a list of employee inputs ─────────
@@ -600,8 +836,20 @@ class PayrollEngine {
         ? (emp.foodValuePerMonth ?? 0.0)
         : 0.0;
 
+    // 3b. Night shift premium (BCEA §17: 10% of ordinary rate for nightShiftHours)
+    double nightShiftPay = 0.0;
+    for (final rec in input.attendanceRecords) {
+      if (!rec.isPresent) continue;
+      final nsHours = rec.nightShiftHours ?? 0.0;
+      if (nsHours > 0) {
+        final rate = _effectiveHourlyRate(ps, input.salaryOverride);
+        nightShiftPay += nsHours * rate * SaStatutory.nightShiftPremiumRate;
+      }
+    }
+
     final grossPay = _round2(
-      basicWage + overtimePay + holidayPay + inKindHousing + inKindFood,
+      basicWage + overtimePay + holidayPay + inKindHousing + inKindFood +
+          nightShiftPay,
     );
 
     // 4. Deductions
@@ -611,6 +859,8 @@ class PayrollEngine {
       rules: input.deductionRules,
       garnisheeOrders: input.garnisheeOrders,
       warnings: warnings,
+      dateOfBirth: emp.dateOfBirth,
+      periodStart: periodStart,
     );
     final totalDeductions = _round2(
       deductionLines.fold(0.0, (s, d) => s + d.amount),
@@ -664,9 +914,10 @@ class PayrollEngine {
       inKindHousing: _round2(inKindHousing),
       inKindFood: _round2(inKindFood),
       otherEarnings: _round2(
-        pieceworkEarnings > 0 && ps.wageType != WageType.piecework
-            ? pieceworkEarnings
-            : 0,
+        (pieceworkEarnings > 0 && ps.wageType != WageType.piecework
+                ? pieceworkEarnings
+                : 0) +
+            nightShiftPay,
       ),
       grossPay: grossPay,
       deductions: deductionLines,
@@ -712,6 +963,8 @@ class PayrollEngine {
     required List<DeductionRule> rules,
     List<GarnisheeOrder> garnisheeOrders = const [],
     List<String>? warnings,
+    DateTime? dateOfBirth,
+    DateTime? periodStart,
   }) {
     final lines = <PayslipDeductionLine>[];
 
@@ -726,8 +979,12 @@ class PayrollEngine {
       ),
     );
 
-    // PAYE
-    final monthlyPaye = SaStatutory.computeMonthlyPaye(grossPay);
+    // PAYE (age-appropriate rebates applied when dateOfBirth is available)
+    final monthlyPaye = SaStatutory.computeMonthlyPaye(
+      grossPay,
+      dateOfBirth: dateOfBirth,
+      assessmentDate: periodStart,
+    );
     if (monthlyPaye > 0) {
       lines.add(
         PayslipDeductionLine(

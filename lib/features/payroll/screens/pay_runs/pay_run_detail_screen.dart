@@ -46,7 +46,7 @@ class PayRunDetailScreen extends ConsumerWidget {
     final canDisburse = payRun.status == PayRunStatus.approved;
 
     return FarmScaffold(
-      appBar: FarmAppBar(title: 'Pay Run � ${_mf.format(payRun.periodStart)}'),
+      appBar: FarmAppBar(title: 'Pay Run · ${_mf.format(payRun.periodStart)}'),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
@@ -70,7 +70,7 @@ class PayRunDetailScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${_df.format(payRun.periodStart)} � ${_df.format(payRun.periodEnd)}',
+                          '${_df.format(payRun.periodStart)} – ${_df.format(payRun.periodEnd)}',
                           style: tt.titleMedium?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,

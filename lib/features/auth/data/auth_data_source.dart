@@ -16,4 +16,7 @@ abstract class AuthDataSource {
   });
   AuthUser? restoreSession();
   Future<void> clearSession();
+
+  /// Returns all staff accounts belonging to the given farm owner.
+  List<AuthUser> getTeamMembers(String farmOwnerId);
 }

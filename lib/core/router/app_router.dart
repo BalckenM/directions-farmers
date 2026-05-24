@@ -152,7 +152,9 @@ import '../../features/payroll/screens/communications/communications_screen.dart
 import '../../features/payroll/screens/compliance/coida_screen.dart';
 import '../../features/payroll/screens/compliance/compliance_alert_detail_screen.dart';
 import '../../features/payroll/screens/compliance/compliance_screen.dart';
+import '../../features/payroll/screens/compliance/emp501_screen.dart';
 import '../../features/payroll/screens/compliance/paye_screen.dart';
+import '../../features/payroll/screens/compliance/sdl_screen.dart';
 import '../../features/payroll/screens/compliance/uif_returns_screen.dart';
 import '../../features/payroll/screens/contracts/contract_detail_screen.dart';
 import '../../features/payroll/screens/contracts/contract_list_screen.dart';
@@ -169,6 +171,7 @@ import '../../features/payroll/screens/employees/employee_detail_screen.dart';
 import '../../features/payroll/screens/employees/employee_import_screen.dart';
 import '../../features/payroll/screens/employees/employee_list_screen.dart';
 import '../../features/payroll/screens/employees/termination_screen.dart';
+import '../../features/payroll/screens/employees/worker_disputes_screen.dart';
 import '../../features/payroll/screens/employees/worker_self_service_screen.dart';
 import '../../features/payroll/screens/incidents/incidents_screen.dart'
     show IncidentsScreen, IncidentDetailScreen;
@@ -244,6 +247,7 @@ import '../../features/settings/screens/settings_screen.dart';
 import '../../features/settings/screens/sync_backup_screen.dart';
 import '../../features/settings/screens/theme_settings_screen.dart';
 import '../../features/settings/screens/units_settings_screen.dart';
+import '../../features/settings/screens/users_roles_screen.dart';
 import '../../features/traceability/screens/add_movement_record_screen.dart';
 import '../../features/traceability/screens/movement_records_screen.dart';
 import '../theme/app_colors.dart';
@@ -296,78 +300,78 @@ class _FloatingNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bottomPad = MediaQuery.paddingOf(context).bottom;
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              decoration: BoxDecoration(
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, bottomPad > 0 ? bottomPad : 14),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? cs.surface.withValues(alpha: 0.90)
+                  : cs.surface.withValues(alpha: 0.95),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
                 color: isDark
-                    ? cs.surface.withAlpha(210)
-                    : cs.surface.withAlpha(238),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withAlpha(18)
-                      : cs.outlineVariant.withAlpha(65),
-                  width: 0.8,
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : cs.outlineVariant.withValues(alpha: 0.22),
+                width: 0.75,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.09),
+                  blurRadius: 36,
+                  spreadRadius: -6,
+                  offset: const Offset(0, 14),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(isDark ? 0x50000000 : 0x16000000),
-                    blurRadius: 40,
-                    spreadRadius: -4,
-                    offset: const Offset(0, 16),
-                  ),
-                  BoxShadow(
-                    color: Color(isDark ? 0x20000000 : 0x08000000),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _NavItem(
-                    icon: Icons.home_outlined,
-                    filledIcon: Icons.home_rounded,
-                    label: 'Home',
-                    selected: selectedIndex == 0,
-                    onTap: () => onTap(0),
-                  ),
-                  _NavItem(
-                    icon: Icons.pets_outlined,
-                    filledIcon: Icons.pets_rounded,
-                    label: 'Herd',
-                    selected: selectedIndex == 1,
-                    onTap: () => onTap(1),
-                  ),
-                  _CenterFabButton(
-                    selected: selectedIndex == 2,
-                    onTap: () => onTap(2),
-                  ),
-                  _NavItem(
-                    icon: Icons.bar_chart_outlined,
-                    filledIcon: Icons.bar_chart_rounded,
-                    label: 'Insights',
-                    selected: selectedIndex == 3,
-                    onTap: () => onTap(3),
-                  ),
-                  _NavItem(
-                    icon: Icons.storefront_outlined,
-                    filledIcon: Icons.storefront_rounded,
-                    label: 'Farm',
-                    selected: selectedIndex == 4,
-                    onTap: () => onTap(4),
-                  ),
-                ],
-              ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _NavItem(
+                  icon: Icons.home_outlined,
+                  filledIcon: Icons.home_rounded,
+                  label: 'Home',
+                  selected: selectedIndex == 0,
+                  onTap: () => onTap(0),
+                ),
+                _NavItem(
+                  icon: Icons.pets_outlined,
+                  filledIcon: Icons.pets_rounded,
+                  label: 'Herd',
+                  selected: selectedIndex == 1,
+                  onTap: () => onTap(1),
+                ),
+                _CenterFabButton(
+                  selected: selectedIndex == 2,
+                  onTap: () => onTap(2),
+                ),
+                _NavItem(
+                  icon: Icons.insights_outlined,
+                  filledIcon: Icons.insights_rounded,
+                  label: 'Insights',
+                  selected: selectedIndex == 3,
+                  onTap: () => onTap(3),
+                ),
+                _NavItem(
+                  icon: Icons.storefront_outlined,
+                  filledIcon: Icons.storefront_rounded,
+                  label: 'Farm',
+                  selected: selectedIndex == 4,
+                  onTap: () => onTap(4),
+                ),
+              ],
             ),
           ),
         ),
@@ -383,63 +387,47 @@ class _CenterFabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Transform.translate(
-        offset: const Offset(0, -10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOutCubic,
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: selected
-                      ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
-                      : [AppColors.primary, const Color(0xFF43A047)],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withAlpha(selected ? 60 : 110),
-                    blurRadius: selected ? 10 : 20,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, anim) =>
-                    ScaleTransition(scale: anim, child: child),
-                child: Icon(
-                  selected ? Icons.edit_note_rounded : Icons.add_rounded,
-                  key: ValueKey(selected),
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
+        offset: const Offset(0, -6),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeInOutCubic,
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: selected
+                  ? [const Color(0xFF166534), const Color(0xFF15803D)]
+                  : [const Color(0xFF22C55E), const Color(0xFF16A34A)],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Record',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? AppColors.primary : cs.onSurfaceVariant,
-                letterSpacing: 0,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF16A34A).withValues(
+                  alpha: selected ? 0.22 : 0.42,
+                ),
+                blurRadius: selected ? 8 : 18,
+                spreadRadius: 0,
+                offset: const Offset(0, 5),
               ),
-              textAlign: TextAlign.center,
+            ],
+          ),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, anim) =>
+                ScaleTransition(scale: anim, child: child),
+            child: Icon(
+              selected ? Icons.edit_note_rounded : Icons.add_rounded,
+              key: ValueKey(selected),
+              color: Colors.white,
+              size: 26,
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -463,52 +451,60 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedScale(
-        scale: selected ? 1.06 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOutCubic,
-        child: SizedBox(
-          width: 54,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.primary.withAlpha(20)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  selected ? filledIcon : icon,
-                  size: 22,
-                  color: selected ? AppColors.primary : cs.onSurfaceVariant,
-                ),
+      child: SizedBox(
+        width: 58,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icon with animated stadium-pill indicator
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 230),
+              curve: Curves.easeInOutCubic,
+              padding: EdgeInsets.symmetric(
+                horizontal: selected ? 16 : 10,
+                vertical: 6,
               ),
-              const SizedBox(height: 2),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                style: (tt.labelSmall ?? const TextStyle()).copyWith(
-                  fontSize: 9,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                  color: selected ? AppColors.primary : cs.onSurfaceVariant,
-                  letterSpacing: 0,
-                ),
-                child: Text(label, textAlign: TextAlign.center, maxLines: 1),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.primary.withValues(alpha: 0.13)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(100),
               ),
-            ],
-          ),
+              child: Icon(
+                selected ? filledIcon : icon,
+                size: 22,
+                color: selected
+                    ? AppColors.primary
+                    : cs.onSurfaceVariant.withValues(alpha: 0.70),
+              ),
+            ),
+            // Label collapses to zero height when not selected
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              child: selected
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                          letterSpacing: -0.1,
+                          height: 1.0,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
         ),
       ),
     );
@@ -1327,6 +1323,10 @@ List<RouteBase> _buildRoutes() {
                   builder: (_, _) => const ActivityLogScreen(),
                 ),
                 GoRoute(
+                  path: 'users-roles',
+                  builder: (_, _) => const UsersRolesScreen(),
+                ),
+                GoRoute(
                   path: 'units',
                   builder: (_, _) => const UnitsSettingsScreen(),
                 ),
@@ -1639,6 +1639,10 @@ List<RouteBase> _buildRoutes() {
               builder: (_, _) => const EmployeeImportScreen(),
             ),
             GoRoute(
+              path: 'disputes',
+              builder: (_, __) => const WorkerDisputesScreen(),
+            ),
+            GoRoute(
               path: ':id',
               builder: (_, state) =>
                   EmployeeDetailScreen(employeeId: state.pathParameters['id']!),
@@ -1812,6 +1816,8 @@ List<RouteBase> _buildRoutes() {
           routes: [
             GoRoute(path: 'uif', builder: (_, _) => const UifReturnsScreen()),
             GoRoute(path: 'paye', builder: (_, _) => const PayeScreen()),
+            GoRoute(path: 'sdl', builder: (_, _) => const SdlScreen()),
+            GoRoute(path: 'emp501', builder: (_, _) => const Emp501Screen()),
             GoRoute(path: 'coida', builder: (_, _) => const CoidaScreen()),
             GoRoute(
               path: 'alerts/:id',

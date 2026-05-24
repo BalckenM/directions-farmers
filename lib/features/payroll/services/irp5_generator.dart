@@ -70,6 +70,9 @@ class Irp5Data {
   /// PAYE paid by employer on employee's behalf. SARS code 4001.
   final double payeAlternate;
 
+  /// 'IRP5' when PAYE was deducted; 'IT3(a)' when no PAYE deducted.
+  String get certificateType => payeDeducted > 0 ? 'IRP5' : 'IT3(a)';
+
   /// Build [Irp5Data] by aggregating [payslips] that fall within [taxYearEnd].
   static Irp5Data fromPayslips({
     required PayrollEmployee employee,
@@ -161,7 +164,7 @@ abstract final class Irp5Generator {
         children: [
           _irp5Header(taxYearEnd),
           pw.SizedBox(height: 12),
-          _irp5SubTitle('IRP5 / IT3(a) Employee Tax Certificate'),
+          _irp5SubTitle('${cert.certificateType} — Employee Tax Certificate'),
           pw.SizedBox(height: 10),
           _twoColCard('EMPLOYER DETAILS', _navy, [
             ('Employer Name', '4DIRECTIONS FARM'),

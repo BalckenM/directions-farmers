@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/communication_log.dart';
 import '../../models/pay_group.dart';
 import '../../models/payroll_employee.dart';
+import '../../providers/payroll_action_providers.dart';
 import '../../providers/payroll_providers.dart';
 import '../../theme/payroll_tokens.dart';
 
@@ -143,9 +144,9 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
     }
     setState(() => _sending = true);
 
-    final log = ref
-        .read(payrollRepositoryProvider)
-        .sendCommunication(
+    final log = await ref
+        .read(communicationNotifierProvider.notifier)
+        .send(
           channel: _channel,
           templateCode: _templateCode,
           subject: _showSubject ? _subjectCtrl.text.trim() : '',
@@ -154,11 +155,11 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
           sentByUserId: 'current_user',
         );
 
-    ref.invalidate(communicationsProvider);
     ref.invalidate(allAuditLogProvider);
 
     setState(() => _sending = false);
 
+    if (log == null) return;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

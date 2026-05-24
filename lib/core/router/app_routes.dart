@@ -75,6 +75,7 @@ abstract final class AppRoutes {
   static const String settingsPaddocks = '/settings/paddocks';
   static const String settingsBreedRegistry = '/settings/breed-registry';
   static const String settingsActivityLog = '/settings/activity-log';
+  static const String settingsUsersRoles = '/settings/users-roles';
   static const String settingsUnits = '/settings/units';
   static const String settingsSyncBackup = '/settings/sync-backup';
   static const String settingsExportData = '/settings/export-data';
@@ -321,6 +322,9 @@ abstract final class AppRoutes {
       '/payroll/pay-runs/$id/approval';
   static const String payrollUifReturns = '/payroll/compliance/uif';
   static const String payrollPaye = '/payroll/compliance/paye';
+  static const String payrollSdl = '/payroll/compliance/sdl';
+  static const String payrollEmp501 = '/payroll/compliance/emp501';
+  static const String payrollDisputes = '/payroll/employees/disputes';
   static const String payrollCoida = '/payroll/compliance/coida';
   static const String payrollPaymentHistory = '/payroll/disbursements/history';
   static const String payrollImportEmployees = '/payroll/employees/import';

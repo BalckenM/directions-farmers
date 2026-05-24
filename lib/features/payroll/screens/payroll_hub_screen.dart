@@ -1560,6 +1560,13 @@ class _ModuleNav extends StatelessWidget {
       route: AppRoutes.payrollRetroactivePay,
       color: _C.teal,
     ),
+    _Module(
+      icon: Icons.gavel_outlined,
+      label: 'Disputes',
+      subtitle: 'Worker grievances',
+      route: AppRoutes.payrollDisputes,
+      color: _C.rose,
+    ),
   ];
 
   @override

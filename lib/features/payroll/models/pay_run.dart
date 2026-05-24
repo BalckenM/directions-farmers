@@ -1,5 +1,73 @@
 enum PayRunStatus { draft, calculated, pendingApproval, approved, disbursed, cancelled }
 
+// ─── Multi-signatory approval chain ──────────────────────────────────────────
+
+/// A single approval entry in the pay-run approval chain.
+/// Each signatory who approves (or rejects) the pay run appends an entry.
+class ApprovalEntry {
+  const ApprovalEntry({
+    required this.userId,
+    required this.displayName,
+    required this.role,
+    required this.decidedAt,
+    required this.approved,
+    this.comment,
+  });
+
+  /// The user who approved/rejected.
+  final String userId;
+
+  /// Human-readable name for display on the approval trail.
+  final String displayName;
+
+  /// The role held at time of decision (e.g. 'payrollManager', 'owner').
+  final String role;
+
+  /// Timestamp of the decision.
+  final DateTime decidedAt;
+
+  /// true = approved; false = rejected.
+  final bool approved;
+
+  /// Optional comment / reason.
+  final String? comment;
+
+  factory ApprovalEntry.fromJson(Map<String, dynamic> json) => ApprovalEntry(
+        userId: json['userId'] as String,
+        displayName: json['displayName'] as String,
+        role: json['role'] as String,
+        decidedAt: DateTime.parse(json['decidedAt'] as String),
+        approved: json['approved'] as bool,
+        comment: json['comment'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'displayName': displayName,
+        'role': role,
+        'decidedAt': decidedAt.toIso8601String(),
+        'approved': approved,
+        'comment': comment,
+      };
+
+  ApprovalEntry copyWith({
+    String? userId,
+    String? displayName,
+    String? role,
+    DateTime? decidedAt,
+    bool? approved,
+    String? comment,
+  }) =>
+      ApprovalEntry(
+        userId: userId ?? this.userId,
+        displayName: displayName ?? this.displayName,
+        role: role ?? this.role,
+        decidedAt: decidedAt ?? this.decidedAt,
+        approved: approved ?? this.approved,
+        comment: comment ?? this.comment,
+      );
+}
+
 class PayslipLineItem {
   const PayslipLineItem({
     required this.code,
@@ -57,6 +125,8 @@ class PayRun {
     this.sdlContribution = 0.0,
     this.etiCredit = 0.0,
     this.totalCoidaContribution = 0.0,
+    this.approvalChain = const [],
+    this.requiredApprovers = 1,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -83,8 +153,17 @@ class PayRun {
   final double etiCredit;
   /// Total COIDA assessment contribution across all employees this period.
   final double totalCoidaContribution;
+  /// Ordered list of approval/rejection decisions.
+  final List<ApprovalEntry> approvalChain;
+  /// Number of distinct approvers required before the pay run may be disbursed.
+  /// Default 1; set to 2 for farms requiring dual-signatory (e.g. owner + manager).
+  final int requiredApprovers;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// Whether the approval chain satisfies [requiredApprovers] with all-approved entries.
+  bool get isFullyApproved =>
+      approvalChain.where((e) => e.approved).length >= requiredApprovers;
 
   bool get isDisbursed => status == PayRunStatus.disbursed;
   bool get isEditable =>
@@ -114,6 +193,11 @@ class PayRun {
         sdlContribution: (json['sdlContribution'] as num?)?.toDouble() ?? 0.0,
         etiCredit: (json['etiCredit'] as num?)?.toDouble() ?? 0.0,
         totalCoidaContribution: (json['totalCoidaContribution'] as num?)?.toDouble() ?? 0.0,
+        approvalChain: (json['approvalChain'] as List<dynamic>?)
+                ?.map((e) => ApprovalEntry.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            const [],
+        requiredApprovers: json['requiredApprovers'] as int? ?? 1,
         createdAt: DateTime.parse(json['createdAt'] as String),
         updatedAt: DateTime.parse(json['updatedAt'] as String),
       );
@@ -138,6 +222,8 @@ class PayRun {
         'sdlContribution': sdlContribution,
         'etiCredit': etiCredit,
         'totalCoidaContribution': totalCoidaContribution,
+        'approvalChain': approvalChain.map((e) => e.toJson()).toList(),
+        'requiredApprovers': requiredApprovers,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
       };
@@ -162,6 +248,8 @@ class PayRun {
     double? sdlContribution,
     double? etiCredit,
     double? totalCoidaContribution,
+    List<ApprovalEntry>? approvalChain,
+    int? requiredApprovers,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -185,6 +273,8 @@ class PayRun {
       sdlContribution: sdlContribution ?? this.sdlContribution,
       etiCredit: etiCredit ?? this.etiCredit,
       totalCoidaContribution: totalCoidaContribution ?? this.totalCoidaContribution,
+      approvalChain: approvalChain ?? this.approvalChain,
+      requiredApprovers: requiredApprovers ?? this.requiredApprovers,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

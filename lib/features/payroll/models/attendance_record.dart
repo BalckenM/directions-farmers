@@ -14,6 +14,7 @@ class AttendanceRecord {
     required this.method,
     this.hoursWorked,
     this.overtimeHours,
+    this.nightShiftHours,
     this.shiftId,
     this.leaveRequestId,
     this.notes,
@@ -30,6 +31,8 @@ class AttendanceRecord {
   final AttendanceMethod method;
   final double? hoursWorked;
   final double? overtimeHours;
+  /// Hours worked between 18:00 and 06:00 — attracts BCEA §17 night-shift premium (10%).
+  final double? nightShiftHours;
   final String? shiftId;
   final String? leaveRequestId;
   final String? notes;
@@ -50,6 +53,7 @@ class AttendanceRecord {
     AttendanceMethod? method,
     double? hoursWorked,
     double? overtimeHours,
+    double? nightShiftHours,
     String? shiftId,
     String? leaveRequestId,
     String? notes,
@@ -66,6 +70,7 @@ class AttendanceRecord {
       method: method ?? this.method,
       hoursWorked: hoursWorked ?? this.hoursWorked,
       overtimeHours: overtimeHours ?? this.overtimeHours,
+      nightShiftHours: nightShiftHours ?? this.nightShiftHours,
       shiftId: shiftId ?? this.shiftId,
       leaveRequestId: leaveRequestId ?? this.leaveRequestId,
       notes: notes ?? this.notes,

@@ -124,6 +124,44 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
             ),
           ),
 
+          // ── Quick links to compliance sub-screens ──────────────────
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              0,
+            ),
+            child: Row(
+              children: [
+                _QuickLink(
+                  icon: Icons.receipt_long_outlined,
+                  label: 'PAYE',
+                  onTap: () => context.push(AppRoutes.payrollPaye),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _QuickLink(
+                  icon: Icons.people_alt_outlined,
+                  label: 'UIF',
+                  onTap: () => context.push(AppRoutes.payrollUifReturns),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _QuickLink(
+                  icon: Icons.school_outlined,
+                  label: 'SDL',
+                  onTap: () => context.push(AppRoutes.payrollSdl),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _QuickLink(
+                  icon: Icons.summarize_outlined,
+                  label: 'EMP501',
+                  onTap: () => context.push(AppRoutes.payrollEmp501),
+                ),
+              ],
+            ),
+          ),
+
           // ── Filter chips ─────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -193,6 +231,32 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Alert Card
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Quick link chip
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _QuickLink extends StatelessWidget {
+  const _QuickLink({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ActionChip(
+      avatar: Icon(icon, size: 16, color: cs.primary),
+      label: Text(label),
+      onPressed: onTap,
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Alerts count banner
