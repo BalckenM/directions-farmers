@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/date_picker_field.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_dropdown.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../providers/traceability_providers.dart';
-import '../models/movement_record.dart';
-import 'movement_records_screen.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/date_picker_field.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/traceability/models/movement_record.dart';
+import 'package:mobile_app/features/traceability/providers/traceability_providers.dart';
 
 class AddMovementRecordScreen extends ConsumerStatefulWidget {
   const AddMovementRecordScreen({super.key});
@@ -51,7 +51,6 @@ class _AddMovementRecordScreenState
     'sheep',
     'goats',
     'pigs',
-    'horses',
     'poultry',
   ];
 
@@ -86,7 +85,7 @@ class _AddMovementRecordScreenState
     try {
       final record = MovementRecord(
         id: 'MR-${DateTime.now().millisecondsSinceEpoch}',
-        farmId: 'FARM-001',
+        farmId: ref.read(currentUserProvider)?.id ?? 'unknown',
         movementDate: DateFormat('yyyy-MM-dd').format(_movementDate!),
         species: _species ?? 'cattle',
         animalIds: const [],
@@ -96,8 +95,9 @@ class _AddMovementRecordScreenState
         fromFarmRegistrationNo: _fromRegNoCtrl.text.trim().isEmpty
             ? null
             : _fromRegNoCtrl.text.trim(),
-        toFarmRegistrationNo:
-            _toRegNoCtrl.text.trim().isEmpty ? null : _toRegNoCtrl.text.trim(),
+        toFarmRegistrationNo: _toRegNoCtrl.text.trim().isEmpty
+            ? null
+            : _toRegNoCtrl.text.trim(),
         transporterName: _transporterCtrl.text.trim().isEmpty
             ? null
             : _transporterCtrl.text.trim(),
@@ -113,9 +113,7 @@ class _AddMovementRecordScreenState
         rmisSubmitted: _rmisSubmitted,
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
-      await ref
-          .read(traceabilityRepositoryProvider)
-          .addMovementRecord(record);
+      await ref.read(traceabilityRepositoryProvider).addMovementRecord(record);
       ref.invalidate(movementRecordsProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -131,8 +129,9 @@ class _AddMovementRecordScreenState
       context.pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -166,8 +165,11 @@ class _AddMovementRecordScreenState
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      size: 16, color: AppColors.tertiary),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 16,
+                    color: AppColors.tertiary,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   Expanded(
                     child: Text(
@@ -199,12 +201,12 @@ class _AddMovementRecordScreenState
                     label: 'Species *',
                     value: _species,
                     items: _speciesOptions
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(
-                                s[0].toUpperCase() + s.substring(1),
-                              ),
-                            ))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(s[0].toUpperCase() + s.substring(1)),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _species = v),
                     validator: (v) =>
@@ -347,8 +349,11 @@ class _AddMovementRecordScreenState
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded,
-                              size: 14, color: AppColors.warning),
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 14,
+                            color: AppColors.warning,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -466,4 +471,3 @@ class _FormCard extends StatelessWidget {
     );
   }
 }
-

@@ -1,22 +1,19 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../core/constants/livestock_constants.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_drawer.dart';
+import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
-import '../../../shared/widgets/section_header.dart';
 import '../providers/livestock_providers.dart';
 import '../../events/providers/alerts_provider.dart';
 
-// ── Local providers ───────────────────────────────────────────────────────────
+// ── Local filter state ────────────────────────────────────────────────────────
 
 class _HerdFilterNotifier extends Notifier<int> {
   @override
@@ -27,10 +24,11 @@ class _HerdFilterNotifier extends Notifier<int> {
 final _herdFilterProvider =
     NotifierProvider<_HerdFilterNotifier, int>(_HerdFilterNotifier.new);
 
+// ── Screen ────────────────────────────────────────────────────────────────────
+
 class LivestockScreen extends ConsumerWidget {
   const LivestockScreen({super.key});
 
-  // Bees use a separate apiary/hive structure — excluded from animalsProvider.
   static const _species = LivestockConstants.animalSpecies;
 
   @override
@@ -41,25 +39,29 @@ class LivestockScreen extends ConsumerWidget {
 
     final allLoaded = countsAsync.every((a) => !a.isLoading);
 
-    int countFor(int i) {
-      return countsAsync[i].when(
-        data: (list) => list.length,
-        loading: () => 0,
-        error: (_, _) => 0,
-      );
-    }
+    int countFor(int i) => (countsAsync[i] as AsyncValue<List>).when(
+          data: (l) => l.length,
+          loading: () => 0,
+          error: (_, _) => 0,
+        );
 
-    final totalAnimals = [
-      for (int i = 0; i < _species.length; i++) countFor(i),
-    ].fold(0, (sum, c) => sum + c);
+    final counts = {
+      for (int i = 0; i < _species.length; i++) _species[i]: countFor(i),
+    };
 
+    final totalAnimals = counts.values.fold(0, (s, c) => s + c);
     final alertCount = ref.watch(alertsProvider).length;
+    final healthPct = totalAnimals > 0
+        ? ((totalAnimals - alertCount) / totalAnimals * 100).round()
+        : 100;
 
     return FarmScaffold(
       drawer: const FarmDrawer(),
       appBar: FarmAppBar(
         title: 'Herd',
-        subtitle: '$totalAnimals animals across ${_species.length} species',
+        subtitle: allLoaded
+            ? '$totalAnimals animals · $healthPct% healthy'
+            : 'Loading…',
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list_rounded),
@@ -74,11 +76,11 @@ class LivestockScreen extends ConsumerWidget {
         ],
       ),
       body: allLoaded
-          ? _HerdContent(
-              species: _species,
-              countsAsync: countsAsync,
+          ? _HerdBody(
+              counts: counts,
               totalAnimals: totalAnimals,
               alertCount: alertCount,
+              healthPct: healthPct,
             )
           : LoadingShimmer.list(count: 8),
       floatingActionButton: FloatingActionButton.extended(
@@ -100,170 +102,508 @@ class LivestockScreen extends ConsumerWidget {
   }
 }
 
-// ── Category data ─────────────────────────────────────────────────────────────
+// ── Body ──────────────────────────────────────────────────────────────────────
 
-class _HerdCategory {
-  const _HerdCategory({
-    required this.label,
-    required this.description,
-    required this.emoji,
-    required this.species,
-  });
-  final String label;
-  final String description;
-  final String emoji;
-  final List<String> species;
-}
-
-const _kCategories = [
-  _HerdCategory(
-    label: 'Herd Cattle',
-    description: 'Grazing & browsing livestock',
-    emoji: '🐄',
-    species: ['cattle', 'sheep', 'goats'],
-  ),
-  _HerdCategory(
-    label: 'Equine',
-    description: 'Horses & working animals',
-    emoji: '🐴',
-    species: ['horses'],
-  ),
-  _HerdCategory(
-    label: 'Monogastrics',
-    description: 'Pigs & small mammals',
-    emoji: '🐷',
-    species: ['pigs', 'rabbits'],
-  ),
-  _HerdCategory(
-    label: 'Poultry',
-    description: 'Broilers, layers & game birds',
-    emoji: '🐓',
-    species: ['poultry'],
-  ),
-  _HerdCategory(
-    label: 'Aquatics & Apiculture',
-    description: 'Fish farming, beekeeping & specialty',
-    emoji: '🐟',
-    species: ['aquaculture', 'bees'],
-  ),
-];
-
-// ── Hub content ───────────────────────────────────────────────────────────────
-
-class _HerdContent extends StatelessWidget {
-  const _HerdContent({
-    required this.species,
-    required this.countsAsync,
+class _HerdBody extends StatelessWidget {
+  const _HerdBody({
+    required this.counts,
     required this.totalAnimals,
     required this.alertCount,
+    required this.healthPct,
   });
 
-  final List<String> species;
-  final List<dynamic> countsAsync;
+  final Map<String, int> counts;
   final int totalAnimals;
   final int alertCount;
-
-  int _count(int i) {
-    final a = countsAsync[i] as AsyncValue<List>;
-    return a.when(data: (v) => v.length, loading: () => 0, error: (_, _) => 0);
-  }
+  final int healthPct;
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, int> counts = {
-      for (int i = 0; i < species.length; i++) species[i]: _count(i),
-    };
+    final activeSpeciesCount = LivestockConstants.animalSpecies
+        .where((s) => (counts[s] ?? 0) > 0)
+        .length;
 
-    return CustomScrollView(
-      slivers: [
-        // Alert banner
-        if (alertCount > 0)
-          SliverToBoxAdapter(
-            child: _HerdHealthBanner(alertCount: alertCount),
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        const SizedBox(height: 12),
+
+        // ── 1. Summary stats card ──────────────────────────────────────────
+        _HerdSummaryCard(
+          totalAnimals: totalAnimals,
+          activeSpecies: activeSpeciesCount,
+          alertCount: alertCount,
+          healthPct: healthPct,
+        ),
+
+        // ── 2. Alert strip (only when alerts present) ──────────────────────
+        if (alertCount > 0) ...[
+          const SizedBox(height: 10),
+          _AlertStrip(alertCount: alertCount),
+        ],
+
+        // ── 3. Quick actions ───────────────────────────────────────────────
+        const SizedBox(height: 20),
+        const Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.pagePaddingHorizontal),
+          child: _SectionLabel('Quick Actions'),
+        ),
+        const SizedBox(height: 10),
+        const _QuickActionsChips(),
+
+        // ── 4. Your Livestock ──────────────────────────────────────────────
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.pagePaddingHorizontal),
+          child: _SectionLabel(
+            'Your Livestock',
+            trailing:
+                Text('${LivestockConstants.animalSpecies.length} species'),
           ),
-
-        // KPI summary row
-        SliverToBoxAdapter(
-          child: _KpiRow(
-            totalAnimals: totalAnimals,
-            speciesCount: species.length,
-            alertCount: alertCount,
-          ),
         ),
+        const SizedBox(height: 10),
+        _SpeciesListSection(counts: counts),
 
-        // Quick actions
-        const SliverToBoxAdapter(
-          child: SectionHeader(title: 'Quick Actions'),
+        // ── 5. Management ──────────────────────────────────────────────────
+        const SizedBox(height: 24),
+        const Padding(
+          padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.pagePaddingHorizontal),
+          child: _SectionLabel('Management'),
         ),
-        const SliverToBoxAdapter(child: _QuickActionsRow()),
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
+        const SizedBox(height: 10),
+        const _ManagementSection(),
 
-        // Livestock categories
-        const SliverToBoxAdapter(
-          child: SectionHeader(title: 'Livestock Categories'),
-        ),
-        SliverList.separated(
-          itemCount: _kCategories.length,
-          separatorBuilder: (context, _) =>
-              const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (context, i) => _CategoryCard(
-            category: _kCategories[i],
-            counts: counts,
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
-
-        // Groups
-        const SliverToBoxAdapter(
-          child: SectionHeader(title: 'Farm Groups'),
-        ),
-        const SliverToBoxAdapter(child: _GroupsCard()),
-
-        const SliverPadding(
-            padding: EdgeInsets.only(bottom: AppSpacing.xxl)),
+        // Bottom FAB clearance
+        const SizedBox(height: AppSpacing.xxl + 48),
       ],
     );
   }
 }
 
-// ── Herd health banner ────────────────────────────────────────────────────────
+// ── Herd summary card ─────────────────────────────────────────────────────────
 
-class _HerdHealthBanner extends StatelessWidget {
-  const _HerdHealthBanner({required this.alertCount});
+class _HerdSummaryCard extends StatelessWidget {
+  const _HerdSummaryCard({
+    required this.totalAnimals,
+    required this.activeSpecies,
+    required this.alertCount,
+    required this.healthPct,
+  });
+
+  final int totalAnimals;
+  final int activeSpecies;
+  final int alertCount;
+  final int healthPct;
+
+  Color _healthColor() {
+    if (healthPct >= 90) return AppColors.success;
+    if (healthPct >= 70) return AppColors.warning;
+    return AppColors.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.pagePaddingHorizontal),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.50),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Health indicator bar
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: _healthColor().withValues(alpha: 0.08),
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(17)),
+                border: Border(
+                  bottom: BorderSide(
+                    color: cs.outlineVariant.withValues(alpha: 0.40),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: _healthColor(),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Herd Health',
+                    style: tt.labelMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '$healthPct% healthy',
+                    style: tt.labelMedium?.copyWith(
+                      color: _healthColor(),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 3-stat row
+            IntrinsicHeight(
+              child: Row(
+                children: [
+                  _StatPillar(
+                    value: '$totalAnimals',
+                    label: 'Animals',
+                    icon: Icons.pets_rounded,
+                    color: AppColors.primary,
+                  ),
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: cs.outlineVariant.withValues(alpha: 0.50),
+                  ),
+                  _StatPillar(
+                    value: '$activeSpecies',
+                    label: 'Species',
+                    icon: Icons.category_rounded,
+                    color: AppColors.tertiary,
+                  ),
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: cs.outlineVariant.withValues(alpha: 0.50),
+                  ),
+                  _StatPillar(
+                    value: '$alertCount',
+                    label: 'Alerts',
+                    icon: Icons.warning_amber_rounded,
+                    color: alertCount > 0 ? AppColors.warning : AppColors.success,
+                    muted: alertCount == 0,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatPillar extends StatelessWidget {
+  const _StatPillar({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.muted = false,
+  });
+
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final effectiveColor = muted ? cs.onSurfaceVariant : color;
+
+    return Expanded(
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(icon,
+                    size: 14,
+                    color: effectiveColor.withValues(alpha: 0.70)),
+                const SizedBox(width: 5),
+                Text(
+                  value,
+                  style: tt.titleLarge?.copyWith(
+                    color: effectiveColor,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: tt.labelSmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Alert strip ───────────────────────────────────────────────────────────────
+
+class _AlertStrip extends StatelessWidget {
+  const _AlertStrip({required this.alertCount});
   final int alertCount;
 
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-
-    return Material(
-      color: AppColors.warningContainer,
-      child: InkWell(
-        onTap: () => context.push(AppRoutes.recordAlerts),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.pagePaddingHorizontal,
-            vertical: 10,
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.warning_amber_rounded,
-                  color: AppColors.warning, size: 18),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  '$alertCount animal${alertCount > 1 ? 's' : ''} need attention',
-                  style: tt.bodySmall?.copyWith(
-                    color: AppColors.warning,
-                    fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.pagePaddingHorizontal),
+      child: Material(
+        color: AppColors.warningContainer,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => context.push(AppRoutes.recordAlerts),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.warning_amber_rounded,
+                      color: AppColors.warning, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '$alertCount animal${alertCount > 1 ? 's need' : ' needs'} attention',
+                    style: tt.bodySmall?.copyWith(
+                      color: AppColors.onWarningContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
+                Text(
+                  'View all →',
+                  style: tt.labelSmall?.copyWith(
+                    color: AppColors.warning,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Section label ─────────────────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.title, {this.trailing});
+  final String title;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Text(
+          title.toUpperCase(),
+          style: tt.labelSmall?.copyWith(
+            color: cs.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ),
+        ),
+        if (trailing != null) ...[
+          const Spacer(),
+          DefaultTextStyle(
+            style: tt.labelSmall!.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+            child: trailing!,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ── Quick action chips ────────────────────────────────────────────────────────
+
+class _QuickActionsChips extends StatelessWidget {
+  const _QuickActionsChips();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 46,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.pagePaddingHorizontal),
+        children: [
+          _ActionChip(
+            label: 'Add Animal',
+            icon: Icons.add_circle_outline_rounded,
+            color: AppColors.primary,
+            onTap: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              builder: (_) => const _AddAnimalSpeciesPicker(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'Alerts',
+            icon: Icons.notifications_rounded,
+            color: AppColors.warning,
+            onTap: () => context.push(AppRoutes.recordAlerts),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'Groups',
+            icon: Icons.group_work_outlined,
+            color: AppColors.tertiary,
+            onTap: () => context.push(AppRoutes.groups),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'Health',
+            icon: Icons.monitor_heart_outlined,
+            color: AppColors.error,
+            onTap: () => context.push(AppRoutes.recordHealth),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'Movements',
+            icon: Icons.swap_horiz_rounded,
+            color: AppColors.secondary,
+            onTap: () => context.push(AppRoutes.movementRecords),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'LITS Export',
+            icon: Icons.upload_file_outlined,
+            color: AppColors.success,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('LITS export coming soon'),
+                duration: Duration(seconds: 2),
               ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'FMD Zone',
+            icon: Icons.health_and_safety_outlined,
+            color: AppColors.info,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('FMD zone map coming soon'),
+                duration: Duration(seconds: 2),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _ActionChip(
+            label: 'Market',
+            icon: Icons.storefront_outlined,
+            color: AppColors.secondary,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Market prices coming soon'),
+                duration: Duration(seconds: 2),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionChip extends StatelessWidget {
+  const _ActionChip({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(100),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(100),
+        onTap: onTap,
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: color.withValues(alpha: 0.28),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 17, color: color),
+              const SizedBox(width: 6),
               Text(
-                'View alerts →',
-                style: tt.labelSmall?.copyWith(
-                  color: AppColors.warning,
-                  fontWeight: FontWeight.w700,
+                label,
+                style: tt.labelMedium?.copyWith(
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.w600,
+                  height: 1.0,
                 ),
               ),
             ],
@@ -274,341 +614,47 @@ class _HerdHealthBanner extends StatelessWidget {
   }
 }
 
-// ── KPI row ───────────────────────────────────────────────────────────────────
+// ── Species list section ──────────────────────────────────────────────────────
 
-class _KpiRow extends StatelessWidget {
-  const _KpiRow({
-    required this.totalAnimals,
-    required this.speciesCount,
-    required this.alertCount,
-  });
-  final int totalAnimals;
-  final int speciesCount;
-  final int alertCount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.pagePaddingHorizontal,
-        AppSpacing.md,
-        AppSpacing.pagePaddingHorizontal,
-        AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _KpiCard(
-              value: '$totalAnimals',
-              label: 'Total Animals',
-              icon: Icons.pets_rounded,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: _KpiCard(
-              value: '$speciesCount',
-              label: 'Species',
-              icon: Icons.category_rounded,
-              color: AppColors.tertiary,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: _KpiCard(
-              value: '$alertCount',
-              label: 'Alerts',
-              icon: Icons.warning_amber_rounded,
-              color: alertCount > 0 ? AppColors.warning : AppColors.success,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _KpiCard extends StatelessWidget {
-  const _KpiCard({
-    required this.value,
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.sm + 2),
-      decoration: BoxDecoration(
-        color: color.withAlpha(12),
-        borderRadius: AppRadius.card,
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: AppTypography.kpiValue.copyWith(
-              fontSize: 22,
-              color: color,
-              height: 1,
-            ),
-          ),
-          Text(
-            label,
-            style: tt.labelSmall?.copyWith(
-              color: cs.onSurfaceVariant,
-              height: 1.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Quick actions row ─────────────────────────────────────────────────────────
-
-class _QuickActionsRow extends StatelessWidget {
-  const _QuickActionsRow();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 82,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.pagePaddingHorizontal),
-        children: [
-          _QuickActionButton(
-            label: 'Add Animal',
-            icon: Icons.add_circle_rounded,
-            color: AppColors.primary,
-            onTap: () => showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              builder: (_) => const _AddAnimalSpeciesPicker(),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _QuickActionButton(
-            label: 'Alerts',
-            icon: Icons.notifications_rounded,
-            color: AppColors.warning,
-            onTap: () => context.push(AppRoutes.recordAlerts),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _QuickActionButton(
-            label: 'Groups',
-            icon: Icons.group_work_rounded,
-            color: AppColors.tertiary,
-            onTap: () => context.push(AppRoutes.groups),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _QuickActionButton(
-            label: 'LITS Export',
-            icon: Icons.upload_file_rounded,
-            color: AppColors.success,
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('LITS export coming soon'),
-                  duration: Duration(seconds: 2)),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _QuickActionButton(
-            label: 'FMD Zone',
-            icon: Icons.health_and_safety_rounded,
-            color: AppColors.info,
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('FMD zone map coming soon'),
-                  duration: Duration(seconds: 2)),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _QuickActionButton(
-            label: 'Market',
-            icon: Icons.storefront_rounded,
-            color: AppColors.secondary,
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Market prices coming soon'),
-                  duration: Duration(seconds: 2)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.card,
-      child: Container(
-        width: 70,
-        decoration: BoxDecoration(
-          color: color.withAlpha(12),
-          borderRadius: AppRadius.card,
-          border: Border.all(color: color.withAlpha(50)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              style: tt.labelSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Category card ─────────────────────────────────────────────────────────────
-
-class _CategoryCard extends StatelessWidget {
-  const _CategoryCard({required this.category, required this.counts});
-  final _HerdCategory category;
+class _SpeciesListSection extends StatelessWidget {
+  const _SpeciesListSection({required this.counts});
   final Map<String, int> counts;
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    final total =
-        category.species.fold(0, (s, sp) => s + (counts[sp] ?? 0));
-    const accent = AppColors.primary;
-    const containerColor = AppColors.primaryContainer;
+    final species = LivestockConstants.animalSpecies;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.pagePaddingHorizontal),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context
-              .go(AppRoutes.livestockSpeciesPath(category.species.first)),
-          borderRadius: AppRadius.card,
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [containerColor, accent.withAlpha(15)],
-              ),
-              borderRadius: AppRadius.card,
-              border: Border.all(color: accent.withAlpha(55), width: 1),
-              boxShadow: AppShadows.level1,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: emoji + name/desc + total badge + chevron
-                Row(
-                  children: [
-                    Text(
-                      category.emoji,
-                      style: const TextStyle(fontSize: 26, height: 1),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            category.label,
-                            style: tt.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: accent,
-                              height: 1.1,
-                            ),
-                          ),
-                          Text(
-                            category.description,
-                            style: tt.bodySmall
-                                ?.copyWith(color: cs.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: accent.withAlpha(18),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: accent.withAlpha(60)),
-                      ),
-                      child: Text(
-                        '$total head',
-                        style: tt.labelSmall?.copyWith(
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Icon(Icons.chevron_right_rounded,
-                        color: accent.withAlpha(180), size: 18),
-                  ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.50),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(17),
+          child: Column(
+            children: [
+              for (int i = 0; i < species.length; i++) ...[
+                _SpeciesTile(
+                  species: species[i],
+                  count: counts[species[i]] ?? 0,
                 ),
-                // Species chips shown when category has multiple species
-                if (category.species.length > 1) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Divider(height: 1, color: accent.withAlpha(40)),
-                  const SizedBox(height: AppSpacing.sm),
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.xs,
-                    children: [
-                      for (final sp in category.species)
-                        _SpeciesChip(species: sp, count: counts[sp] ?? 0),
-                    ],
+                if (i < species.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 68,
+                    endIndent: 0,
+                    color: cs.outlineVariant.withValues(alpha: 0.40),
                   ),
-                ],
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -616,8 +662,8 @@ class _CategoryCard extends StatelessWidget {
   }
 }
 
-class _SpeciesChip extends StatelessWidget {
-  const _SpeciesChip({required this.species, required this.count});
+class _SpeciesTile extends StatelessWidget {
+  const _SpeciesTile({required this.species, required this.count});
   final String species;
   final int count;
 
@@ -626,40 +672,105 @@ class _SpeciesChip extends StatelessWidget {
         'sheep' => '🐑',
         'goats' => '🐐',
         'pigs' => '🐷',
-        'horses' => '🐴',
         'poultry' => '🐓',
         'rabbits' => '🐇',
-        'aquaculture' => '🐟',
         'bees' => '🐝',
         _ => '🐾',
       };
 
   @override
   Widget build(BuildContext context) {
-    const accent = AppColors.primary;
     final tt = Theme.of(context).textTheme;
+    final cs = Theme.of(context).colorScheme;
+    final accent = AppColors.forSpecies(species);
+    final hasAnimals = count > 0;
+
     return InkWell(
       onTap: () => context.go(AppRoutes.livestockSpeciesPath(species)),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: accent.withAlpha(12),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: accent.withAlpha(50)),
-        ),
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_emoji(species),
-                style: const TextStyle(fontSize: 13, height: 1)),
-            const SizedBox(width: 4),
-            Text(
-              '${LivestockConstants.displayName(species)} · $count',
-              style: tt.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w600,
+            // Emoji badge
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: hasAnimals ? 0.12 : 0.06),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Center(
+                child: Text(
+                  _emoji(species),
+                  style: TextStyle(
+                    fontSize: 22,
+                    height: 1.0,
+                    color: hasAnimals ? null : const Color(0x80000000),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Name + sub
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    LivestockConstants.displayName(species),
+                    style: tt.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: hasAnimals
+                          ? cs.onSurface
+                          : cs.onSurfaceVariant,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    hasAnimals ? '$count head registered' : 'None registered',
+                    style: tt.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Count badge
+            if (hasAnimals) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: accent.withValues(alpha: 0.28),
+                  ),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    height: 1.0,
+                  ),
+                ),
+              ),
+            ],
+
+            const SizedBox(width: 8),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.50),
             ),
           ],
         ),
@@ -668,72 +779,118 @@ class _SpeciesChip extends StatelessWidget {
   }
 }
 
-// ── Groups card ───────────────────────────────────────────────────────────────
+// ── Management section ────────────────────────────────────────────────────────
 
-class _GroupsCard extends StatelessWidget {
-  const _GroupsCard();
+class _ManagementSection extends StatelessWidget {
+  const _ManagementSection();
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.pagePaddingHorizontal,
-        0,
-        AppSpacing.pagePaddingHorizontal,
-        AppSpacing.md,
+    final items = [
+      (
+        label: 'Groups & Herds',
+        sub: 'Paddock assignments',
+        icon: Icons.group_work_rounded,
+        color: AppColors.tertiary,
+        route: AppRoutes.groups,
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.push(AppRoutes.groups),
-          borderRadius: AppRadius.card,
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerLow,
-              borderRadius: AppRadius.card,
-              border: Border.all(color: cs.outlineVariant, width: 1),
-              boxShadow: AppShadows.level1,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.tertiary.withAlpha(20),
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
+      (
+        label: 'Health Records',
+        sub: 'Events & treatments',
+        icon: Icons.monitor_heart_rounded,
+        color: AppColors.error,
+        route: AppRoutes.recordHealth,
+      ),
+      (
+        label: 'Movements',
+        sub: 'Transfers & sales',
+        icon: Icons.moving_rounded,
+        color: AppColors.secondary,
+        route: AppRoutes.movementRecords,
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.pagePaddingHorizontal),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.50),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(17),
+          child: Column(
+            children: [
+              for (int i = 0; i < items.length; i++) ...[
+                InkWell(
+                  onTap: () => context.push(items[i].route),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: items[i]
+                                .color
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: Icon(items[i].icon,
+                              color: items[i].color, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                items[i].label,
+                                style: tt.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 1),
+                              Text(
+                                items[i].sub,
+                                style: tt.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20,
+                          color: cs.onSurfaceVariant
+                              .withValues(alpha: 0.50),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: const Icon(Icons.group_work_rounded,
-                      color: AppColors.tertiary, size: 24),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Groups & Herds',
-                        style: tt.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Manage paddock groups and herd assignments',
-                        style: tt.bodySmall
-                            ?.copyWith(color: cs.onSurfaceVariant),
-                      ),
-                    ],
+                if (i < items.length - 1)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 66,
+                    endIndent: 0,
+                    color: cs.outlineVariant.withValues(alpha: 0.40),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Icon(Icons.chevron_right_rounded,
-                    color: cs.onSurfaceVariant),
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -746,30 +903,16 @@ class _GroupsCard extends StatelessWidget {
 class _AddAnimalSpeciesPicker extends StatelessWidget {
   const _AddAnimalSpeciesPicker();
 
-  static String _emoji(String species) {
-    switch (species) {
-      case LivestockConstants.cattle:
-        return '🐄';
-      case LivestockConstants.sheep:
-        return '🐑';
-      case LivestockConstants.goats:
-        return '🐐';
-      case LivestockConstants.pigs:
-        return '🐷';
-      case LivestockConstants.horses:
-        return '🐴';
-      case LivestockConstants.poultry:
-        return '🐓';
-      case LivestockConstants.rabbits:
-        return '🐇';
-      case LivestockConstants.aquaculture:
-        return '🐟';
-      case LivestockConstants.bees:
-        return '🐝';
-      default:
-        return '🐾';
-    }
-  }
+  static String _emoji(String sp) => switch (sp) {
+        'cattle' => '🐄',
+        'sheep' => '🐑',
+        'goats' => '🐐',
+        'pigs' => '🐷',
+        'poultry' => '🐓',
+        'rabbits' => '🐇',
+        'bees' => '🐝',
+        _ => '🐾',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -778,72 +921,83 @@ class _AddAnimalSpeciesPicker extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.lg),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag handle
             Center(
               child: Container(
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
                   color: cs.outlineVariant,
-                  borderRadius: AppRadius.chip,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 16),
             Text('Add Animal',
                 style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text('Select species to add',
+            Text('Select species to register',
                 style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final sp in LivestockConstants.allSpecies)
-                  InkWell(
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: LivestockConstants.allSpecies.length,
+              itemBuilder: (_, i) {
+                final sp = LivestockConstants.allSpecies[i];
+                final color = AppColors.forSpecies(sp);
+                return Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
                     onTap: () {
                       context.pop();
                       context.push(AppRoutes.addAnimalPath(sp));
                     },
-                    borderRadius: AppRadius.card,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm + 2),
                       decoration: BoxDecoration(
-                        color: AppColors.forSpecies(sp).withAlpha(15),
-                        borderRadius: AppRadius.card,
+                        color: color.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: AppColors.forSpecies(sp).withAlpha(70)),
+                            color: color.withValues(alpha: 0.28)),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(_emoji(sp),
-                              style: const TextStyle(fontSize: 18)),
-                          const SizedBox(width: AppSpacing.xs),
+                              style: const TextStyle(
+                                  fontSize: 26, height: 1)),
+                          const SizedBox(height: 6),
                           Text(
                             LivestockConstants.displayName(sp),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.forSpecies(sp),
+                              color: color,
+                              height: 1.2,
                             ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
                   ),
-              ],
+                );
+              },
             ),
-            const SizedBox(height: AppSpacing.sm),
           ],
         ),
       ),
@@ -854,20 +1008,36 @@ class _AddAnimalSpeciesPicker extends StatelessWidget {
 // ── Filter bottom sheet ───────────────────────────────────────────────────────
 
 class _Filter {
-  const _Filter({required this.label, required this.icon});
+  const _Filter({required this.label, required this.icon, required this.color});
   final String label;
   final IconData icon;
+  final Color color;
 }
 
 class _FilterBottomSheet extends ConsumerWidget {
   const _FilterBottomSheet();
 
   static const _filters = [
-    _Filter(label: 'All animals', icon: Icons.pets_rounded),
-    _Filter(label: 'With alerts', icon: Icons.warning_amber_rounded),
-    _Filter(label: 'Active only', icon: Icons.check_circle_rounded),
-    _Filter(label: 'Pregnant', icon: Icons.favorite_rounded),
-    _Filter(label: 'Overdue check-ups', icon: Icons.schedule_rounded),
+    _Filter(
+        label: 'All animals',
+        icon: Icons.pets_rounded,
+        color: AppColors.primary),
+    _Filter(
+        label: 'With alerts',
+        icon: Icons.warning_amber_rounded,
+        color: AppColors.warning),
+    _Filter(
+        label: 'Active only',
+        icon: Icons.check_circle_rounded,
+        color: AppColors.success),
+    _Filter(
+        label: 'Pregnant',
+        icon: Icons.favorite_rounded,
+        color: AppColors.breedingPink),
+    _Filter(
+        label: 'Overdue check-ups',
+        icon: Icons.schedule_rounded,
+        color: AppColors.error),
   ];
 
   @override
@@ -877,59 +1047,90 @@ class _FilterBottomSheet extends ConsumerWidget {
     final cs = Theme.of(context).colorScheme;
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.sm, AppSpacing.md, AppSpacing.sm, AppSpacing.lg),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag handle
             Center(
               child: Container(
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
                   color: cs.outlineVariant,
-                  borderRadius: AppRadius.chip,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Text('Filter Herd',
-                  style: tt.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800)),
-            ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 16),
+            Text('Filter Herd',
+                style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
             for (int i = 0; i < _filters.length; i++)
-              ListTile(
-                leading: Icon(
-                  _filters[i].icon,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Material(
                   color: i == selected
-                      ? AppColors.primary
-                      : cs.onSurfaceVariant,
-                ),
-                title: Text(
-                  _filters[i].label,
-                  style: TextStyle(
-                    fontWeight: i == selected
-                        ? FontWeight.w700
-                        : FontWeight.w400,
-                    color: i == selected ? AppColors.primary : cs.onSurface,
+                      ? _filters[i].color.withValues(alpha: 0.08)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      ref.read(_herdFilterProvider.notifier).set(i);
+                      context.pop();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 11),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: _filters[i]
+                                  .color
+                                  .withValues(alpha: i == selected ? 0.18 : 0.10),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: Icon(
+                              _filters[i].icon,
+                              color: _filters[i].color,
+                              size: 17,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _filters[i].label,
+                              style: tt.bodyMedium?.copyWith(
+                                fontWeight: i == selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: i == selected
+                                    ? _filters[i].color
+                                    : cs.onSurface,
+                              ),
+                            ),
+                          ),
+                          if (i == selected)
+                            Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: _filters[i].color,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.check_rounded,
+                                  color: Colors.white, size: 13),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                trailing: i == selected
-                    ? const Icon(Icons.check_rounded,
-                        color: AppColors.primary)
-                    : null,
-                shape:
-                    RoundedRectangleBorder(borderRadius: AppRadius.card),
-                onTap: () {
-                  ref.read(_herdFilterProvider.notifier).set(i);
-                  context.pop();
-                },
               ),
           ],
         ),

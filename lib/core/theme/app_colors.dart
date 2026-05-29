@@ -98,11 +98,6 @@ abstract final class AppColors {
   static const Color poultryColorLight = Color(0xFFFFB04C);
   static const Color poultryColorContainer = Color(0xFFFFE0B2);
 
-  /// Horses — dark chestnut brown
-  static const Color horseColor = Color(0xFF4E342E);
-  static const Color horseColorLight = Color(0xFF7B5E57);
-  static const Color horseColorContainer = Color(0xFFEFEBE9);
-
   /// Rabbits — soft lavender
   static const Color rabbitColor = Color(0xFF8E24AA);
   static const Color rabbitColorLight = Color(0xFFBA68C8);
@@ -125,6 +120,18 @@ abstract final class AppColors {
   static const Color beesColorLight = Color(0xFFFFD95A);
   static const Color beesColorContainer = Color(0xFFFFF8E1);
 
+  /// Payroll / Admin — deep purple
+  static const Color payrollPurple = Color(0xFF7B1FA2);
+  static const Color payrollPurpleLight = Color(0xFFAB47BC);
+  static const Color payrollPurpleContainer = Color(0xFFF3E5F5);
+  static const Color onPayrollPurpleContainer = Color(0xFF2A004F);
+
+  /// Breeding events — rose pink
+  static const Color breedingPink = Color(0xFFC2185B);
+  static const Color breedingPinkLight = Color(0xFFEF5350);
+  static const Color breedingPinkContainer = Color(0xFFFCE4EC);
+  static const Color onBreedingPinkContainer = Color(0xFF3D0022);
+
   // ── Overlay & shimmer ────────────────────────────────────────────────────────
   static const Color shimmerBase = Color(0xFFE0E0E0);
   static const Color shimmerHighlight = Color(0xFFF5F5F5);
@@ -145,9 +152,7 @@ abstract final class AppColors {
       'sheep' => sheepColor,
       'pig' || 'pigs' => pigColor,
       'poultry' => poultryColor,
-      'horse' || 'horses' => horseColor,
       'rabbit' || 'rabbits' => rabbitColor,
-      'aquaculture' || 'fish' => aquacultureColor,
       'bees' || 'bee' => beesColor,
       _ => primary,
     };
@@ -160,9 +165,7 @@ abstract final class AppColors {
       'sheep' => sheepColorContainer,
       'pig' || 'pigs' => pigColorContainer,
       'poultry' => poultryColorContainer,
-      'horse' || 'horses' => horseColorContainer,
       'rabbit' || 'rabbits' => rabbitColorContainer,
-      'aquaculture' || 'fish' => aquacultureColorContainer,
       'bees' || 'bee' => beesColorContainer,
       _ => primaryContainer,
     };

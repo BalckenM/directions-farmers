@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -7,76 +8,35 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/primary_button.dart';
-
-// ── State ─────────────────────────────────────────────────────────────────────
-
-class _NotifState {
-  final bool healthAlerts;
-  final bool breedingReminders;
-  final bool weightDue;
-  final bool productionAlerts;
-  final bool dailyDigest;
-
-  const _NotifState({
-    this.healthAlerts = true,
-    this.breedingReminders = true,
-    this.weightDue = false,
-    this.productionAlerts = true,
-    this.dailyDigest = false,
-  });
-
-  _NotifState copyWith({
-    bool? healthAlerts,
-    bool? breedingReminders,
-    bool? weightDue,
-    bool? productionAlerts,
-    bool? dailyDigest,
-  }) =>
-      _NotifState(
-        healthAlerts: healthAlerts ?? this.healthAlerts,
-        breedingReminders: breedingReminders ?? this.breedingReminders,
-        weightDue: weightDue ?? this.weightDue,
-        productionAlerts: productionAlerts ?? this.productionAlerts,
-        dailyDigest: dailyDigest ?? this.dailyDigest,
-      );
-}
+import '../providers/settings_ui_providers.dart';
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
-class NotificationSettingsScreen extends ConsumerStatefulWidget {
+class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
 
   @override
-  ConsumerState<NotificationSettingsScreen> createState() =>
-      _NotificationSettingsScreenState();
-}
-
-class _NotificationSettingsScreenState
-    extends ConsumerState<NotificationSettingsScreen> {
-  _NotifState _state = const _NotifState();
-  bool _submitting = false;
-
-  Future<void> _save() async {
-    setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Notification preferences saved'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.success,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-        ),
-      ),
-    );
-    Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(notificationSettingsProvider);
+    final notifier = ref.read(notificationSettingsProvider.notifier);
     final cs = Theme.of(context).colorScheme;
+
+    Future<void> save() async {
+      // State is already persisted in the provider; just confirm and pop.
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Notification preferences saved'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.success,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+        ),
+      );
+      Navigator.of(context).pop();
+    }
 
     return FarmScaffold(
       appBar: const FarmAppBar(
@@ -101,27 +61,24 @@ class _NotificationSettingsScreenState
                 iconColor: AppColors.error,
                 label: 'Health Alerts',
                 subtitle: 'Sick animals, treatment due',
-                value: _state.healthAlerts,
-                onChanged: (v) =>
-                    setState(() => _state = _state.copyWith(healthAlerts: v)),
+                value: state.healthAlerts,
+                onChanged: (_) => notifier.toggle('healthAlerts'),
               ),
               _NotifTile(
                 icon: Icons.favorite_rounded,
                 iconColor: AppColors.primary,
                 label: 'Breeding Reminders',
                 subtitle: 'Heat cycles, pregnancy milestones',
-                value: _state.breedingReminders,
-                onChanged: (v) => setState(
-                    () => _state = _state.copyWith(breedingReminders: v)),
+                value: state.breedingReminders,
+                onChanged: (_) => notifier.toggle('breedingReminders'),
               ),
               _NotifTile(
                 icon: Icons.monitor_weight_outlined,
                 iconColor: AppColors.secondary,
                 label: 'Weight Recording Due',
                 subtitle: 'Animals due for weigh-in',
-                value: _state.weightDue,
-                onChanged: (v) =>
-                    setState(() => _state = _state.copyWith(weightDue: v)),
+                value: state.weightDue,
+                onChanged: (_) => notifier.toggle('weightDue'),
               ),
             ],
           ),
@@ -136,27 +93,24 @@ class _NotificationSettingsScreenState
                 iconColor: AppColors.warning,
                 label: 'Production Alerts',
                 subtitle: 'Drops in milk or egg yield',
-                value: _state.productionAlerts,
-                onChanged: (v) => setState(
-                    () => _state = _state.copyWith(productionAlerts: v)),
+                value: state.productionAlerts,
+                onChanged: (_) => notifier.toggle('productionAlerts'),
               ),
               _NotifTile(
                 icon: Icons.summarize_rounded,
                 iconColor: AppColors.info,
                 label: 'Daily Digest',
                 subtitle: 'Morning farm summary',
-                value: _state.dailyDigest,
-                onChanged: (v) =>
-                    setState(() => _state = _state.copyWith(dailyDigest: v)),
+                value: state.dailyDigest,
+                onChanged: (_) => notifier.toggle('dailyDigest'),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(
             label: 'Save Preferences',
-            onPressed: _save,
+            onPressed: save,
             icon: const Icon(Icons.save_rounded),
-            isLoading: _submitting,
             isExpanded: true,
           ),
         ],
@@ -250,3 +204,4 @@ class _NotifTile extends StatelessWidget {
     );
   }
 }
+

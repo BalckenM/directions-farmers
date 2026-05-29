@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/constants/livestock_constants.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
@@ -9,7 +11,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/farm_date_utils.dart';
 import '../../../core/utils/number_utils.dart';
-import '../../../core/constants/livestock_constants.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
@@ -32,6 +33,9 @@ class DashboardScreen extends ConsumerWidget {
             ? 'Good afternoon'
             : 'Good evening';
 
+    final hasAlerts = summaryAsync.value?.recentHealthAlerts != null &&
+        summaryAsync.value!.recentHealthAlerts > 0;
+
     return FarmScaffold(
       appBar: FarmAppBar(
         title: '4Directions Farm',
@@ -40,10 +44,15 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: Badge(
               smallSize: 8,
+              isLabelVisible: hasAlerts,
               backgroundColor: AppColors.error,
               child: Icon(
-                Icons.notifications_outlined,
-                color: Theme.of(context).colorScheme.onSurface,
+                hasAlerts
+                    ? Icons.notifications_active_rounded
+                    : Icons.notifications_outlined,
+                color: hasAlerts
+                    ? AppColors.secondary
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
             tooltip: 'Notifications',
@@ -231,7 +240,7 @@ class _TodaySnapshotCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF2E7D32), Color(0xFF1A5E20)],
+          colors: [AppColors.primary, AppColors.primaryDark],
         ),
         borderRadius: AppRadius.card,
         boxShadow: AppShadows.level2,
@@ -308,7 +317,7 @@ class _TodaySnapshotCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     _StatusPill(
-                        label: 'Operational', color: const Color(0xFF69F0AE)),
+                        label: 'Operational', color: AppColors.primaryLight),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -637,7 +646,7 @@ class _QuickActionsSection extends StatelessWidget {
                   icon: Icons.eco_rounded,
                   label: 'Crop Farming',
                   sublabel: 'Plan, grow, harvest',
-                  color: const Color(0xFF16A34A),
+                  color: AppColors.cropGreen,
                   onTap: () => context.push(AppRoutes.crop),
                 ),
               ),
@@ -647,7 +656,7 @@ class _QuickActionsSection extends StatelessWidget {
                   icon: Icons.payments_rounded,
                   label: 'Payroll',
                   sublabel: 'Employees & wages',
-                  color: const Color(0xFF7B1FA2),
+                  color: AppColors.payrollPurple,
                   onTap: () => context.push(AppRoutes.payrollHub),
                 ),
               ),
@@ -781,8 +790,6 @@ class _SpeciesHerdCard extends StatelessWidget {
         return Icons.landscape_rounded;
       case 'pigs':
         return Icons.eco_rounded;
-      case 'horses':
-        return Icons.directions_run_rounded;
       default:
         return Icons.pets_rounded;
     }
@@ -798,14 +805,10 @@ class _SpeciesHerdCard extends StatelessWidget {
         return '🐐';
       case 'pigs':
         return '🐷';
-      case 'horses':
-        return '🐴';
       case 'poultry':
         return '🐓';
       case 'rabbits':
         return '🐇';
-      case 'aquaculture':
-        return '🐟';
       case 'bees':
         return '🐝';
       default:
@@ -813,8 +816,17 @@ class _SpeciesHerdCard extends StatelessWidget {
     }
   }
 
+  static String _unitLabel(String species, int count) {
+    return switch (species.toLowerCase()) {
+      'poultry' => '$count birds',
+      'bees' => '$count hives',
+      _ => '$count head',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final accent = AppColors.forSpecies(summary.species);
     final containerColor = AppColors.containerForSpecies(summary.species);
@@ -907,16 +919,16 @@ class _SpeciesHerdCard extends StatelessWidget {
                         style: tt.labelSmall?.copyWith(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF424242),
+                          color: cs.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        '${summary.headCount} head',
+                        _unitLabel(summary.species, summary.headCount),
                         style: tt.labelSmall?.copyWith(
                           fontSize: 9,
-                          color: const Color(0xFF757575),
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -972,8 +984,8 @@ class _ActivityFeed extends StatelessWidget {
     ),
     _ActivityItem(
       icon: Icons.favorite_rounded,
-      iconColor: Color(0xFFE91E63),
-      iconBg: Color(0xFFFCE4EC),
+      iconColor: AppColors.breedingPink,
+      iconBg: AppColors.breedingPinkContainer,
       title: 'Breeding event logged',
       subtitle: 'Cow #C-014 · Mating recorded',
       timestamp: 'Yesterday',

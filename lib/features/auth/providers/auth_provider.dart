@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/auth/user_role.dart';
-import '../../../core/providers/shared_preferences_provider.dart';
-import '../data/auth_data_source.dart';
-import '../data/auth_mock_data_source.dart';
-import '../models/auth_state.dart';
-import '../models/auth_user.dart';
+import 'package:mobile_app/core/auth/user_role.dart';
+import 'package:mobile_app/core/providers/secure_storage_provider.dart';
+import 'package:mobile_app/core/providers/shared_preferences_provider.dart';
+import 'package:mobile_app/features/auth/data/auth_data_source.dart';
+import 'package:mobile_app/features/auth/data/auth_mock_data_source.dart';
+import 'package:mobile_app/features/auth/models/auth_state.dart';
+import 'package:mobile_app/features/auth/models/auth_user.dart';
 
 export '../data/auth_mock_data_source.dart'
     show kSubscriptionPlans, kCountryProvinces, FarmerModules, SubscriptionPlan;
@@ -15,21 +16,26 @@ const _kIntroKey = 'has_seen_intro';
 
 // ── Provider for the data source ─────────────────────────────────────────────
 final authDataSourceProvider = Provider<AuthDataSource>((ref) {
-  return AuthMockDataSource(ref.read(sharedPreferencesProvider));
+  return AuthMockDataSource(
+    ref.read(sharedPreferencesProvider),
+    ref.read(secureStorageProvider),
+  );
 });
 
 class AuthNotifier extends AsyncNotifier<AuthState> {
   @override
   Future<AuthState> build() async {
-    // Restore session from SharedPreferences on cold start.
+    // Restore session from secure storage on cold start.
     final ds = ref.read(authDataSourceProvider);
-    final user = ds.restoreSession();
+    final user = await ds.restoreSession();
     if (user != null) {
       // Defer setRole past the current build frame — Riverpod 3.x forbids
       // modifying another provider synchronously during initialization.
-      Future.microtask(() => ref
-          .read(userRoleProvider.notifier)
-          .setRole(UserRoleX.fromString(user.role)));
+      Future.microtask(
+        () => ref
+            .read(userRoleProvider.notifier)
+            .setRole(UserRoleX.fromString(user.role)),
+      );
       return AuthAuthenticated(
         user: user,
         accessToken: 'mock_token_${user.id}',
@@ -170,4 +176,25 @@ final teamMembersProvider = Provider<List<AuthUser>>((ref) {
   // Owner's own farmOwnerId is their id; staff farmOwnerId points to the owner.
   final ownerId = user.isOwner ? user.id : (user.farmOwnerId ?? user.id);
   return ref.read(authDataSourceProvider).getTeamMembers(ownerId);
+});
+
+/// True when the user is on a trial plan that expires within 7 days.
+final trialExpiringProvider = Provider<bool>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return false;
+  if (user.subscriptionStatus != 'trial') return false;
+  final endsAt = user.trialEndsAt;
+  if (endsAt == null) return false;
+  return endsAt.isBefore(DateTime.now().add(const Duration(days: 7)));
+});
+
+/// Days remaining in the current trial, or null if not on trial.
+final trialDaysRemainingProvider = Provider<int?>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return null;
+  if (user.subscriptionStatus != 'trial') return null;
+  final endsAt = user.trialEndsAt;
+  if (endsAt == null) return null;
+  final diff = endsAt.difference(DateTime.now()).inDays;
+  return diff.clamp(0, 9999);
 });

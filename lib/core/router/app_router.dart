@@ -1,288 +1,340 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:mobile_app/shared/widgets/trial_expiry_banner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/features/payroll/screens/attendance/attendance_log_screen.dart';
 import 'package:mobile_app/features/payroll/screens/communications/compose_message_screen.dart';
 import 'package:mobile_app/features/payroll/screens/leave/leave_request_screen.dart';
 
-import '../../features/apiculture/screens/apiculture_screen.dart';
-import '../../features/apiculture/screens/hive_detail_screen.dart';
-import '../../features/aquaculture/screens/aquaculture_screen.dart';
-import '../../features/aquaculture/screens/aquaculture_unit_detail_screen.dart';
-import '../../features/auth/models/auth_state.dart';
-import '../../features/auth/providers/auth_provider.dart';
-import '../../features/auth/screens/forgot_password_screen.dart';
-import '../../features/auth/screens/intro_screen.dart';
-import '../../features/auth/screens/login_screen.dart';
-import '../../features/auth/screens/mfa_challenge_screen.dart';
-import '../../features/auth/screens/onboarding_screen.dart';
-import '../../features/auth/screens/registration_screen.dart';
-import '../../features/auth/screens/splash_screen.dart';
-import '../../features/auth/screens/welcome_screen.dart';
-import '../../features/cattle/screens/add_calf_screen.dart';
-import '../../features/cattle/screens/add_cattle_screen.dart';
-import '../../features/cattle/screens/add_medication_screen.dart'
+import 'package:mobile_app/features/auth/models/auth_state.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/auth/screens/forgot_password_screen.dart';
+import 'package:mobile_app/features/auth/screens/intro_screen.dart';
+import 'package:mobile_app/features/auth/screens/login_screen.dart';
+import 'package:mobile_app/features/auth/screens/mfa_challenge_screen.dart';
+import 'package:mobile_app/features/auth/screens/onboarding_screen.dart';
+import 'package:mobile_app/features/auth/screens/registration_screen.dart';
+import 'package:mobile_app/features/auth/screens/splash_screen.dart';
+import 'package:mobile_app/features/auth/screens/welcome_screen.dart';
+import 'package:mobile_app/features/cattle/screens/add_calf_screen.dart';
+import 'package:mobile_app/features/cattle/screens/add_cattle_screen.dart';
+import 'package:mobile_app/features/cattle/screens/add_medication_screen.dart'
     as cattle_medication;
-import '../../features/cattle/screens/body_condition_screen.dart' as cattle_bcs;
-import '../../features/cattle/screens/breeding_screen.dart';
-import '../../features/cattle/screens/calving_screen.dart';
-import '../../features/cattle/screens/cattle_breed_screen.dart';
-import '../../features/cattle/screens/cattle_detail_screen.dart';
-import '../../features/cattle/screens/cattle_financials_screen.dart';
-import '../../features/cattle/screens/cattle_reports_screen.dart';
-import '../../features/cattle/screens/cattle_screen.dart';
-import '../../features/cattle/screens/cross_herd_comparison_screen.dart'
+import 'package:mobile_app/features/cattle/screens/body_condition_screen.dart' as cattle_bcs;
+import 'package:mobile_app/features/cattle/screens/breeding_screen.dart';
+import 'package:mobile_app/features/cattle/screens/calving_screen.dart';
+import 'package:mobile_app/features/cattle/screens/cattle_breed_screen.dart';
+import 'package:mobile_app/features/cattle/screens/cattle_detail_screen.dart';
+import 'package:mobile_app/features/cattle/screens/cattle_financials_screen.dart';
+import 'package:mobile_app/features/cattle/screens/cattle_reports_screen.dart';
+import 'package:mobile_app/features/cattle/screens/cattle_screen.dart';
+import 'package:mobile_app/features/cattle/screens/cross_herd_comparison_screen.dart'
     as cattle_comparison;
-import '../../features/cattle/screens/dipping_screen.dart' as cattle_dipping;
-import '../../features/cattle/screens/edit_cattle_screen.dart';
-import '../../features/cattle/screens/health_events_screen.dart'
+import 'package:mobile_app/features/cattle/screens/dipping_screen.dart' as cattle_dipping;
+import 'package:mobile_app/features/cattle/screens/edit_cattle_screen.dart';
+import 'package:mobile_app/features/cattle/screens/health_events_screen.dart'
     as cattle_health;
-import '../../features/cattle/screens/inventory_screen.dart'
+import 'package:mobile_app/features/cattle/screens/inventory_screen.dart'
     show CattleInventoryScreen;
-import '../../features/cattle/screens/milk_records_screen.dart' as cattle_milk;
-import '../../features/cattle/screens/pasture_screen.dart' as cattle_pasture;
-import '../../features/cattle/screens/pregnancy_check_screen.dart'
+import 'package:mobile_app/features/cattle/screens/milk_records_screen.dart' as cattle_milk;
+import 'package:mobile_app/features/cattle/screens/pasture_screen.dart' as cattle_pasture;
+import 'package:mobile_app/features/cattle/screens/pregnancy_check_screen.dart'
     as cattle_pregnancy;
-import '../../features/cattle/screens/sales_screen.dart' show CattleSalesScreen;
-import '../../features/cattle/screens/vaccination_screen.dart'
+import 'package:mobile_app/features/cattle/screens/sales_screen.dart' show CattleSalesScreen;
+import 'package:mobile_app/features/cattle/screens/vaccination_screen.dart'
     as cattle_vaccination;
-import '../../features/cattle/screens/weight_records_screen.dart'
+import 'package:mobile_app/features/cattle/screens/weight_records_screen.dart'
     as cattle_weight;
-import '../../features/crop/models/crop_expense.dart';
-import '../../features/crop/models/crop_sale.dart';
-import '../../features/crop/models/crop_season.dart';
-import '../../features/crop/models/disease_detection.dart';
-import '../../features/crop/models/harvest_record.dart';
-import '../../features/crop/models/pest_observation.dart';
-import '../../features/crop/models/planting_plan.dart';
-import '../../features/crop/models/spray_record.dart';
-import '../../features/crop/screens/advisor/advisor_chat_screen.dart';
-import '../../features/crop/screens/advisor/crop_advisor_screen.dart';
-import '../../features/crop/screens/advisory/advisory_detail_screen.dart';
-import '../../features/crop/screens/advisory/advisory_hub_screen.dart';
-import '../../features/crop/screens/calendar/planting_calendar_screen.dart';
-import '../../features/crop/screens/catalog/crop_catalog_screen.dart';
-import '../../features/crop/screens/catalog/crop_detail_screen.dart';
-import '../../features/crop/screens/crop_hub_screen.dart';
-import '../../features/crop/screens/disease/crop_scanner_screen.dart';
-import '../../features/crop/screens/disease/disease_result_screen.dart';
-import '../../features/crop/screens/expenses/add_expense_screen.dart';
-import '../../features/crop/screens/expenses/edit_expense_screen.dart';
-import '../../features/crop/screens/expenses/expense_tracker_screen.dart';
-import '../../features/crop/screens/fields/add_edit_field_screen.dart';
-import '../../features/crop/screens/fields/add_planting_plan_screen.dart';
-import '../../features/crop/screens/fields/edit_planting_plan_screen.dart';
-import '../../features/crop/screens/fields/field_detail_screen.dart';
-import '../../features/crop/screens/fields/field_list_screen.dart';
-import '../../features/crop/screens/fields/planted_crop_detail_screen.dart';
-import '../../features/crop/screens/harvest/add_harvest_screen.dart';
-import '../../features/crop/screens/harvest/edit_harvest_screen.dart';
-import '../../features/crop/screens/harvest/harvest_detail_screen.dart';
-import '../../features/crop/screens/harvest/harvest_log_screen.dart';
-import '../../features/crop/screens/pests/add_pest_observation_screen.dart';
-import '../../features/crop/screens/pests/add_spray_record_screen.dart';
-import '../../features/crop/screens/pests/edit_pest_observation_screen.dart';
-import '../../features/crop/screens/pests/edit_spray_record_screen.dart';
-import '../../features/crop/screens/pests/pest_log_screen.dart';
-import '../../features/crop/screens/pests/spray_detail_screen.dart';
-import '../../features/crop/screens/pests/spray_list_screen.dart';
-import '../../features/crop/screens/profitability/profitability_screen.dart';
-import '../../features/crop/screens/sales/add_sale_screen.dart';
-import '../../features/crop/screens/sales/edit_sale_screen.dart';
-import '../../features/crop/screens/sales/sale_detail_screen.dart';
-import '../../features/crop/screens/sales/sales_screen.dart';
-import '../../features/crop/screens/season/add_season_screen.dart';
-import '../../features/crop/screens/season/edit_season_screen.dart';
-import '../../features/crop/screens/season/season_detail_screen.dart';
-import '../../features/crop/screens/season/season_planner_screen.dart';
-import '../../features/crop/screens/tasks/add_edit_task_screen.dart';
-import '../../features/crop/screens/tasks/task_detail_screen.dart';
-import '../../features/crop/screens/tasks/task_list_screen.dart';
-import '../../features/crop/screens/weather/weather_dashboard_screen.dart';
-import '../../features/dashboard/screens/dashboard_screen.dart';
-import '../../features/events/screens/add_breeding_event_screen.dart';
-import '../../features/events/screens/add_health_event_screen.dart';
-import '../../features/events/screens/add_weight_record_screen.dart';
-import '../../features/events/screens/alerts_screen.dart';
-import '../../features/events/screens/breeding_events_screen.dart';
-import '../../features/events/screens/health_events_screen.dart';
-import '../../features/events/screens/weight_records_screen.dart';
-import '../../features/financial/screens/add_financial_transaction_screen.dart';
-import '../../features/financial/screens/financial_screen.dart';
-import '../../features/goat/screens/add_goat_screen.dart';
-import '../../features/goat/screens/add_kid_screen.dart';
-import '../../features/goat/screens/add_medication_screen.dart';
-import '../../features/goat/screens/body_condition_screen.dart';
-import '../../features/goat/screens/breeding_screen.dart';
-import '../../features/goat/screens/cross_herd_comparison_screen.dart';
-import '../../features/goat/screens/edit_goat_screen.dart';
-import '../../features/goat/screens/famacha_screen.dart';
-import '../../features/goat/screens/goat_breed_screen.dart';
-import '../../features/goat/screens/goat_detail_screen.dart';
-import '../../features/goat/screens/goat_financials_screen.dart';
-import '../../features/goat/screens/goat_reports_screen.dart';
-import '../../features/goat/screens/goat_screen.dart';
-import '../../features/goat/screens/health_events_screen.dart';
-import '../../features/goat/screens/inventory_screen.dart';
-import '../../features/goat/screens/kidding_screen.dart';
-import '../../features/goat/screens/milk_records_screen.dart';
-import '../../features/goat/screens/pasture_screen.dart';
-import '../../features/goat/screens/pregnancy_check_screen.dart';
-import '../../features/goat/screens/sales_screen.dart';
-import '../../features/goat/screens/shearing_screen.dart';
-import '../../features/goat/screens/vaccination_screen.dart';
-import '../../features/goat/screens/weight_records_screen.dart';
-import '../../features/insights/screens/insights_screen.dart';
-import '../../features/insights/screens/market_prices_screen.dart';
-import '../../features/livestock/screens/add_edit_animal_screen.dart';
-import '../../features/livestock/screens/add_edit_group_screen.dart';
-import '../../features/livestock/screens/animal_detail_screen.dart';
-import '../../features/livestock/screens/group_detail_screen.dart';
-import '../../features/livestock/screens/groups_screen.dart';
-import '../../features/livestock/screens/livestock_hub_screen.dart';
-import '../../features/livestock/screens/livestock_screen.dart';
-import '../../features/payroll/models/shift.dart';
-import '../../features/payroll/screens/attendance/attendance_exceptions_screen.dart';
-import '../../features/payroll/screens/attendance/clock_in_screen.dart';
-import '../../features/payroll/screens/audit/audit_log_screen.dart';
-import '../../features/payroll/screens/communications/communications_screen.dart';
-import '../../features/payroll/screens/compliance/coida_screen.dart';
-import '../../features/payroll/screens/compliance/compliance_alert_detail_screen.dart';
-import '../../features/payroll/screens/compliance/compliance_screen.dart';
-import '../../features/payroll/screens/compliance/emp501_screen.dart';
-import '../../features/payroll/screens/compliance/paye_screen.dart';
-import '../../features/payroll/screens/compliance/sdl_screen.dart';
-import '../../features/payroll/screens/compliance/uif_returns_screen.dart';
-import '../../features/payroll/screens/contracts/contract_detail_screen.dart';
-import '../../features/payroll/screens/contracts/contract_list_screen.dart';
-import '../../features/payroll/screens/contracts/contract_sign_screen.dart';
-import '../../features/payroll/screens/contracts/generate_contract_screen.dart';
-import '../../features/payroll/screens/deductions/add_edit_garnishee_screen.dart';
-import '../../features/payroll/screens/deductions/deductions_screen.dart';
-import '../../features/payroll/screens/deductions/garnishee_orders_screen.dart';
-import '../../features/payroll/screens/disbursements/disbursements_screen.dart';
-import '../../features/payroll/screens/disbursements/payment_history_screen.dart';
-import '../../features/payroll/screens/disbursements/transaction_detail_screen.dart';
-import '../../features/payroll/screens/employees/add_edit_employee_screen.dart';
-import '../../features/payroll/screens/employees/employee_detail_screen.dart';
-import '../../features/payroll/screens/employees/employee_import_screen.dart';
-import '../../features/payroll/screens/employees/employee_list_screen.dart';
-import '../../features/payroll/screens/employees/termination_screen.dart';
-import '../../features/payroll/screens/employees/worker_disputes_screen.dart';
-import '../../features/payroll/screens/employees/worker_self_service_screen.dart';
-import '../../features/payroll/screens/incidents/incidents_screen.dart'
+import 'package:mobile_app/features/crop/models/crop_expense.dart';
+import 'package:mobile_app/features/crop/models/crop_sale.dart';
+import 'package:mobile_app/features/crop/models/crop_season.dart';
+import 'package:mobile_app/features/crop/models/disease_detection.dart';
+import 'package:mobile_app/features/crop/models/harvest_record.dart';
+import 'package:mobile_app/features/crop/models/pest_observation.dart';
+import 'package:mobile_app/features/crop/models/planting_plan.dart';
+import 'package:mobile_app/features/crop/models/spray_record.dart';
+import 'package:mobile_app/features/crop/screens/advisor/advisor_chat_screen.dart';
+import 'package:mobile_app/features/crop/screens/advisor/crop_advisor_screen.dart';
+import 'package:mobile_app/features/crop/screens/advisory/advisory_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/advisory/advisory_hub_screen.dart';
+import 'package:mobile_app/features/crop/screens/calendar/planting_calendar_screen.dart';
+import 'package:mobile_app/features/crop/screens/catalog/crop_catalog_screen.dart';
+import 'package:mobile_app/features/crop/screens/catalog/crop_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/crop_hub_screen.dart';
+import 'package:mobile_app/features/crop/screens/disease/crop_scanner_screen.dart';
+import 'package:mobile_app/features/crop/screens/disease/disease_result_screen.dart';
+import 'package:mobile_app/features/crop/screens/expenses/add_expense_screen.dart';
+import 'package:mobile_app/features/crop/screens/expenses/edit_expense_screen.dart';
+import 'package:mobile_app/features/crop/screens/expenses/expense_tracker_screen.dart';
+import 'package:mobile_app/features/crop/screens/fields/add_edit_field_screen.dart';
+import 'package:mobile_app/features/crop/screens/fields/add_planting_plan_screen.dart';
+import 'package:mobile_app/features/crop/screens/fields/edit_planting_plan_screen.dart';
+import 'package:mobile_app/features/crop/screens/fields/field_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/fields/field_list_screen.dart';
+import 'package:mobile_app/features/crop/screens/fields/planted_crop_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/harvest/add_harvest_screen.dart';
+import 'package:mobile_app/features/crop/screens/harvest/edit_harvest_screen.dart';
+import 'package:mobile_app/features/crop/screens/harvest/harvest_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/harvest/harvest_log_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/add_pest_observation_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/add_spray_record_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/edit_pest_observation_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/edit_spray_record_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/pest_log_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/spray_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/pests/spray_list_screen.dart';
+import 'package:mobile_app/features/crop/screens/profitability/profitability_screen.dart';
+import 'package:mobile_app/features/crop/screens/sales/add_sale_screen.dart';
+import 'package:mobile_app/features/crop/screens/sales/edit_sale_screen.dart';
+import 'package:mobile_app/features/crop/screens/sales/sale_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/sales/sales_screen.dart';
+import 'package:mobile_app/features/crop/screens/season/add_season_screen.dart';
+import 'package:mobile_app/features/crop/screens/season/edit_season_screen.dart';
+import 'package:mobile_app/features/crop/screens/season/season_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/season/season_planner_screen.dart';
+import 'package:mobile_app/features/crop/screens/tasks/add_edit_task_screen.dart';
+import 'package:mobile_app/features/crop/screens/tasks/task_detail_screen.dart';
+import 'package:mobile_app/features/crop/screens/tasks/task_list_screen.dart';
+import 'package:mobile_app/features/crop/screens/weather/weather_dashboard_screen.dart';
+import 'package:mobile_app/features/dashboard/screens/dashboard_screen.dart';
+import 'package:mobile_app/features/events/screens/add_breeding_event_screen.dart';
+import 'package:mobile_app/features/events/screens/add_health_event_screen.dart';
+import 'package:mobile_app/features/events/screens/add_weight_record_screen.dart';
+import 'package:mobile_app/features/events/screens/alerts_screen.dart';
+import 'package:mobile_app/features/events/screens/breeding_events_screen.dart';
+import 'package:mobile_app/features/events/screens/health_events_screen.dart';
+import 'package:mobile_app/features/events/screens/weight_records_screen.dart';
+import 'package:mobile_app/features/financial/screens/add_financial_transaction_screen.dart';
+import 'package:mobile_app/features/financial/screens/financial_screen.dart';
+import 'package:mobile_app/features/goat/screens/add_goat_screen.dart';
+import 'package:mobile_app/features/goat/screens/add_kid_screen.dart';
+import 'package:mobile_app/features/goat/screens/add_medication_screen.dart';
+import 'package:mobile_app/features/goat/screens/body_condition_screen.dart';
+import 'package:mobile_app/features/goat/screens/breeding_screen.dart';
+import 'package:mobile_app/features/goat/screens/cross_herd_comparison_screen.dart';
+import 'package:mobile_app/features/goat/screens/edit_goat_screen.dart';
+import 'package:mobile_app/features/goat/screens/famacha_screen.dart';
+import 'package:mobile_app/features/goat/screens/goat_breed_screen.dart';
+import 'package:mobile_app/features/goat/screens/goat_detail_screen.dart';
+import 'package:mobile_app/features/goat/screens/goat_financials_screen.dart';
+import 'package:mobile_app/features/goat/screens/goat_reports_screen.dart';
+import 'package:mobile_app/features/goat/screens/goat_screen.dart';
+import 'package:mobile_app/features/goat/screens/health_events_screen.dart';
+import 'package:mobile_app/features/goat/screens/inventory_screen.dart';
+import 'package:mobile_app/features/goat/screens/kidding_screen.dart';
+import 'package:mobile_app/features/goat/screens/milk_records_screen.dart';
+import 'package:mobile_app/features/goat/screens/pasture_screen.dart';
+import 'package:mobile_app/features/goat/screens/pregnancy_check_screen.dart';
+import 'package:mobile_app/features/goat/screens/sales_screen.dart';
+import 'package:mobile_app/features/goat/screens/shearing_screen.dart';
+import 'package:mobile_app/features/goat/screens/vaccination_screen.dart';
+import 'package:mobile_app/features/goat/screens/weight_records_screen.dart';
+import 'package:mobile_app/features/insights/screens/insights_screen.dart';
+import 'package:mobile_app/features/insights/screens/market_prices_screen.dart';
+import 'package:mobile_app/features/livestock/screens/add_edit_animal_screen.dart';
+import 'package:mobile_app/features/livestock/screens/add_edit_group_screen.dart';
+import 'package:mobile_app/features/livestock/screens/animal_detail_screen.dart';
+import 'package:mobile_app/features/livestock/screens/group_detail_screen.dart';
+import 'package:mobile_app/features/livestock/screens/groups_screen.dart';
+import 'package:mobile_app/features/livestock/screens/livestock_hub_screen.dart';
+import 'package:mobile_app/features/livestock/screens/livestock_screen.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/screens/attendance/attendance_exceptions_screen.dart';
+import 'package:mobile_app/features/payroll/screens/attendance/clock_in_screen.dart';
+import 'package:mobile_app/features/payroll/screens/audit/audit_log_screen.dart';
+import 'package:mobile_app/features/payroll/screens/communications/communications_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/coida_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/compliance_alert_detail_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/compliance_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/emp501_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/paye_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/sdl_screen.dart';
+import 'package:mobile_app/features/payroll/screens/compliance/uif_returns_screen.dart';
+import 'package:mobile_app/features/payroll/screens/contracts/contract_detail_screen.dart';
+import 'package:mobile_app/features/payroll/screens/contracts/contract_list_screen.dart';
+import 'package:mobile_app/features/payroll/screens/contracts/contract_sign_screen.dart';
+import 'package:mobile_app/features/payroll/screens/contracts/generate_contract_screen.dart';
+import 'package:mobile_app/features/payroll/screens/deductions/add_edit_garnishee_screen.dart';
+import 'package:mobile_app/features/payroll/screens/deductions/deductions_screen.dart';
+import 'package:mobile_app/features/payroll/screens/deductions/garnishee_orders_screen.dart';
+import 'package:mobile_app/features/payroll/screens/disbursements/disbursements_screen.dart';
+import 'package:mobile_app/features/payroll/screens/disbursements/payment_history_screen.dart';
+import 'package:mobile_app/features/payroll/screens/disbursements/transaction_detail_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/add_edit_employee_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/employee_detail_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/employee_import_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/employee_list_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/termination_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/worker_disputes_screen.dart';
+import 'package:mobile_app/features/payroll/screens/employees/worker_self_service_screen.dart';
+import 'package:mobile_app/features/payroll/screens/incidents/incidents_screen.dart'
     show IncidentsScreen, IncidentDetailScreen;
-import '../../features/payroll/screens/leave/leave_approval_screen.dart';
-import '../../features/payroll/screens/leave/leave_balance_screen.dart';
-import '../../features/payroll/screens/leave/leave_dashboard_screen.dart';
-import '../../features/payroll/screens/pay_groups/add_edit_pay_group_screen.dart';
-import '../../features/payroll/screens/pay_groups/pay_groups_screen.dart';
-import '../../features/payroll/screens/pay_runs/pay_run_detail_screen.dart';
-import '../../features/payroll/screens/pay_runs/pay_run_list_screen.dart';
-import '../../features/payroll/screens/pay_runs/payroll_approval_screen.dart';
-import '../../features/payroll/screens/pay_runs/retroactive_pay_screen.dart';
-import '../../features/payroll/screens/pay_runs/run_payroll_screen.dart';
-import '../../features/payroll/screens/pay_structures/add_edit_pay_structure_screen.dart';
-import '../../features/payroll/screens/pay_structures/pay_structures_screen.dart';
-import '../../features/payroll/screens/payroll_hub_screen.dart';
-import '../../features/payroll/screens/payslips/payslip_detail_screen.dart';
-import '../../features/payroll/screens/payslips/payslip_list_screen.dart';
-import '../../features/payroll/screens/reports/payroll_reports_screen.dart';
-import '../../features/payroll/screens/roster/add_piecework_log_screen.dart';
-import '../../features/payroll/screens/roster/add_shift_screen.dart';
-import '../../features/payroll/screens/roster/roster_board_screen.dart';
-import '../../features/payroll/screens/roster/task_sheet_screen.dart';
-import '../../features/payroll/screens/settings/employer_config_screen.dart';
-import '../../features/pigs/screens/pigs_screen.dart';
-import '../../features/pigs/screens/sow_detail_screen.dart';
-import '../../features/poultry/screens/add_chick_sale_screen.dart';
-import '../../features/poultry/screens/add_daily_record_screen.dart';
-import '../../features/poultry/screens/add_delivery_screen.dart';
-import '../../features/poultry/screens/add_disease_event_screen.dart';
-import '../../features/poultry/screens/add_egg_sale_screen.dart';
-import '../../features/poultry/screens/add_feed_phase_screen.dart';
-import '../../features/poultry/screens/add_flock_screen.dart';
-import '../../features/poultry/screens/add_medication_screen.dart';
-import '../../features/poultry/screens/biosecurity_log_screen.dart';
-import '../../features/poultry/screens/breeder_records_screen.dart';
-import '../../features/poultry/screens/cross_batch_comparison_screen.dart';
-import '../../features/poultry/screens/edit_flock_screen.dart';
-import '../../features/poultry/screens/feed_phases_screen.dart';
-import '../../features/poultry/screens/flock_detail_screen.dart';
-import '../../features/poultry/screens/flock_financial_screen.dart';
-import '../../features/poultry/screens/harvest_record_screen.dart';
-import '../../features/poultry/screens/health_events_hub_screen.dart';
-import '../../features/poultry/screens/house_allocation_screen.dart';
-import '../../features/poultry/screens/inventory_screen.dart';
-import '../../features/poultry/screens/invoice_screen.dart';
-import '../../features/poultry/screens/litter_management_screen.dart';
-import '../../features/poultry/screens/molt_management_screen.dart';
-import '../../features/poultry/screens/poultry_flock_picker_screen.dart';
-import '../../features/poultry/screens/poultry_reports_screen.dart';
-import '../../features/poultry/screens/poultry_screen.dart';
-import '../../features/poultry/screens/vaccination_hub_screen.dart';
-import '../../features/production/screens/add_egg_record_screen.dart';
-import '../../features/production/screens/add_milk_record_screen.dart';
-import '../../features/production/screens/add_wool_record_screen.dart';
-import '../../features/production/screens/egg_records_screen.dart';
-import '../../features/production/screens/milk_records_screen.dart';
-import '../../features/production/screens/wool_records_screen.dart';
-import '../../features/record/screens/add_feed_log_screen.dart';
-import '../../features/record/screens/feed_log_screen.dart';
-import '../../features/record/screens/record_screen.dart';
-import '../../features/reports/screens/reports_screen.dart';
-import '../../features/settings/screens/account_settings_screen.dart';
-import '../../features/settings/screens/activity_log_screen.dart';
-import '../../features/settings/screens/breed_registry_screen.dart';
-import '../../features/settings/screens/export_data_screen.dart';
-import '../../features/settings/screens/farm_settings_screen.dart';
-import '../../features/settings/screens/help_support_screen.dart';
-import '../../features/settings/screens/notification_settings_screen.dart';
-import '../../features/settings/screens/paddocks_screen.dart';
-import '../../features/settings/screens/regulatory_reports_screen.dart';
-import '../../features/settings/screens/settings_screen.dart';
-import '../../features/settings/screens/sync_backup_screen.dart';
-import '../../features/settings/screens/theme_settings_screen.dart';
-import '../../features/settings/screens/units_settings_screen.dart';
-import '../../features/settings/screens/users_roles_screen.dart';
-import '../../features/traceability/screens/add_movement_record_screen.dart';
-import '../../features/traceability/screens/movement_records_screen.dart';
-import '../theme/app_colors.dart';
-import 'app_routes.dart';
+import 'package:mobile_app/features/payroll/screens/leave/leave_approval_screen.dart';
+import 'package:mobile_app/features/payroll/screens/leave/leave_balance_screen.dart';
+import 'package:mobile_app/features/payroll/screens/leave/leave_dashboard_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_groups/add_edit_pay_group_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_groups/pay_groups_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_runs/pay_run_detail_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_runs/pay_run_list_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_runs/payroll_approval_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_runs/retroactive_pay_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_runs/run_payroll_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_structures/add_edit_pay_structure_screen.dart';
+import 'package:mobile_app/features/payroll/screens/pay_structures/pay_structures_screen.dart';
+import 'package:mobile_app/features/payroll/screens/payroll_hub_screen.dart';
+import 'package:mobile_app/features/payroll/screens/payslips/payslip_detail_screen.dart';
+import 'package:mobile_app/features/payroll/screens/payslips/payslip_list_screen.dart';
+import 'package:mobile_app/features/payroll/screens/reports/payroll_reports_screen.dart';
+import 'package:mobile_app/features/payroll/screens/roster/add_piecework_log_screen.dart';
+import 'package:mobile_app/features/payroll/screens/roster/add_shift_screen.dart';
+import 'package:mobile_app/features/payroll/screens/roster/roster_board_screen.dart';
+import 'package:mobile_app/features/payroll/screens/roster/task_sheet_screen.dart';
+import 'package:mobile_app/features/payroll/screens/settings/employer_config_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_chick_sale_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_daily_record_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_delivery_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_disease_event_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_egg_sale_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_feed_phase_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_flock_screen.dart';
+import 'package:mobile_app/features/poultry/screens/add_medication_screen.dart';
+import 'package:mobile_app/features/poultry/screens/biosecurity_log_screen.dart';
+import 'package:mobile_app/features/poultry/screens/breeder_records_screen.dart';
+import 'package:mobile_app/features/poultry/screens/cross_batch_comparison_screen.dart';
+import 'package:mobile_app/features/poultry/screens/edit_flock_screen.dart';
+import 'package:mobile_app/features/poultry/screens/feed_phases_screen.dart';
+import 'package:mobile_app/features/poultry/screens/flock_detail_screen.dart';
+import 'package:mobile_app/features/poultry/screens/flock_financial_screen.dart';
+import 'package:mobile_app/features/poultry/screens/harvest_record_screen.dart';
+import 'package:mobile_app/features/poultry/screens/health_events_hub_screen.dart';
+import 'package:mobile_app/features/poultry/screens/house_allocation_screen.dart';
+import 'package:mobile_app/features/poultry/screens/inventory_screen.dart';
+import 'package:mobile_app/features/poultry/screens/invoice_screen.dart';
+import 'package:mobile_app/features/poultry/screens/litter_management_screen.dart';
+import 'package:mobile_app/features/poultry/screens/molt_management_screen.dart';
+import 'package:mobile_app/features/poultry/screens/poultry_flock_picker_screen.dart';
+import 'package:mobile_app/features/poultry/screens/poultry_reports_screen.dart';
+import 'package:mobile_app/features/poultry/screens/poultry_screen.dart';
+import 'package:mobile_app/features/poultry/screens/vaccination_hub_screen.dart';
+import 'package:mobile_app/features/production/screens/add_egg_record_screen.dart';
+import 'package:mobile_app/features/production/screens/add_milk_record_screen.dart';
+import 'package:mobile_app/features/production/screens/add_wool_record_screen.dart';
+import 'package:mobile_app/features/production/screens/egg_records_screen.dart';
+import 'package:mobile_app/features/production/screens/milk_records_screen.dart';
+import 'package:mobile_app/features/production/screens/wool_records_screen.dart';
+import 'package:mobile_app/features/record/screens/add_feed_log_screen.dart';
+import 'package:mobile_app/features/record/screens/feed_log_screen.dart';
+import 'package:mobile_app/features/record/screens/record_screen.dart';
+import 'package:mobile_app/features/reports/screens/reports_screen.dart';
+import 'package:mobile_app/features/settings/screens/account_settings_screen.dart';
+import 'package:mobile_app/features/settings/screens/activity_log_screen.dart';
+import 'package:mobile_app/features/settings/screens/breed_registry_screen.dart';
+import 'package:mobile_app/features/settings/screens/change_password_screen.dart';
+import 'package:mobile_app/features/settings/screens/export_data_screen.dart';
+import 'package:mobile_app/features/settings/screens/farm_settings_screen.dart';
+import 'package:mobile_app/features/settings/screens/help_support_screen.dart';
+import 'package:mobile_app/features/settings/screens/notification_settings_screen.dart';
+import 'package:mobile_app/features/settings/screens/paddocks_screen.dart';
+import 'package:mobile_app/features/settings/screens/regulatory_reports_screen.dart';
+import 'package:mobile_app/features/settings/screens/settings_screen.dart';
+import 'package:mobile_app/features/settings/screens/sync_backup_screen.dart';
+import 'package:mobile_app/features/settings/screens/theme_settings_screen.dart';
+import 'package:mobile_app/features/settings/screens/units_settings_screen.dart';
+import 'package:mobile_app/features/settings/screens/users_roles_screen.dart';
+import 'package:mobile_app/features/traceability/screens/add_movement_record_screen.dart';
+import 'package:mobile_app/features/traceability/screens/movement_records_screen.dart';
+import 'package:mobile_app/core/auth/user_role.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/utils/drawer_notifier.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
 
-// ── Placeholder screens ───────────────────────────────────────────────────────
+// ── Screens ───────────────────────────────────────────────────────────────────
 
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
-  final String title;
+class _NotFoundScreen extends StatelessWidget {
+  const _NotFoundScreen();
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(title)),
+    appBar: AppBar(title: const Text('Page Not Found')),
     body: Center(
-      child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.search_off_rounded, size: 64),
+          const SizedBox(height: 16),
+          Text(
+            'This page does not exist.',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => context.go(AppRoutes.dashboard),
+            child: const Text('Go to Dashboard'),
+          ),
+        ],
+      ),
     ),
   );
 }
 
 // ── Shell scaffold with bottom navigation ─────────────────────────────────────
 
-class _AppShell extends StatelessWidget {
+class _AppShell extends ConsumerStatefulWidget {
   const _AppShell({required this.navigationShell});
   final StatefulNavigationShell navigationShell;
 
   @override
+  ConsumerState<_AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<_AppShell> {
+  // Notifier owned here — FarmScaffold writes via DrawerState.notifierOf()
+  final _drawerNotifier = ValueNotifier<bool>(false);
+
+  @override
+  void dispose() {
+    _drawerNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: navigationShell,
-      bottomNavigationBar: _FloatingNavBar(
-        selectedIndex: navigationShell.currentIndex,
-        onTap: (i) => navigationShell.goBranch(
-          i,
-          initialLocation: i == navigationShell.currentIndex,
-        ),
+    return DrawerState(
+      notifier: _drawerNotifier,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: _drawerNotifier,
+        builder: (context, drawerOpen, _) {
+          return Scaffold(
+            extendBody: true,
+            body: Column(
+              children: [
+                const TrialExpiryBanner(),
+                Expanded(child: widget.navigationShell),
+              ],
+            ),
+            // Slide and fade out while drawer is open
+            bottomNavigationBar: AnimatedSlide(
+              offset: drawerOpen ? const Offset(0, 1.5) : Offset.zero,
+              duration: const Duration(milliseconds: 280),
+              curve: drawerOpen ? Curves.easeIn : Curves.easeOutCubic,
+              child: AnimatedOpacity(
+                opacity: drawerOpen ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: _FloatingNavBar(
+                  selectedIndex: widget.navigationShell.currentIndex,
+                  onTap: (i) => widget.navigationShell.goBranch(
+                    i,
+                    initialLocation:
+                        i == widget.navigationShell.currentIndex,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -536,7 +588,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   // Build router once, then listen to auth state changes and refresh.
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
       final isLoggedIn = ref.read(isAuthenticatedProvider);
       final loc = state.matchedLocation;
@@ -561,11 +613,45 @@ final routerProvider = Provider<GoRouter>((ref) {
         return AppRoutes.dashboard;
       }
 
+      // Role-based guards for authenticated users
+      if (isLoggedIn) {
+        final role = ref.read(userRoleProvider);
+        // Financial + Payroll → manager-and-above only
+        if ((loc.startsWith(AppRoutes.financial) ||
+                loc.startsWith(AppRoutes.payrollHub)) &&
+            !role.canEditFinancials) {
+          return AppRoutes.dashboard;
+        }
+        // Owner-only settings
+        if ((loc == AppRoutes.settingsUsersRoles ||
+                loc == AppRoutes.settingsExportData ||
+                loc == AppRoutes.settingsRegulatoryReports) &&
+            !role.canManageSettings) {
+          return AppRoutes.settings;
+        }
+
+        // Module-based guards
+        final user = ref.read(currentUserProvider);
+        if (user != null) {
+          if ((loc.startsWith('/insights') || loc.startsWith('/reports')) &&
+              !user.hasModule('insights') &&
+              !user.hasModule('reports')) {
+            return AppRoutes.dashboard;
+          }
+          if (loc.startsWith('/crop') && !user.hasModule('crop')) {
+            return AppRoutes.dashboard;
+          }
+          if (loc.startsWith('/traceability') &&
+              !user.hasModule('traceability')) {
+            return AppRoutes.dashboard;
+          }
+        }
+      }
+
       return null; // no redirect
     },
     routes: _buildRoutes(),
-    errorBuilder: (_, state) =>
-        _PlaceholderScreen(title: 'Page not found: ${state.uri}'),
+    errorBuilder: (_, state) => const _NotFoundScreen(),
   );
 
   // Refresh router whenever auth state changes so redirect is re-evaluated.
@@ -795,67 +881,9 @@ List<RouteBase> _buildRoutes() {
                     ),
                   ],
                 ),
-                // ── Aquaculture hub → units board → unit detail ──────────────
                 GoRoute(
                   path: 'cross-batch',
                   builder: (_, _) => const CrossBatchComparisonScreen(),
-                ),
-                GoRoute(
-                  path: 'aquaculture',
-                  builder: (_, _) =>
-                      const LivestockHubScreen(species: 'aquaculture'),
-                  routes: [
-                    GoRoute(
-                      path: 'units',
-                      builder: (_, _) => const AquacultureScreen(),
-                      routes: [
-                        GoRoute(
-                          path: ':unitId',
-                          builder: (_, state) => AquacultureUnitDetailScreen(
-                            unitId: state.pathParameters['unitId']!,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                // ── Bees hub → hive board → hive detail ─────────────────────
-                GoRoute(
-                  path: 'bees',
-                  builder: (_, _) => const LivestockHubScreen(species: 'bees'),
-                  routes: [
-                    GoRoute(
-                      path: 'hives',
-                      builder: (_, _) => const ApicultureScreen(),
-                      routes: [
-                        GoRoute(
-                          path: ':hiveId',
-                          builder: (_, state) => HiveDetailScreen(
-                            hiveId: state.pathParameters['hiveId']!,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                // ── Pigs hub → sow board → sow detail ───────────────────────
-                GoRoute(
-                  path: 'pigs',
-                  builder: (_, _) => const LivestockHubScreen(species: 'pigs'),
-                  routes: [
-                    GoRoute(
-                      path: 'board',
-                      builder: (_, _) => const PigsScreen(),
-                      routes: [
-                        GoRoute(
-                          path: ':sowId',
-                          builder: (_, state) => SowDetailScreen(
-                            sowId: state.pathParameters['sowId']!,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
                 // ── Cattle module ────────────────────────────────────────────
                 GoRoute(
@@ -1320,6 +1348,12 @@ List<RouteBase> _buildRoutes() {
                 GoRoute(
                   path: 'account',
                   builder: (_, _) => const AccountSettingsScreen(),
+                  routes: [
+                    GoRoute(
+                      path: 'change-password',
+                      builder: (_, _) => const ChangePasswordScreen(),
+                    ),
+                  ],
                 ),
                 GoRoute(
                   path: 'notifications',

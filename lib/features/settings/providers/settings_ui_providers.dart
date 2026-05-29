@@ -245,3 +245,60 @@ class SyncNotifier extends Notifier<SyncState> {
 final syncProvider = NotifierProvider<SyncNotifier, SyncState>(
   SyncNotifier.new,
 );
+
+// ── Notification settings ─────────────────────────────────────────────────────
+
+class NotificationSettingsState {
+  final bool healthAlerts;
+  final bool breedingReminders;
+  final bool weightDue;
+  final bool productionAlerts;
+  final bool dailyDigest;
+
+  const NotificationSettingsState({
+    this.healthAlerts = true,
+    this.breedingReminders = true,
+    this.weightDue = false,
+    this.productionAlerts = true,
+    this.dailyDigest = false,
+  });
+
+  NotificationSettingsState copyWith({
+    bool? healthAlerts,
+    bool? breedingReminders,
+    bool? weightDue,
+    bool? productionAlerts,
+    bool? dailyDigest,
+  }) => NotificationSettingsState(
+    healthAlerts: healthAlerts ?? this.healthAlerts,
+    breedingReminders: breedingReminders ?? this.breedingReminders,
+    weightDue: weightDue ?? this.weightDue,
+    productionAlerts: productionAlerts ?? this.productionAlerts,
+    dailyDigest: dailyDigest ?? this.dailyDigest,
+  );
+}
+
+class NotificationSettingsNotifier extends Notifier<NotificationSettingsState> {
+  @override
+  NotificationSettingsState build() => const NotificationSettingsState();
+
+  void toggle(String field) {
+    switch (field) {
+      case 'healthAlerts':
+        state = state.copyWith(healthAlerts: !state.healthAlerts);
+      case 'breedingReminders':
+        state = state.copyWith(breedingReminders: !state.breedingReminders);
+      case 'weightDue':
+        state = state.copyWith(weightDue: !state.weightDue);
+      case 'productionAlerts':
+        state = state.copyWith(productionAlerts: !state.productionAlerts);
+      case 'dailyDigest':
+        state = state.copyWith(dailyDigest: !state.dailyDigest);
+    }
+  }
+}
+
+final notificationSettingsProvider =
+    NotifierProvider<NotificationSettingsNotifier, NotificationSettingsState>(
+      NotificationSettingsNotifier.new,
+    );

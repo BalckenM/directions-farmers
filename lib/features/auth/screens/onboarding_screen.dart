@@ -368,16 +368,10 @@ class _SpeciesPage extends StatelessWidget {
     (name: 'Sheep', icon: Icons.hive_rounded, color: AppColors.sheepColor),
     (name: 'Pigs', icon: Icons.hive_rounded, color: AppColors.pigColor),
     (name: 'Poultry', icon: Icons.egg_rounded, color: AppColors.poultryColor),
-    (name: 'Horses', icon: Icons.hive_rounded, color: AppColors.horseColor),
     (
       name: 'Rabbits',
       icon: Icons.cruelty_free_rounded,
       color: AppColors.rabbitColor,
-    ),
-    (
-      name: 'Fish',
-      icon: Icons.water_rounded,
-      color: AppColors.aquacultureColor,
     ),
   ];
 

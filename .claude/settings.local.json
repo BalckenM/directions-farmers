@@ -13,7 +13,15 @@
       "Bash(xargs grep:*)",
       "Bash(find /e/4directions/Products/mobile_app/lib -type f -name *.dart)",
       "Bash(flutter analyze:*)",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(flutter pub:*)",
+      "Bash(cmd /c \"cd /d e:\\\\4directions\\\\Products\\\\mobile_app && flutter pub get\")",
+      "Bash(powershell.exe -Command \"Set-Location ''e:\\\\4directions\\\\Products\\\\mobile_app''; flutter pub get\")",
+      "Read(//mnt/e/4directions/Products/**)",
+      "Read(//c/Users/Balck/AppData/Local/**)",
+      "Read(//c/flutter/bin/**)",
+      "Read(//c/src/flutter/bin/**)",
+      "Bash(find /c /d /e -name flutter.bat -maxdepth 6)"
     ]
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/drawer_notifier.dart';
 import 'farm_drawer.dart';
 import 'offline_banner.dart';
 
@@ -7,6 +8,9 @@ import 'offline_banner.dart';
 ///
 /// [drawer] defaults to [FarmDrawer] so every screen gets sidebar navigation
 /// automatically. Pass `drawer: null` explicitly to suppress it.
+///
+/// When the drawer opens or closes, [DrawerState.notifierOf] is updated so
+/// the shell-level floating nav bar can hide itself automatically.
 class FarmScaffold extends StatelessWidget {
   const FarmScaffold({
     super.key,
@@ -36,6 +40,10 @@ class FarmScaffold extends StatelessWidget {
       floatingActionButtonLocation: floatingActionButtonLocation,
       bottomNavigationBar: bottomNavigationBar,
       drawer: drawer,
+      // Tell the shell nav bar to hide while this drawer is open
+      onDrawerChanged: (isOpen) {
+        DrawerState.notifierOf(context)?.value = isOpen;
+      },
       body: Column(
         children: [
           const OfflineBanner(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -8,6 +9,7 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class FarmSettingsScreen extends ConsumerStatefulWidget {
   const FarmSettingsScreen({super.key});
@@ -18,11 +20,23 @@ class FarmSettingsScreen extends ConsumerStatefulWidget {
 
 class _FarmSettingsScreenState extends ConsumerState<FarmSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController(text: 'Thornhill Cattle Farm');
-  final _locationCtrl = TextEditingController(text: 'Limpopo Province, South Africa');
-  final _ownerCtrl = TextEditingController(text: 'Thabo Nkosi');
-  final _phoneCtrl = TextEditingController(text: '+27 82 000 1001');
+  final _nameCtrl = TextEditingController();
+  final _locationCtrl = TextEditingController();
+  final _ownerCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = ref.read(currentUserProvider);
+    _nameCtrl.text = user?.farmName ?? '';
+    _locationCtrl.text = (user != null && user.province.isNotEmpty)
+        ? '${user.province}, ${user.country}'
+        : (user?.country ?? '');
+    _ownerCtrl.text = user?.fullName ?? '';
+    _phoneCtrl.text = user?.phone ?? '';
+  }
 
   @override
   void dispose() {

@@ -8,13 +8,13 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_drawer.dart';
+import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/section_header.dart';
+import '../../events/providers/alerts_provider.dart';
 import '../../livestock/models/animal.dart';
 import '../../livestock/providers/livestock_providers.dart';
-import '../../events/providers/alerts_provider.dart';
 import '../../poultry/models/poultry_flock.dart';
 import '../../poultry/providers/poultry_providers.dart';
 
@@ -124,111 +124,6 @@ final Map<String, _SpeciesConfig> _speciesConfigs = {
       _ToolItem(label: 'Reports',        icon: Icons.description_rounded,             route: AppRoutes.poultryReports),
     ],
   ),
-  'pigs': _SpeciesConfig(
-    displayName: 'Pigs',
-    icon: Icons.ramen_dining_rounded,
-    primaryColor: AppColors.pigColor,
-    containerColor: AppColors.pigColorContainer,
-    unit: 'sows',
-    specializedRoute: AppRoutes.pigsBoard,
-    specializedLabel: 'Open Sow Board',
-    kpis: [
-      _KpiItem(label: 'Total Pigs', value: '284', sub: 'all groups'),
-      _KpiItem(label: 'Born Alive', value: '11.4', sub: 'avg per litter'),
-      _KpiItem(label: 'Weaning Age', value: '21 days', sub: 'target: 21 d'),
-      _KpiItem(label: 'Feed Phase', value: 'Grower', sub: 'barn A · 3/4 groups'),
-    ],
-    sensors: [
-      _SensorReading(label: 'Barn Temp', value: '20', unit: '°C', icon: Icons.thermostat_rounded),
-      _SensorReading(label: 'Humidity', value: '72', unit: '%', icon: Icons.water_drop_outlined, status: _SensorStatus.warning),
-      _SensorReading(label: 'Mist System', value: 'OFF', unit: '', icon: Icons.shower_outlined),
-      _SensorReading(label: 'Pit Temp', value: '19', unit: '°C', icon: Icons.thermostat_auto_rounded),
-    ],
-    automations: [
-      _AutomationItem(label: 'Misting/Drip', icon: Icons.shower_rounded, initialOn: false),
-      _AutomationItem(label: 'Auto-feeder', icon: Icons.restaurant_rounded, initialOn: true),
-      _AutomationItem(label: 'Heat Lamps', icon: Icons.wb_sunny_rounded, initialOn: true),
-      _AutomationItem(label: 'Ventilation', icon: Icons.air_rounded, initialOn: true),
-    ],
-    tools: [
-      _ToolItem(label: 'Farrowing', icon: Icons.child_friendly_rounded, route: AppRoutes.pigsBoard),
-      _ToolItem(label: 'Feed Phases', icon: Icons.restaurant_menu_rounded, route: AppRoutes.recordFeed),
-      _ToolItem(label: 'Health Events', icon: Icons.monitor_heart_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Weight Records', icon: Icons.monitor_weight_rounded, route: AppRoutes.recordWeight),
-      _ToolItem(label: 'Mortality Log', icon: Icons.crisis_alert_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Reports', icon: Icons.description_rounded, route: AppRoutes.reports),
-    ],
-  ),
-  'aquaculture': _SpeciesConfig(
-    displayName: 'Aquaculture',
-    icon: Icons.set_meal_rounded,
-    primaryColor: AppColors.aquacultureColor,
-    containerColor: AppColors.aquacultureColorContainer,
-    unit: 'ponds/tanks',
-    specializedRoute: AppRoutes.aquacultureUnits,
-    specializedLabel: 'Open Pond Manager',
-    kpis: [
-      _KpiItem(label: 'Total Stock', value: '12 400', sub: 'fish across 6 units'),
-      _KpiItem(label: 'Avg Weight', value: '480 g', sub: 'target: 500 g'),
-      _KpiItem(label: 'Survival Rate', value: '96.2%', sub: 'this cycle'),
-      _KpiItem(label: 'FCR', value: '1.6', sub: 'feed conversion'),
-    ],
-    sensors: [
-      _SensorReading(label: 'Water Temp', value: '24', unit: '°C', icon: Icons.thermostat_rounded),
-      _SensorReading(label: 'DO Level', value: '6.8', unit: 'mg/L', icon: Icons.bubble_chart_outlined),
-      _SensorReading(label: 'pH', value: '7.2', unit: '', icon: Icons.science_outlined),
-      _SensorReading(label: 'Ammonia', value: '0.04', unit: 'ppm', icon: Icons.air_rounded, status: _SensorStatus.warning),
-    ],
-    automations: [
-      _AutomationItem(label: 'Aerators', icon: Icons.bubble_chart_rounded, initialOn: true),
-      _AutomationItem(label: 'Auto-feeder', icon: Icons.restaurant_rounded, initialOn: true),
-      _AutomationItem(label: 'Pump A', icon: Icons.water_rounded, initialOn: true),
-      _AutomationItem(label: 'UV Filter', icon: Icons.filter_alt_rounded, initialOn: false),
-    ],
-    tools: [
-      _ToolItem(label: 'Water Quality', icon: Icons.water_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Feed Log', icon: Icons.restaurant_menu_rounded, route: AppRoutes.recordFeed),
-      _ToolItem(label: 'Sampling', icon: Icons.science_rounded, route: AppRoutes.recordWeight),
-      _ToolItem(label: 'Harvest Plan', icon: Icons.agriculture_rounded, route: AppRoutes.reports),
-      _ToolItem(label: 'Health Events', icon: Icons.monitor_heart_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Reports', icon: Icons.description_rounded, route: AppRoutes.reports),
-    ],
-  ),
-  'bees': _SpeciesConfig(
-    displayName: 'Apiculture',
-    icon: Icons.hive_rounded,
-    primaryColor: AppColors.beesColor,
-    containerColor: AppColors.beesColorContainer,
-    unit: 'hives',
-    specializedRoute: AppRoutes.apiculture,
-    specializedLabel: 'Open Hive Manager',
-    kpis: [
-      _KpiItem(label: 'Total Hives', value: '36', sub: '3 apiaries'),
-      _KpiItem(label: 'Honey Est.', value: '142 kg', sub: 'next harvest'),
-      _KpiItem(label: 'Colony Strength', value: '82%', sub: 'avg all hives'),
-      _KpiItem(label: 'Varroa Load', value: '1.8%', sub: 'below 2% threshold'),
-    ],
-    sensors: [
-      _SensorReading(label: 'Hive Weight', value: '+0.4', unit: 'kg/d', icon: Icons.monitor_weight_outlined),
-      _SensorReading(label: 'Hive Temp', value: '35', unit: '°C', icon: Icons.thermostat_rounded),
-      _SensorReading(label: 'Humidity', value: '56', unit: '%', icon: Icons.water_drop_outlined),
-      _SensorReading(label: 'Activity', value: 'High', unit: '', icon: Icons.bolt_rounded),
-    ],
-    automations: [
-      _AutomationItem(label: 'Smart Scale', icon: Icons.monitor_weight_rounded, initialOn: true),
-      _AutomationItem(label: 'Temp Alert', icon: Icons.notifications_rounded, initialOn: true),
-      _AutomationItem(label: 'Swarm Alert', icon: Icons.warning_rounded, initialOn: true),
-      _AutomationItem(label: 'Feed Syrup', icon: Icons.local_drink_rounded, initialOn: false),
-    ],
-    tools: [
-      _ToolItem(label: 'Inspections', icon: Icons.search_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Varroa Counts', icon: Icons.bug_report_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Honey Harvest', icon: Icons.emoji_nature_rounded, route: AppRoutes.reports),
-      _ToolItem(label: 'Queen Status', icon: Icons.star_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Movements', icon: Icons.swap_horiz_rounded, route: AppRoutes.movementRecords),
-      _ToolItem(label: 'Reports', icon: Icons.description_rounded, route: AppRoutes.reports),
-    ],
-  ),
   'cattle': _SpeciesConfig(
     displayName: 'Cattle',
     icon: Icons.local_offer_rounded,
@@ -332,39 +227,6 @@ final Map<String, _SpeciesConfig> _speciesConfigs = {
       _ToolItem(label: 'Sales & Finance', icon: Icons.account_balance_wallet_rounded, route: AppRoutes.goatSales),
       _ToolItem(label: 'FAMACHA',         icon: Icons.visibility_outlined,            route: AppRoutes.goatFamacha),
       _ToolItem(label: 'Reports',         icon: Icons.description_rounded,            route: AppRoutes.goatReports),
-    ],
-  ),
-  'horses': _SpeciesConfig(
-    displayName: 'Horses',
-    icon: Icons.directions_run_rounded,
-    primaryColor: AppColors.horseColor,
-    containerColor: AppColors.horseColorContainer,
-    unit: 'head',
-    kpis: [
-      _KpiItem(label: 'Total Head', value: '–', sub: 'loading...'),
-      _KpiItem(label: 'Training Days', value: '18', sub: 'this month'),
-      _KpiItem(label: 'Next Farrier', value: '12 days', sub: 'routine trim'),
-      _KpiItem(label: 'BCS Avg', value: '5.2', sub: 'Henneke scale'),
-    ],
-    sensors: [
-      _SensorReading(label: 'Stable Temp', value: '16', unit: '°C', icon: Icons.thermostat_rounded),
-      _SensorReading(label: 'Humidity', value: '54', unit: '%', icon: Icons.water_drop_outlined),
-      _SensorReading(label: 'Water Trough', value: 'Full', unit: '', icon: Icons.water_rounded),
-      _SensorReading(label: 'Paddock Gate', value: 'Closed', unit: '', icon: Icons.sensor_door_outlined),
-    ],
-    automations: [
-      _AutomationItem(label: 'Water Auto-fill', icon: Icons.water_rounded, initialOn: true),
-      _AutomationItem(label: 'Stable Lights', icon: Icons.light_mode_rounded, initialOn: false),
-      _AutomationItem(label: 'Gate Sensors', icon: Icons.sensor_door_rounded, initialOn: true),
-      _AutomationItem(label: 'Hay Dispenser', icon: Icons.grass_rounded, initialOn: false),
-    ],
-    tools: [
-      _ToolItem(label: 'Health Events', icon: Icons.monitor_heart_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Weight Records', icon: Icons.monitor_weight_rounded, route: AppRoutes.recordWeight),
-      _ToolItem(label: 'Reproduction', icon: Icons.favorite_rounded, route: AppRoutes.recordBreeding),
-      _ToolItem(label: 'Movements', icon: Icons.swap_horiz_rounded, route: AppRoutes.movementRecords),
-      _ToolItem(label: 'Farrier Log', icon: Icons.build_rounded, route: AppRoutes.recordHealth),
-      _ToolItem(label: 'Reports', icon: Icons.description_rounded, route: AppRoutes.reports),
     ],
   ),
   'rabbits': _SpeciesConfig(
@@ -1037,11 +899,11 @@ class _SAToolsPanel extends StatelessWidget {
     ('LITS Traceability', Icons.qr_code_rounded, ['cattle', 'sheep', 'goats']),
     ('FAMACHA Scoring', Icons.visibility_rounded, ['sheep', 'goats']),
     ('BCS Assessment', Icons.monitor_weight_rounded, ['cattle', 'sheep']),
-    ('FMD Zone Status', Icons.location_on_rounded, ['cattle', 'sheep', 'goats', 'pigs']),
-    ('Market Prices (ZAR)', Icons.storefront_rounded, ['cattle', 'sheep', 'goats', 'pigs', 'poultry']),
-    ('Emergency Contacts', Icons.phone_rounded, ['cattle', 'sheep', 'goats', 'pigs', 'poultry', 'aquaculture', 'horses', 'rabbits', 'bees']),
-    ('Biosecurity Checklist', Icons.security_rounded, ['cattle', 'sheep', 'goats', 'pigs', 'poultry', 'aquaculture', 'horses', 'rabbits', 'bees']),
-    ('Withdrawal Periods', Icons.hourglass_empty_rounded, ['cattle', 'sheep', 'goats', 'pigs', 'poultry']),
+    ('FMD Zone Status', Icons.location_on_rounded, ['cattle', 'sheep', 'goats']),
+    ('Market Prices (ZAR)', Icons.storefront_rounded, ['cattle', 'sheep', 'goats', 'poultry']),
+    ('Emergency Contacts', Icons.phone_rounded, ['cattle', 'sheep', 'goats', 'poultry', 'rabbits']),
+    ('Biosecurity Checklist', Icons.security_rounded, ['cattle', 'sheep', 'goats', 'poultry', 'rabbits']),
+    ('Withdrawal Periods', Icons.hourglass_empty_rounded, ['cattle', 'sheep', 'goats', 'poultry']),
   ];
 
   @override
@@ -1855,7 +1717,7 @@ class _AnimalRow extends StatelessWidget {
   }
 }
 
-// ── Specialized animal view (for poultry, pigs, aquaculture, bees) ─────────────
+// ── Specialized animal view (for poultry, pigs, bees) ─────────────
 
 class _SpecializedAnimalView extends StatelessWidget {
   const _SpecializedAnimalView({required this.cfg, required this.species});
@@ -1994,14 +1856,6 @@ class _SpecializedAnimalView extends StatelessWidget {
           'Barn climate & misting automation',
           '21-day weaning countdown per sow',
           'Born alive / stillborn statistics',
-        ];
-      case 'aquaculture':
-        return [
-          'Pond / tank management with stock levels',
-          'Water quality parameter tracking',
-          'Daily feed and survival records',
-          'Harvest planning and scheduling',
-          'FCR & growth performance analytics',
         ];
       case 'bees':
         return [

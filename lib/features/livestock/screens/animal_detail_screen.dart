@@ -19,10 +19,10 @@ import '../../../shared/widgets/loading_shimmer.dart';
 import '../../../shared/widgets/status_chip.dart';
 import '../../../shared/widgets/tag_cloud.dart';
 import '../../../shared/widgets/withdrawal_countdown.dart';
-import '../../events/providers/events_providers.dart';
 import '../../events/models/breeding_event.dart';
 import '../../events/models/health_event.dart';
 import '../../events/models/weight_record.dart';
+import '../../events/providers/events_providers.dart';
 import '../models/animal.dart';
 import '../providers/livestock_providers.dart';
 
@@ -165,8 +165,8 @@ List<_TabSpec> _buildTabSpecs(Animal animal) {
     ),
   ));
 
-  // 4. Reproduction — skip bees & aquaculture (no individual breeding)
-  if (sp != LivestockConstants.bees && sp != LivestockConstants.aquaculture) {
+  // 4. Reproduction — skip bees (no individual breeding)
+  if (sp != LivestockConstants.bees) {
     specs.add(_TabSpec(
       tab: const Tab(
           icon: Icon(Icons.favorite_outline_rounded, size: 18),
@@ -2141,7 +2141,6 @@ class _PregnancyCard extends StatelessWidget {
     'sheep': 147,
     'goats': 150,
     'pigs': 114,
-    'horses': 340,
   };
 
   String _formatDate(String iso) {
@@ -2526,9 +2525,8 @@ class _BcsSection extends StatelessWidget {
               color:
                   Theme.of(context).colorScheme.onSurfaceVariant));
     }
-    // Cattle & horses use the 9-point Leanne/BCS scale; all others use 1–5
-    final maxScore = (animal.species == LivestockConstants.cattle ||
-            animal.species == LivestockConstants.horses)
+    // Cattle use the 9-point Leanne/BCS scale; all others use 1–5
+    final maxScore = animal.species == LivestockConstants.cattle
         ? 9
         : 5;
     return BcsIndicator(

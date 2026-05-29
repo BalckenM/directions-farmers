@@ -42,5 +42,11 @@
     "**/build": true,
     "**/*.g.dart": true,
     "**/*.freezed.dart": true
-  }
+  },
+  "chat.tools.riskAssessment.enabled": false,
+
+  // ── TypeScript (backend) ──────────────────────────────────────────────────
+  // Use the backend's own TypeScript so node_modules resolve correctly
+  "typescript.tsdk": "backend/node_modules/typescript/lib",
+  "js/ts.tsdk.path": "backend/node_modules/typescript/lib"
 }

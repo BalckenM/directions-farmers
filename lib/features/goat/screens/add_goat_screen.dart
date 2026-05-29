@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../models/goat_animal.dart';
-import '../providers/goat_providers.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/goat/models/goat_animal.dart';
+import 'package:mobile_app/features/goat/providers/goat_providers.dart';
 
 class AddGoatScreen extends ConsumerStatefulWidget {
   const AddGoatScreen({super.key});
@@ -81,7 +82,7 @@ class _AddGoatScreenState extends ConsumerState<AddGoatScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _sex,
+              initialValue: _sex,
               decoration: const InputDecoration(
                 labelText: 'Sex',
                 prefixIcon: Icon(Icons.wc_rounded),
@@ -89,13 +90,16 @@ class _AddGoatScreenState extends ConsumerState<AddGoatScreen> {
               items: const [
                 DropdownMenuItem(value: 'doe', child: Text('Doe (Female)')),
                 DropdownMenuItem(value: 'buck', child: Text('Buck (Male)')),
-                DropdownMenuItem(value: 'wether', child: Text('Wether (Castrated)')),
+                DropdownMenuItem(
+                  value: 'wether',
+                  child: Text('Wether (Castrated)'),
+                ),
               ],
               onChanged: (v) => setState(() => _sex = v!),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _productionType,
+              initialValue: _productionType,
               decoration: const InputDecoration(
                 labelText: 'Production Type',
                 prefixIcon: Icon(Icons.category_outlined),
@@ -139,8 +143,9 @@ class _AddGoatScreenState extends ConsumerState<AddGoatScreen> {
                 prefixIcon: Icon(Icons.monitor_weight_outlined),
                 suffixText: 'kg',
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
             const SizedBox(height: 24),
             if (ref.watch(canManageAnimalsProvider))
@@ -166,7 +171,7 @@ class _AddGoatScreenState extends ConsumerState<AddGoatScreen> {
 
     final animal = GoatAnimal(
       id: 'goat-${DateTime.now().millisecondsSinceEpoch}',
-      farmId: 'FARM-001',
+      farmId: ref.read(currentUserProvider)?.id ?? 'unknown',
       tagNumber: _tagController.text.trim(),
       name: _nameController.text.trim().isEmpty
           ? null
@@ -176,8 +181,9 @@ class _AddGoatScreenState extends ConsumerState<AddGoatScreen> {
       sex: _sex,
       status: 'active',
       herdId: _herdController.text.trim(),
-      dateOfBirth:
-          _dobController.text.trim().isEmpty ? '2000-01-01' : _dobController.text.trim(),
+      dateOfBirth: _dobController.text.trim().isEmpty
+          ? '2000-01-01'
+          : _dobController.text.trim(),
       currentWeightKg: double.tryParse(_weightController.text.trim()),
       isPregnant: false,
       isLactating: false,

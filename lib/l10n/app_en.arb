@@ -1,0 +1,78 @@
+{
+  "@@locale": "en",
+  "appName": "4Directions",
+  "@appName": { "description": "Application name" },
+
+  "loginTitle": "Welcome Back",
+  "@loginTitle": { "description": "Title on the login screen" },
+  "loginEmailHint": "Email address",
+  "@loginEmailHint": {},
+  "loginPasswordHint": "Password",
+  "@loginPasswordHint": {},
+  "loginButton": "Sign in",
+  "@loginButton": {},
+  "loginForgotPassword": "Forgot password?",
+  "@loginForgotPassword": {},
+
+  "dashboardTitle": "Dashboard",
+  "@dashboardTitle": {},
+  "dashboardAnimals": "Animals",
+  "@dashboardAnimals": {},
+  "dashboardFields": "Fields",
+  "@dashboardFields": {},
+  "dashboardAlerts": "Alerts",
+  "@dashboardAlerts": {},
+
+  "cattleTitle": "Cattle",
+  "@cattleTitle": {},
+  "goatTitle": "Goats",
+  "@goatTitle": {},
+  "poultryTitle": "Poultry",
+  "@poultryTitle": {},
+  "cropTitle": "Crops",
+  "@cropTitle": {},
+  "traceabilityTitle": "Traceability",
+  "@traceabilityTitle": {},
+  "payrollTitle": "Payroll",
+  "@payrollTitle": {},
+  "insightsTitle": "Insights",
+  "@insightsTitle": {},
+
+  "addAnimal": "Add Animal",
+  "@addAnimal": {},
+  "addFlock": "Add Flock",
+  "@addFlock": {},
+  "saveButton": "Save",
+  "@saveButton": {},
+  "cancelButton": "Cancel",
+  "@cancelButton": {},
+  "deleteButton": "Delete",
+  "@deleteButton": {},
+  "editButton": "Edit",
+  "@editButton": {},
+  "searchHint": "Search…",
+  "@searchHint": {},
+
+  "trialExpiresSoon": "Trial expires in {days} day(s). Upgrade to continue.",
+  "@trialExpiresSoon": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "upgradeNow": "Upgrade Now",
+  "@upgradeNow": {},
+
+  "errorGeneral": "Something went wrong. Please try again.",
+  "@errorGeneral": {},
+  "errorNetwork": "No internet connection. Check your network.",
+  "@errorNetwork": {},
+  "errorUnauthorized": "Session expired. Please sign in again.",
+  "@errorUnauthorized": {},
+
+  "logoutButton": "Sign out",
+  "@logoutButton": {},
+  "settingsTitle": "Settings",
+  "@settingsTitle": {},
+  "profileTitle": "My Profile",
+  "@profileTitle": {}
+}

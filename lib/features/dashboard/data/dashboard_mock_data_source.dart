@@ -1,5 +1,5 @@
-import 'dashboard_data_source.dart';
 import '../models/dashboard_summary.dart';
+import 'dashboard_data_source.dart';
 
 class DashboardMockDataSource implements DashboardDataSource {
   @override
@@ -42,14 +42,8 @@ class DashboardMockDataSource implements DashboardDataSource {
           activeCount: 4920,
           alertCount: 0,
         ),
-        SpeciesSummary(
-          species: 'horses',
-          headCount: 6,
-          activeCount: 6,
-          alertCount: 0,
-        ),
       ],
-      totalAnimals: 5399,
+      totalAnimals: 5393,
       recentHealthAlerts: 4,
       recentBreedingEvents: 8,
       recentActivity: [

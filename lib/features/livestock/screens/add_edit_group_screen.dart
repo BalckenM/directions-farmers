@@ -33,13 +33,25 @@ class _AddEditGroupScreenState extends ConsumerState<AddEditGroupScreen> {
   Group? _existing;
 
   static const _speciesOptions = [
-    'cattle', 'goats', 'sheep', 'pigs', 'poultry',
-    'horses', 'rabbits', 'aquaculture', 'bees',
+    'cattle',
+    'goats',
+    'sheep',
+    'pigs',
+    'poultry',
+    'rabbits',
+    'bees',
   ];
 
   static const _purposeOptions = [
-    'dairy', 'beef', 'breeding', 'meat', 'egg_production',
-    'wool', 'honey', 'aquaculture', 'mixed',
+    'dairy',
+    'beef',
+    'breeding',
+    'meat',
+    'egg_production',
+    'wool',
+    'honey',
+    'aquaculture',
+    'mixed',
   ];
 
   bool get _isEdit => widget.groupId != null;
@@ -86,8 +98,7 @@ class _AddEditGroupScreenState extends ConsumerState<AddEditGroupScreen> {
     if (!mounted) return;
 
     final store = ref.read(localGroupStoreProvider.notifier);
-    final id = _existing?.id ??
-        'grp_${DateTime.now().millisecondsSinceEpoch}';
+    final id = _existing?.id ?? 'grp_${DateTime.now().millisecondsSinceEpoch}';
     final group = Group(
       id: id,
       farmId: _existing?.farmId ?? 'farm_001',
@@ -118,7 +129,8 @@ class _AddEditGroupScreenState extends ConsumerState<AddEditGroupScreen> {
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.sm)),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
       ),
     );
     context.pop();
@@ -165,11 +177,12 @@ class _AddEditGroupScreenState extends ConsumerState<AddEditGroupScreen> {
                     hint: const Text('Select species'),
                     isExpanded: true,
                     items: _speciesOptions
-                        .map((s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(
-                                  s[0].toUpperCase() + s.substring(1)),
-                            ))
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(s[0].toUpperCase() + s.substring(1)),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _species = v),
                     validator: (v) =>
@@ -193,15 +206,20 @@ class _AddEditGroupScreenState extends ConsumerState<AddEditGroupScreen> {
                     hint: const Text('Select purpose'),
                     isExpanded: true,
                     items: _purposeOptions
-                        .map((p) => DropdownMenuItem(
-                              value: p,
-                              child: Text(p
+                        .map(
+                          (p) => DropdownMenuItem(
+                            value: p,
+                            child: Text(
+                              p
                                   .replaceAll('_', ' ')
                                   .split(' ')
-                                  .map((w) =>
-                                      w[0].toUpperCase() + w.substring(1))
-                                  .join(' ')),
-                            ))
+                                  .map(
+                                    (w) => w[0].toUpperCase() + w.substring(1),
+                                  )
+                                  .join(' '),
+                            ),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _purpose = v),
                   ),
@@ -270,22 +288,26 @@ class _FormCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: Row(
               children: [
                 Icon(icon, size: 18, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
-                Text(title,
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
         ],
       ),
     );

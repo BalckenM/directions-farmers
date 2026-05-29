@@ -66,5 +66,30 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Privacy usage descriptions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>4Directions uses your location for clock-in verification and farm mapping.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>4Directions uses your location for clock-in verification and farm mapping.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>4Directions uses the camera to scan QR codes and capture animal photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>4Directions accesses your photo library to attach images to records.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>4Directions saves photos of animals and farm records to your photo library.</string>
+	<!-- Custom URL scheme for deep links -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.4directions.farmerapp</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>4dfarmer</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

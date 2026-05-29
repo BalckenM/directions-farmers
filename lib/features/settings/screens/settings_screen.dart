@@ -320,6 +320,7 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
     final tt = Theme.of(context).textTheme;
     final user = ref.watch(currentUserProvider);
     final imagePath = ref.watch(profileImageProvider);
+    final teamCount = ref.watch(teamMembersProvider).length;
 
     final farmName = user?.farmName ?? 'Your Farm';
     final location = (user != null && user.province.isNotEmpty)
@@ -428,7 +429,7 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
                 label: 'Animals',
               ),
               Container(width: 1, height: 32, color: cs.outlineVariant),
-              _StatPill(icon: Icons.group_rounded, value: '8', label: 'Team'),
+              _StatPill(icon: Icons.group_rounded, value: '$teamCount', label: 'Team'),
               Container(width: 1, height: 32, color: cs.outlineVariant),
               _StatPill(
                 icon: Icons.landscape_rounded,
@@ -449,9 +450,16 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
   }
 }
 
-class _ProBadge extends StatelessWidget {
+class _ProBadge extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final planLabel = switch (user?.subscriptionPlan) {
+      'starter' => 'Starter Plan',
+      'growth' => 'Growth Plan',
+      'enterprise' => 'Enterprise Plan',
+      _ => 'Free Plan',
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -465,7 +473,7 @@ class _ProBadge extends StatelessWidget {
           const Icon(Icons.star_rounded, color: AppColors.secondary, size: 12),
           const SizedBox(width: 3),
           Text(
-            'Pro Plan',
+            planLabel,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: AppColors.secondary,
               fontWeight: FontWeight.w700,

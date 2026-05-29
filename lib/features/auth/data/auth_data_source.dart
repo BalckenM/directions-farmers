@@ -1,4 +1,4 @@
-import '../models/auth_user.dart';
+import 'package:mobile_app/features/auth/models/auth_user.dart';
 
 abstract class AuthDataSource {
   Future<AuthUser> signIn({required String email, required String password});
@@ -14,7 +14,7 @@ abstract class AuthDataSource {
     required List<String> activatedModules,
     String? phone,
   });
-  AuthUser? restoreSession();
+  Future<AuthUser?> restoreSession();
   Future<void> clearSession();
 
   /// Returns all staff accounts belonging to the given farm owner.

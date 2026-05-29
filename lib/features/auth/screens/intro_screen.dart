@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../providers/auth_provider.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
 
 // Slide data
 class _Slide {
@@ -319,7 +318,9 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
                               ? () => context.go(AppRoutes.login)
                               : _done,
                           style: TextButton.styleFrom(
-                            foregroundColor: Colors.white.withValues(alpha: 0.55),
+                            foregroundColor: Colors.white.withValues(
+                              alpha: 0.55,
+                            ),
                             minimumSize: const Size.fromHeight(44),
                           ),
                           child: Text(
@@ -349,8 +350,10 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(100),
@@ -424,8 +427,10 @@ class _IntroScreenState extends ConsumerState<IntroScreen>
                     ),
                     child: const Text(
                       'Skip',
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -503,9 +508,7 @@ class _DotIndicator extends StatelessWidget {
           width: active ? 26 : 7,
           height: 7,
           decoration: BoxDecoration(
-            color: active
-                ? accentColor
-                : Colors.white.withValues(alpha: 0.28),
+            color: active ? accentColor : Colors.white.withValues(alpha: 0.28),
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -533,10 +536,7 @@ class _GradientButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              accentColor,
-              Color.lerp(accentColor, Colors.black, 0.35)!,
-            ],
+            colors: [accentColor, Color.lerp(accentColor, Colors.black, 0.35)!],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

@@ -2,11 +2,15 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/auth_user.dart';
-import 'auth_data_source.dart';
+import 'package:mobile_app/core/services/secure_storage_service.dart';
+import 'package:mobile_app/features/auth/models/auth_user.dart';
+import 'package:mobile_app/features/auth/data/auth_data_source.dart';
 
 // ── Keys ──────────────────────────────────────────────────────────────────────
+/// Session token stored in encrypted secure storage.
 const _kSessionKey = 'mock_auth_session';
+
+/// Non-sensitive registered-users registry stored in SharedPreferences.
 const _kUsersKey = 'mock_auth_users';
 
 // ── Module slugs (mirrors Flutter feature paths) ──────────────────────────────
@@ -15,7 +19,6 @@ abstract final class FarmerModules {
   static const goat = 'goat';
   static const poultry = 'poultry';
   static const pigs = 'pigs';
-  static const aquaculture = 'aquaculture';
   static const apiculture = 'apiculture';
   static const crop = 'crop';
   static const financial = 'financial';
@@ -78,7 +81,6 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       FarmerModules.goat,
       FarmerModules.poultry,
       FarmerModules.pigs,
-      FarmerModules.aquaculture,
       FarmerModules.apiculture,
       FarmerModules.crop,
       FarmerModules.financial,
@@ -88,7 +90,7 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       'Everything in Starter',
       'Crop farming & season planner',
       'Financial records & profitability',
-      'Aquaculture & apiculture modules',
+      'Apiculture module',
       'Analytics & insights dashboard',
       'Unlimited data history',
     ],
@@ -104,7 +106,6 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       FarmerModules.goat,
       FarmerModules.poultry,
       FarmerModules.pigs,
-      FarmerModules.aquaculture,
       FarmerModules.apiculture,
       FarmerModules.crop,
       FarmerModules.financial,
@@ -178,13 +179,14 @@ const Map<String, List<String>> kCountryProvinces = {
 
 /// In-memory + SharedPreferences backed auth source.
 ///
-/// All data is stored in [SharedPreferences] so the session survives hot
-/// restarts. Replace this class with a real HTTP client when the backend
-/// is ready — the [AuthNotifier] will not need to change.
+/// Session tokens are stored in [SecureStorageService] (encrypted).
+/// The user registry (non-sensitive) stays in [SharedPreferences].
+/// Replace this class with a real HTTP client when the backend is ready.
 class AuthMockDataSource implements AuthDataSource {
-  const AuthMockDataSource(this._prefs);
+  const AuthMockDataSource(this._prefs, this._secure);
 
   final SharedPreferences _prefs;
+  final SecureStorageService _secure;
 
   // ── Pre-seeded demo accounts ─────────────────────────────────────────────
 
@@ -251,7 +253,6 @@ class AuthMockDataSource implements AuthDataSource {
           FarmerModules.goat,
           FarmerModules.poultry,
           FarmerModules.pigs,
-          FarmerModules.aquaculture,
           FarmerModules.apiculture,
           FarmerModules.crop,
           FarmerModules.financial,
@@ -363,7 +364,6 @@ class AuthMockDataSource implements AuthDataSource {
           FarmerModules.goat,
           FarmerModules.poultry,
           FarmerModules.pigs,
-          FarmerModules.aquaculture,
           FarmerModules.apiculture,
         ],
         phone: '+27 71 555 0302',
@@ -500,30 +500,31 @@ class AuthMockDataSource implements AuthDataSource {
     return user;
   }
 
-  /// Restores a previously saved session.
+  /// Restores a previously saved session from secure storage.
   ///
   /// Returns [AuthUser] if a valid session token is found, null otherwise.
   @override
-  AuthUser? restoreSession() {
-    final json = _prefs.getString(_kSessionKey);
+  Future<AuthUser?> restoreSession() async {
+    final json = await _secure.read(_kSessionKey);
     if (json == null) return null;
     try {
       return AuthUser.fromJson(jsonDecode(json) as Map<String, dynamic>);
     } catch (_) {
+      await _secure.delete(_kSessionKey);
       return null;
     }
   }
 
-  /// Clears the stored session (signs out).
+  /// Clears the stored session from secure storage (signs out).
   @override
   Future<void> clearSession() async {
-    await _prefs.remove(_kSessionKey);
+    await _secure.delete(_kSessionKey);
   }
 
   // ── Private ──────────────────────────────────────────────────────────────
 
   Future<void> _persistSession(AuthUser user) async {
-    await _prefs.setString(_kSessionKey, jsonEncode(user.toJson()));
+    await _secure.write(_kSessionKey, jsonEncode(user.toJson()));
   }
 }
 

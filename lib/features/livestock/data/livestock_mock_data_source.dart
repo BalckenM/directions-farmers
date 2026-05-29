@@ -14,9 +14,7 @@ class LivestockMockDataSource implements LivestockDataSource {
       'sheep' => _sheep,
       'pigs' => _pigs,
       'poultry' => _poultry,
-      'horses' => _horses,
       'rabbits' => _rabbits,
-      'aquaculture' => const [],
       _ => const [],
     };
   }
@@ -172,23 +170,6 @@ class LivestockMockDataSource implements LivestockDataSource {
       status: 'active',
       productionType: 'layer',
       ageMonths: 8,
-    ),
-  ];
-
-  // ── Horses ───────────────────────────────────────────────────────────────────
-  static const _horses = [
-    Animal(
-      id: 'H-001',
-      farmId: _farmId,
-      species: 'horses',
-      tagNumber: 'ZA-H-0001',
-      name: 'Thunder',
-      breed: 'Thoroughbred',
-      sex: 'male',
-      status: 'active',
-      productionType: 'sport',
-      ageMonths: 60,
-      currentWeightKg: 500.0,
     ),
   ];
 

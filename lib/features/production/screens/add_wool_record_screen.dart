@@ -3,19 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/date_picker_field.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_dropdown.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../livestock/providers/livestock_providers.dart';
-import '../providers/production_providers.dart';
-import '../models/wool_record.dart';
-import 'wool_records_screen.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/date_picker_field.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/livestock/providers/livestock_providers.dart';
+import 'package:mobile_app/features/production/providers/production_providers.dart';
+import 'package:mobile_app/features/production/models/wool_record.dart';
+import 'package:mobile_app/features/production/screens/wool_records_screen.dart';
 
 class AddWoolRecordScreen extends ConsumerStatefulWidget {
   const AddWoolRecordScreen({super.key});
@@ -82,7 +83,7 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
     try {
       final record = WoolRecord(
         id: 'WR-${DateTime.now().millisecondsSinceEpoch}',
-        farmId: 'FARM-001',
+        farmId: ref.read(currentUserProvider)?.id ?? 'unknown',
         shearingDate: DateFormat('yyyy-MM-dd').format(_shearingDate!),
         greasyFleeceWeightKg: double.tryParse(_gfwCtrl.text) ?? 0.0,
         animalId: _selectedAnimalId ?? (_animalIdCtrl.text.trim().isEmpty
@@ -189,7 +190,7 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: _species,
+                    initialValue: _species,
                     decoration: const InputDecoration(
                       labelText: 'Species',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -225,7 +226,7 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
                         return animalsAsync.when(
                           loading: () => const Center(
                               child: CircularProgressIndicator()),
-                          error: (_, __) => FarmTextField(
+                          error: (_, _) => FarmTextField(
                             controller: _animalIdCtrl,
                             label: 'Animal Tag / ID',
                             hint: 'e.g. S-042 or leave blank for group',
@@ -234,7 +235,7 @@ class _AddWoolRecordScreenState extends ConsumerState<AddWoolRecordScreen> {
                           ),
                           data: (animals) =>
                               DropdownButtonFormField<String>(
-                            value: _selectedAnimalId,
+                            initialValue: _selectedAnimalId,
                             decoration: const InputDecoration(
                               labelText: 'Select Animal (optional)',
                               prefixIcon: Icon(Icons.tag_rounded),

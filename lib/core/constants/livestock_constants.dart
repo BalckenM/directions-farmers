@@ -8,19 +8,26 @@ abstract final class LivestockConstants {
   static const String sheep = 'sheep';
   static const String pigs = 'pigs';
   static const String poultry = 'poultry';
-  static const String horses = 'horses';
   static const String rabbits = 'rabbits';
-  static const String aquaculture = 'aquaculture';
   static const String bees = 'bees';
 
   static const List<String> allSpecies = [
-    cattle, goats, sheep, pigs, poultry, horses, rabbits, aquaculture, bees,
+    cattle,
+    goats,
+    sheep,
+    pigs,
+    poultry,
+    bees,
   ];
 
-  /// Species backed by the standard [Animal] model (excludes bees and
-  /// aquaculture, which use Map-structured JSON via dedicated repositories).
+  /// Species backed by the standard [Animal] model (excludes bees,
+  /// which use Map-structured JSON via dedicated repositories).
   static const List<String> animalSpecies = [
-    cattle, goats, sheep, pigs, poultry, horses, rabbits,
+    cattle,
+    goats,
+    sheep,
+    pigs,
+    poultry,
   ];
 
   // ── Species display names ─────────────────────────────────────────────────────
@@ -30,9 +37,7 @@ abstract final class LivestockConstants {
     sheep: 'Sheep',
     pigs: 'Pigs',
     poultry: 'Poultry',
-    horses: 'Horses',
     rabbits: 'Rabbits',
-    aquaculture: 'Aquaculture',
     bees: 'Bees',
   };
 
@@ -46,9 +51,7 @@ abstract final class LivestockConstants {
     sheep: 'assets/icons/livestock/sheep.svg',
     pigs: 'assets/icons/livestock/pig.svg',
     poultry: 'assets/icons/livestock/poultry.svg',
-    horses: 'assets/icons/livestock/horse.svg',
     rabbits: 'assets/icons/livestock/rabbit.svg',
-    aquaculture: 'assets/icons/livestock/fish.svg',
     bees: 'assets/icons/livestock/bee.svg',
   };
 
@@ -78,9 +81,7 @@ abstract final class LivestockConstants {
     sheep: ['Ram', 'Ewe', 'Lamb', 'Wether'],
     pigs: ['Boar', 'Sow', 'Gilt', 'Piglet', 'Barrow'],
     poultry: ['Rooster', 'Hen', 'Chick', 'Pullet', 'Cockerel'],
-    horses: ['Stallion', 'Mare', 'Gelding', 'Foal', 'Colt', 'Filly'],
     rabbits: ['Buck', 'Doe', 'Kit'],
-    aquaculture: ['Male', 'Female', 'Unknown'],
     bees: ['Queen', 'Worker', 'Drone'],
   };
 
@@ -122,9 +123,7 @@ abstract final class LivestockConstants {
     sheep: [productionWool, productionMilk, productionMeat],
     pigs: [productionMeat],
     poultry: [productionEggs, productionMeat],
-    horses: [productionMeat],
     rabbits: [productionMeat],
-    aquaculture: [productionFish],
     bees: [productionHoney],
   };
 
@@ -154,43 +153,87 @@ abstract final class LivestockConstants {
   // ── Breed lists per species ───────────────────────────────────────────────────
   static const Map<String, List<String>> breedsBySpecies = {
     cattle: [
-      'Angus', 'Hereford', 'Holstein-Friesian', 'Jersey', 'Brahman',
-      'Simmental', 'Charolais', 'Limousin', 'Shorthorn', 'Nguni',
-      'Boran', 'Afrikaner', 'Bonsmara', 'Other',
+      'Angus',
+      'Hereford',
+      'Holstein-Friesian',
+      'Jersey',
+      'Brahman',
+      'Simmental',
+      'Charolais',
+      'Limousin',
+      'Shorthorn',
+      'Nguni',
+      'Boran',
+      'Afrikaner',
+      'Bonsmara',
+      'Other',
     ],
     goats: [
-      'Boer', 'Saanen', 'Nubian', 'Alpine', 'Angora',
-      'Kalahari Red', 'Toggenburg', 'La Mancha', 'Indigenous/Crossbreed', 'Other',
+      'Boer',
+      'Saanen',
+      'Nubian',
+      'Alpine',
+      'Angora',
+      'Kalahari Red',
+      'Toggenburg',
+      'La Mancha',
+      'Indigenous/Crossbreed',
+      'Other',
     ],
     sheep: [
-      'Merino', 'Dorper', 'White Dorper', 'Suffolk', 'Corriedale',
-      'Romney', 'Rambouillet', 'Damara', 'Van Rooy', 'Dohne Merino',
-      'Awassi', 'Blackface', 'Other',
+      'Merino',
+      'Dorper',
+      'White Dorper',
+      'Suffolk',
+      'Corriedale',
+      'Romney',
+      'Rambouillet',
+      'Damara',
+      'Van Rooy',
+      'Dohne Merino',
+      'Awassi',
+      'Blackface',
+      'Other',
     ],
     pigs: [
-      'Large White', 'Landrace', 'Duroc', 'Berkshire', 'Hampshire',
-      'Pietrain', 'Kolbroek', 'Windsnyer', 'Crossbreed', 'Other',
+      'Large White',
+      'Landrace',
+      'Duroc',
+      'Berkshire',
+      'Hampshire',
+      'Pietrain',
+      'Kolbroek',
+      'Windsnyer',
+      'Crossbreed',
+      'Other',
     ],
     poultry: [
-      'Ross 308 (Broiler)', 'Cobb 500 (Broiler)', 'Lohmann Brown (Layer)',
-      'Isa Brown (Layer)', 'Black Australorp', 'Rhode Island Red',
-      'Potchefstroom Koekoek', 'Naked Neck', 'Other',
-    ],
-    horses: [
-      'Thoroughbred', 'Quarter Horse', 'Arabian', 'Warmblood',
-      'Clydesdale', 'Appaloosa', 'Boerperd', 'Friesian', 'Other',
+      'Ross 308 (Broiler)',
+      'Cobb 500 (Broiler)',
+      'Lohmann Brown (Layer)',
+      'Isa Brown (Layer)',
+      'Black Australorp',
+      'Rhode Island Red',
+      'Potchefstroom Koekoek',
+      'Naked Neck',
+      'Other',
     ],
     rabbits: [
-      'New Zealand White', 'Californian', 'Rex', 'Flemish Giant',
-      'Angora', 'Dutch', 'Other',
-    ],
-    aquaculture: [
-      'Tilapia (Nile)', 'Catfish (Sharptooth)', 'Rainbow Trout',
-      'Common Carp', 'Catla', 'Pangasius', 'Other',
+      'New Zealand White',
+      'Californian',
+      'Rex',
+      'Flemish Giant',
+      'Angora',
+      'Dutch',
+      'Other',
     ],
     bees: [
-      'Italian (A. m. ligustica)', 'Carniolan', 'Buckfast',
-      'Cape Bee (A. m. capensis)', 'African Bee', 'Other',
+      'Italian (A. m. ligustica)',
+      'Carniolan',
+      'Buckfast',
+      'Cape Bee (A. m. capensis)',
+      'African Bee',
+      'Other',
     ],
   };
 
@@ -205,12 +248,12 @@ abstract final class LivestockConstants {
     cattle: [
       'photo-1500595046743-cd271d694d30', // cows in field
       'photo-1570042225831-d98fa7577f1e', // grazing cattle
-      'photo-1545468230-68d54f5f6e38',    // herd of cattle
-      'photo-1551950376-f77b6ec78f1e',    // dairy cows
+      'photo-1545468230-68d54f5f6e38', // herd of cattle
+      'photo-1551950376-f77b6ec78f1e', // dairy cows
     ],
     goats: [
       'photo-1524024973431-2ad916746881', // white goats
-      'photo-1542889601-399c4f3a8402',    // goat close-up
+      'photo-1542889601-399c4f3a8402', // goat close-up
       'photo-1535268647677-300dbf3d78d1', // goats grazing
     ],
     sheep: [
@@ -223,26 +266,17 @@ abstract final class LivestockConstants {
       'photo-1597843786272-f5e2e69ee7ac', // pink pig
     ],
     poultry: [
-      'photo-1548550023-2bdb3c5beed7',    // chickens
+      'photo-1548550023-2bdb3c5beed7', // chickens
       'photo-1518492104633-130d0cc84637', // hens
       'photo-1612170153139-6f881ff067e0', // rooster
-    ],
-    horses: [
-      'photo-1553284965-83fd3e82fa5a',    // horse in field
-      'photo-1534773728080-33d31da27ae5', // horse portrait
-      'photo-1452378174528-3090a4bba7b2', // horses running
     ],
     rabbits: [
       'photo-1585110396000-c9ffd4e4b308', // rabbit
       'photo-1518717758536-85ae29035b6d', // white rabbit
     ],
-    aquaculture: [
-      'photo-1559827260-dc66d52bef19', // fish
-      'photo-1519708227418-c8fd9a32b7a2', // aquaculture
-    ],
     bees: [
       'photo-1587049352846-4a222e784d38', // bees on hive
-      'photo-1558642084-fd07fae5282e',    // honeybee
+      'photo-1558642084-fd07fae5282e', // honeybee
     ],
   };
 
@@ -254,8 +288,7 @@ abstract final class LivestockConstants {
     int width = 400,
     int height = 300,
   }) {
-    final ids = _speciesPhotoIds[species] ??
-        _speciesPhotoIds[cattle]!;
+    final ids = _speciesPhotoIds[species] ?? _speciesPhotoIds[cattle]!;
     final idx = animalId.hashCode.abs() % ids.length;
     return 'https://images.unsplash.com/${ids[idx]}?w=$width&h=$height&fit=crop&auto=format';
   }
@@ -274,7 +307,6 @@ abstract final class LivestockConstants {
     'lsd': 'Lumpy Skin Disease',
     'ecf': 'East Coast Fever',
     'brucellosis': 'Brucellosis',
-    'ahs': 'African Horse Sickness (AHS)',
     'newcastle': 'Newcastle Disease',
     'rabies': 'Rabies',
   };
@@ -286,33 +318,38 @@ abstract final class LivestockConstants {
     sheep: ['fmd', 'lsd', 'brucellosis', 'rabies'],
     pigs: ['fmd', 'asf', 'rabies'],
     poultry: ['hpai', 'newcastle'],
-    horses: ['fmd', 'ahs', 'rabies'],
     rabbits: ['rabies'],
-    aquaculture: [],
     bees: [],
   };
 
   /// Required response actions per notifiable disease (shown in prompt).
   static const Map<String, String> notifiableDiseaseActions = {
-    'fmd': 'QUARANTINE herd immediately. Do not move animals. '
+    'fmd':
+        'QUARANTINE herd immediately. Do not move animals. '
         'Contact DAFF $daffEmergencyNumber and your state vet.',
-    'asf': 'QUARANTINE all pigs immediately. No pork movement. '
+    'asf':
+        'QUARANTINE all pigs immediately. No pork movement. '
         'Contact DAFF $daffEmergencyNumber urgently.',
-    'hpai': 'ISOLATE affected flock. Implement biosecurity. '
+    'hpai':
+        'ISOLATE affected flock. Implement biosecurity. '
         'Report to DAFF $daffEmergencyNumber and state vet.',
-    'cbpp': 'RESTRICT movement. Contact state vet for testing. '
+    'cbpp':
+        'RESTRICT movement. Contact state vet for testing. '
         'Report to DAFF $daffEmergencyNumber.',
-    'lsd': 'VACCINATE susceptible animals. Restrict movement. '
+    'lsd':
+        'VACCINATE susceptible animals. Restrict movement. '
         'Notify state vet. Focus: KZN, Eastern Cape.',
-    'ecf': 'Notifiable disease — contact state vet immediately. '
+    'ecf':
+        'Notifiable disease — contact state vet immediately. '
         'Report to DAFF $daffEmergencyNumber.',
-    'brucellosis': 'Statutory testing required for herd sales. '
+    'brucellosis':
+        'Statutory testing required for herd sales. '
         'Contact state vet for B-free certification.',
-    'ahs': 'Horses must be in AHS-free zone. Vaccinate with AHS vaccine. '
-        'Contact state vet for zone verification.',
-    'newcastle': 'ISOLATE flock. Report to DAFF $daffEmergencyNumber. '
+    'newcastle':
+        'ISOLATE flock. Report to DAFF $daffEmergencyNumber. '
         'Implement biosecurity protocol.',
-    'rabies': 'Do not handle without PPE. Report to state vet immediately. '
+    'rabies':
+        'Do not handle without PPE. Report to state vet immediately. '
         'Contact DAFF $daffEmergencyNumber.',
   };
 
@@ -431,35 +468,7 @@ abstract final class LivestockConstants {
         'notes': 'Immuno-suppressant disease prevention',
       },
     ],
-    horses: [
-      {
-        'name': 'African Horse Sickness (AHS)',
-        'frequency': 'Annual (Mar–Apr)',
-        'notes': 'Compulsory in AHS-controlled zones',
-      },
-      {
-        'name': 'Equine Influenza',
-        'frequency': 'Annual',
-        'notes': 'Required for racing/competition',
-      },
-      {
-        'name': 'Equine Herpesvirus (EHV-1/4)',
-        'frequency': 'Every 6 months',
-        'notes': 'Breeding mares every 3 months',
-      },
-      {
-        'name': 'Tetanus',
-        'frequency': 'Annual',
-        'notes': 'Core vaccine',
-      },
-      {
-        'name': 'Rabies',
-        'frequency': 'Annual',
-        'notes': 'High-risk areas',
-      },
-    ],
     rabbits: [],
-    aquaculture: [],
     bees: [],
   };
 
@@ -573,7 +582,8 @@ abstract final class LivestockConstants {
       'score': '3',
       'label': 'Pink',
       'description': 'Borderline — moderately pale',
-      'action': 'Treat if concurrent risk factors (low BCS, dag, nasal discharge)',
+      'action':
+          'Treat if concurrent risk factors (low BCS, dag, nasal discharge)',
       'alertLevel': 'warning',
     },
     {

@@ -182,18 +182,6 @@ abstract final class AppRoutes {
       '/livestock/poultry/financials-hub';
   static const String poultryReports = '/livestock/poultry/reports';
 
-  // Aquaculture — hub at /livestock/aquaculture, units board nested
-  static const String aquacultureHub = '/livestock/aquaculture';
-  static const String aquacultureUnits = '/livestock/aquaculture/units';
-  static String aquaUnitDetailPath(String unitId) =>
-      '/livestock/aquaculture/units/$unitId';
-
-  // Apiculture / Bees — hub at /livestock/bees, hive board nested
-  static const String apicultureHub = '/livestock/bees';
-  static const String apiculture = '/livestock/bees/hives';
-  static String hiveDetailPath(String hiveId) =>
-      '/livestock/bees/hives/$hiveId';
-
   // Goat module
   static const String goatsHub = '/livestock/goats';
   static const String goatList = '/livestock/goats/herd';
@@ -256,11 +244,6 @@ abstract final class AppRoutes {
   static String cattleBreedPath(String breed) =>
       '/livestock/cattle/breed/${Uri.encodeComponent(breed)}';
 
-  // Pigs — hub at /livestock/pigs, sow board nested
-  static const String pigsHub = '/livestock/pigs';
-  static const String pigsBoard = '/livestock/pigs/board';
-  static String sowDetailPath(String sowId) => '/livestock/pigs/board/$sowId';
-
   // ── Helper to build parameterised paths ───────────────────────────────────────
   static String livestockSpeciesPath(String species) => '/livestock/$species';
 
@@ -275,6 +258,9 @@ abstract final class AppRoutes {
   // ── Auth extras ────────────────────────────────────────────────────────────────
   static const String mfaChallenge = '/auth/mfa';
   static const String forgotPassword = '/forgot-password';
+  static const String staffRegister = '/register/staff';
+  static const String emailVerification = '/verify-email';
+  static const String changePassword = '/settings/account/change-password';
 
   // ── Payroll module ────────────────────────────────────────────────────────────
   static const String payrollHub = '/payroll';

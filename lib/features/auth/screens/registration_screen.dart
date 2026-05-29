@@ -4,11 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/farm_dropdown.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
+
+// ── Registration type ────────────────────────────────────────────────────────
+
+enum _RegistrationType { owner, staff }
 
 // ── Step enum ─────────────────────────────────────────────────────────────────
 
@@ -27,6 +32,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _pageCtrl = PageController();
   _RegStep _step = _RegStep.account;
+  _RegistrationType _regType = _RegistrationType.owner;
 
   // ── Controllers ──────────────────────────────────────────────────────────
   final _firstNameCtrl = TextEditingController();
@@ -36,6 +42,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
   final _farmNameCtrl = TextEditingController();
+  final _inviteCodeCtrl = TextEditingController();
 
   bool _loading = false;
 
@@ -57,6 +64,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     _farmNameCtrl.dispose();
+    _inviteCodeCtrl.dispose();
     super.dispose();
   }
 
@@ -96,6 +104,11 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       }
       return;
     }
+    // Staff flow: account step → register as staff immediately
+    if (_regType == _RegistrationType.staff && _step == _RegStep.account) {
+      _registerAsStaff();
+      return;
+    }
     if (_step.index < _RegStep.values.length - 1) {
       _goToStep(_RegStep.values[_step.index + 1]);
     }
@@ -113,6 +126,29 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     }
   }
 
+  Future<void> _registerAsStaff() async {
+    final inviteCode = _inviteCodeCtrl.text.trim();
+    if (inviteCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your farm invite code.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    setState(() => _loading = true);
+    // Mock: simulate joining a farm via invite code
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() => _loading = false);
+    // In production: call authProvider.notifier.joinFarm(inviteCode, ...)
+    context.go(
+      AppRoutes.welcome,
+      extra: {'firstName': _firstNameCtrl.text.trim(), 'farmName': 'Your Farm'},
+    );
+  }
+
   Future<void> _register() async {
     if (_selectedModules.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -124,7 +160,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       return;
     }
     setState(() => _loading = true);
-    await ref.read(authProvider.notifier).register(
+    await ref
+        .read(authProvider.notifier)
+        .register(
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text,
           firstName: _firstNameCtrl.text.trim(),
@@ -134,9 +172,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           province: _province,
           subscriptionPlan: _plan.id,
           activatedModules: _selectedModules.toList(),
-          phone: _phoneCtrl.text.trim().isEmpty
-              ? null
-              : _phoneCtrl.text.trim(),
+          phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
         );
     if (!mounted) return;
     setState(() => _loading = false);
@@ -186,7 +222,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             ),
             child: _VisualStepper(
               current: _step.index,
-              labels: const ['Account', 'Farm', 'Plan', 'Modules'],
+              labels: _regType == _RegistrationType.staff
+                  ? const ['Account']
+                  : const ['Account', 'Farm', 'Plan', 'Modules'],
             ),
           ),
 
@@ -212,6 +250,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                       phoneCtrl: _phoneCtrl,
                       passwordCtrl: _passwordCtrl,
                       confirmCtrl: _confirmCtrl,
+                      regType: _regType,
+                      inviteCodeCtrl: _inviteCodeCtrl,
+                      onRegTypeChanged: (t) => setState(() => _regType = t),
                     ),
                   ),
 
@@ -230,8 +271,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         _country = c;
                         _province = kCountryProvinces[c]!.first;
                       }),
-                      onProvinceChanged: (p) =>
-                          setState(() => _province = p),
+                      onProvinceChanged: (p) => setState(() => _province = p),
                     ),
                   ),
 
@@ -240,7 +280,8 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     hero: const _StepHero(
                       icon: Icons.workspace_premium_outlined,
                       title: 'Choose a Plan',
-                      subtitle: 'Start with a 30-day free trial — cancel anytime',
+                      subtitle:
+                          'Start with a 30-day free trial — cancel anytime',
                     ),
                     child: _PlanStep(
                       selected: _plan,
@@ -284,6 +325,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             loading: _loading,
             onNext: _next,
             onRegister: _register,
+            regType: _regType,
           ),
         ],
       ),
@@ -358,9 +400,7 @@ class _RegHeader extends StatelessWidget implements PreferredSizeWidget {
           decoration: BoxDecoration(
             color: AppColors.primary.withAlpha(14),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.primary.withAlpha(50),
-            ),
+            border: Border.all(color: AppColors.primary.withAlpha(50)),
           ),
           child: Text(
             '${stepIndex + 1} / $stepTotal',
@@ -419,8 +459,8 @@ class _VisualStepper extends StatelessWidget {
                 color: isDone
                     ? AppColors.primary
                     : isCurrent
-                        ? AppColors.primary.withAlpha(15)
-                        : Theme.of(context).colorScheme.surfaceContainerLow,
+                    ? AppColors.primary.withAlpha(15)
+                    : Theme.of(context).colorScheme.surfaceContainerLow,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isDone || isCurrent
@@ -541,9 +581,7 @@ class _StepHero extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: tt.bodySmall?.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
               ],
             ),
@@ -583,6 +621,9 @@ class _AccountStep extends StatelessWidget {
     required this.phoneCtrl,
     required this.passwordCtrl,
     required this.confirmCtrl,
+    required this.regType,
+    required this.inviteCodeCtrl,
+    required this.onRegTypeChanged,
   });
 
   final TextEditingController firstNameCtrl;
@@ -591,15 +632,45 @@ class _AccountStep extends StatelessWidget {
   final TextEditingController phoneCtrl;
   final TextEditingController passwordCtrl;
   final TextEditingController confirmCtrl;
+  final _RegistrationType regType;
+  final TextEditingController inviteCodeCtrl;
+  final ValueChanged<_RegistrationType> onRegTypeChanged;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isStaff = regType == _RegistrationType.staff;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Owner / Staff toggle
+          Row(
+            children: [
+              Expanded(
+                child: _RegTypeCard(
+                  icon: Icons.agriculture_rounded,
+                  title: 'Farm Owner',
+                  subtitle: 'Create a new farm account',
+                  selected: !isStaff,
+                  onTap: () => onRegTypeChanged(_RegistrationType.owner),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _RegTypeCard(
+                  icon: Icons.badge_rounded,
+                  title: 'Staff Member',
+                  subtitle: 'Join an existing farm',
+                  selected: isStaff,
+                  onTap: () => onRegTypeChanged(_RegistrationType.staff),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
           Row(
             children: [
               Expanded(
@@ -638,8 +709,7 @@ class _AccountStep extends StatelessWidget {
             controller: emailCtrl,
             label: 'Email address',
             hint: 'you@example.com',
-            prefixIcon:
-                Icon(Icons.email_outlined, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(Icons.email_outlined, color: cs.onSurfaceVariant),
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             validator: (v) {
@@ -655,8 +725,7 @@ class _AccountStep extends StatelessWidget {
             controller: phoneCtrl,
             label: 'Phone (optional)',
             hint: '+27 82 000 0000',
-            prefixIcon:
-                Icon(Icons.phone_outlined, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(Icons.phone_outlined, color: cs.onSurfaceVariant),
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.next,
           ),
@@ -665,8 +734,7 @@ class _AccountStep extends StatelessWidget {
             controller: passwordCtrl,
             label: 'Password',
             hint: 'At least 8 characters',
-            prefixIcon:
-                Icon(Icons.lock_outline, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(Icons.lock_outline, color: cs.onSurfaceVariant),
             obscureText: true,
             textInputAction: TextInputAction.next,
             validator: (v) {
@@ -682,18 +750,115 @@ class _AccountStep extends StatelessWidget {
             controller: confirmCtrl,
             label: 'Confirm Password',
             hint: 'Repeat your password',
-            prefixIcon:
-                Icon(Icons.lock_outline, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(Icons.lock_outline, color: cs.onSurfaceVariant),
             obscureText: true,
-            textInputAction: TextInputAction.done,
+            textInputAction: isStaff
+                ? TextInputAction.next
+                : TextInputAction.done,
             validator: (v) {
               if (v == null || v.isEmpty) return 'Please confirm your password';
               if (v != passwordCtrl.text) return 'Passwords do not match';
               return null;
             },
           ),
+
+          // Staff-only: invite code field
+          if (isStaff) ...[
+            const SizedBox(height: AppSpacing.md),
+            FarmTextField(
+              controller: inviteCodeCtrl,
+              label: 'Farm Invite Code',
+              hint: 'e.g. FARM-AB12',
+              prefixIcon: Icon(
+                Icons.vpn_key_outlined,
+                color: cs.onSurfaceVariant,
+              ),
+              textInputAction: TextInputAction.done,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Invite code is required'
+                  : null,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Ask your farm owner for the invite code.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+          ],
+
           const SizedBox(height: AppSpacing.xl),
         ],
+      ),
+    );
+  }
+}
+
+// ── Registration type card ────────────────────────────────────────────────────
+
+class _RegTypeCard extends StatelessWidget {
+  const _RegTypeCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : cs.surfaceContainerHighest,
+          borderRadius: AppRadius.card,
+          border: Border.all(
+            color: selected
+                ? AppColors.primary
+                : cs.outline.withValues(alpha: 0.4),
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              color: selected ? AppColors.primary : cs.onSurfaceVariant,
+              size: 24,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              title,
+              style: tt.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColors.primary : cs.onSurface,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: tt.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -821,15 +986,15 @@ class _FarmStep extends StatelessWidget {
               color: cs.onSurfaceVariant,
             ),
             textInputAction: TextInputAction.next,
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Farm name is required' : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? 'Farm name is required'
+                : null,
           ),
           const SizedBox(height: AppSpacing.md),
           FarmDropdown<String>(
             label: 'Country',
             value: selectedCountry,
-            prefixIcon:
-                Icon(Icons.public_outlined, color: cs.onSurfaceVariant),
+            prefixIcon: Icon(Icons.public_outlined, color: cs.onSurfaceVariant),
             items: kCountryProvinces.keys
                 .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                 .toList(),
@@ -886,9 +1051,8 @@ class _PlanStep extends StatelessWidget {
           child: Text(
             '* 30-day free trial. Cancel anytime.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ),
@@ -1063,14 +1227,10 @@ class _PlanCard extends StatelessWidget {
 // ── Step 4: Module selection — 2-column tap grid ──────────────────────────────
 
 const _moduleInfo = <String, ({String label, IconData icon})>{
-  FarmerModules.cattle: (
-    label: 'Cattle',
-    icon: Icons.agriculture_rounded,
-  ),
+  FarmerModules.cattle: (label: 'Cattle', icon: Icons.agriculture_rounded),
   FarmerModules.goat: (label: 'Goats', icon: Icons.pets_rounded),
   FarmerModules.poultry: (label: 'Poultry', icon: Icons.egg_alt_rounded),
   FarmerModules.pigs: (label: 'Pigs', icon: Icons.set_meal_rounded),
-  FarmerModules.aquaculture: (label: 'Aquaculture', icon: Icons.water_rounded),
   FarmerModules.apiculture: (
     label: 'Apiculture',
     icon: Icons.emoji_nature_rounded,
@@ -1080,10 +1240,7 @@ const _moduleInfo = <String, ({String label, IconData icon})>{
     label: 'Financials',
     icon: Icons.account_balance_wallet_rounded,
   ),
-  FarmerModules.insights: (
-    label: 'Analytics',
-    icon: Icons.bar_chart_rounded,
-  ),
+  FarmerModules.insights: (label: 'Analytics', icon: Icons.bar_chart_rounded),
   FarmerModules.traceability: (
     label: 'Traceability',
     icon: Icons.route_rounded,
@@ -1225,18 +1382,22 @@ class _RegistrationFooter extends StatelessWidget {
     required this.loading,
     required this.onNext,
     required this.onRegister,
+    required this.regType,
   });
 
   final _RegStep step;
   final bool loading;
   final VoidCallback onNext;
   final VoidCallback onRegister;
+  final _RegistrationType regType;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final isStaff = regType == _RegistrationType.staff;
     final isLast = step == _RegStep.modules;
+    final isStaffJoin = isStaff && step == _RegStep.account;
     final botPad = MediaQuery.paddingOf(context).bottom;
 
     return Container(
@@ -1259,7 +1420,7 @@ class _RegistrationFooter extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (!isLast) ...[
+          if (!isLast && !isStaffJoin) ...[
             Text(
               'Step ${step.index + 1} of ${_RegStep.values.length}',
               style: tt.labelSmall?.copyWith(
@@ -1270,8 +1431,12 @@ class _RegistrationFooter extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
           ],
           _GradientCTA(
-            label: isLast ? 'Create Account' : 'Continue',
-            icon: isLast ? Icons.check_rounded : Icons.arrow_forward_rounded,
+            label: isStaffJoin
+                ? 'Join Farm'
+                : (isLast ? 'Create Account' : 'Continue'),
+            icon: isStaffJoin
+                ? Icons.group_add_rounded
+                : (isLast ? Icons.check_rounded : Icons.arrow_forward_rounded),
             isLoading: loading,
             onPressed: loading ? null : (isLast ? onRegister : onNext),
           ),

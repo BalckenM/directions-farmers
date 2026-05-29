@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants/livestock_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/constants/livestock_constants.dart';
 import '../../../shared/widgets/dag_score_selector.dart';
 import '../../../shared/widgets/famacha_score_selector.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
@@ -16,8 +16,8 @@ import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/notifiable_disease_prompt.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../livestock/providers/livestock_providers.dart';
-import '../providers/events_action_providers.dart';
 import '../models/health_event.dart';
+import '../providers/events_action_providers.dart';
 
 // â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -50,7 +50,6 @@ class _AddHealthEventScreenState extends ConsumerState<AddHealthEventScreen> {
     'sheep',
     'goats',
     'pigs',
-    'horses',
     'poultry',
   ];
 

@@ -37,7 +37,7 @@ class _AddBreedingEventScreenState
   String? _breedingMethod;
   bool _submitting = false;
 
-  static const _speciesOptions = ['cattle', 'sheep', 'goats', 'pigs', 'horses'];
+  static const _speciesOptions = ['cattle', 'sheep', 'goats', 'pigs'];
 
   static const _methods = [
     'Natural',

@@ -35,7 +35,6 @@ class _AddWeightRecordScreenState extends ConsumerState<AddWeightRecordScreen> {
     'sheep',
     'goats',
     'pigs',
-    'horses',
     'poultry',
   ];
 

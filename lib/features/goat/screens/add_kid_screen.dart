@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/goat_animal.dart';
-import '../providers/goat_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/goat/models/goat_animal.dart';
+import 'package:mobile_app/features/goat/providers/goat_providers.dart';
 
 class AddKidScreen extends ConsumerStatefulWidget {
   const AddKidScreen({super.key, required this.damId});
@@ -62,7 +63,9 @@ class _AddKidScreenState extends ConsumerState<AddKidScreen> {
               children: [
                 if (dam != null)
                   Card(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Row(
@@ -73,11 +76,14 @@ class _AddKidScreenState extends ConsumerState<AddKidScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(dam.displayName,
-                                    style: Theme.of(context).textTheme.titleSmall),
                                 Text(
-                                    '${dam.breed} · ${dam.herdId}',
-                                    style: Theme.of(context).textTheme.bodySmall),
+                                  dam.displayName,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                Text(
+                                  '${dam.breed} · ${dam.herdId}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
                               ],
                             ),
                           ),
@@ -98,7 +104,7 @@ class _AddKidScreenState extends ConsumerState<AddKidScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _sex,
+                  initialValue: _sex,
                   decoration: const InputDecoration(
                     labelText: 'Sex *',
                     prefixIcon: Icon(Icons.wc_rounded),
@@ -130,8 +136,9 @@ class _AddKidScreenState extends ConsumerState<AddKidScreen> {
                     prefixIcon: Icon(Icons.monitor_weight_outlined),
                     suffixText: 'kg',
                   ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -170,7 +177,7 @@ class _AddKidScreenState extends ConsumerState<AddKidScreen> {
 
     final kid = GoatAnimal(
       id: 'goat-${DateTime.now().millisecondsSinceEpoch}',
-      farmId: 'FARM-001',
+      farmId: ref.read(currentUserProvider)?.id ?? 'unknown',
       tagNumber: _tagController.text.trim(),
       breed: dam?.breed ?? 'Unknown',
       productionType: dam?.productionType ?? 'meat',

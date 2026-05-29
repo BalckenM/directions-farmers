@@ -2,13 +2,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/constants/livestock_constants.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/constants/livestock_constants.dart';
 import '../../../shared/widgets/chart_card.dart';
 import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
@@ -666,14 +667,10 @@ class _SpeciesPerformanceTable extends StatelessWidget {
         return '🐐';
       case 'pigs':
         return '🐷';
-      case 'horses':
-        return '🐴';
       case 'poultry':
         return '🐓';
       case 'rabbits':
         return '🐇';
-      case 'aquaculture':
-        return '🐟';
       case 'bees':
         return '🐝';
       default:

@@ -2,46 +2,53 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../providers/payroll_providers.dart';
-import '../../services/emp501_service.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/services/emp501_service.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 
-final _zarD = NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);
-
-final _emp501ReportProvider = Provider.family<Emp501Report?, int>(
-  (ref, taxYear) {
-    final employees = ref.watch(activeEmployeesProvider);
-    final payslips  = ref.watch(payslipsProvider(const PayslipFilter()));
-    if (payslips.isEmpty) return null;
-
-    // Filter to payslips within this SARS tax year (1 Mar Y-1 -> 28 Feb Y)
-    final start = DateTime(taxYear - 1, 3, 1);
-    final end   = DateTime(taxYear, 2, 28, 23, 59, 59);
-    final yearSlips = payslips.where((p) {
-      final d = p.periodStart;
-      return d.isAfter(start.subtract(const Duration(seconds: 1))) &&
-             d.isBefore(end.add(const Duration(seconds: 1)));
-    }).toList();
-    if (yearSlips.isEmpty) return null;
-
-    final names = {for (final e in employees) e.id: '${e.firstName} ${e.lastName}'};
-    final ids   = {for (final e in employees) e.id: e.idOrPassportNumber};
-
-    return Emp501Service.generate(
-      payslips:       yearSlips,
-      employeeNames:  names,
-      employeeIds:    ids,
-      employerRef:    'ZA-PAYE-REF',
-      tradingName:    '4 Directions Farm',
-      taxYear:        taxYear,
-      totalEmp201Paye: 0.0,
-    );
-  },
+final _zarD = NumberFormat.currency(
+  locale: 'en_ZA',
+  symbol: 'R ',
+  decimalDigits: 2,
 );
+
+final _emp501ReportProvider = Provider.family<Emp501Report?, int>((
+  ref,
+  taxYear,
+) {
+  final employees = ref.watch(activeEmployeesProvider);
+  final payslips = ref.watch(payslipsProvider(const PayslipFilter()));
+  if (payslips.isEmpty) return null;
+
+  // Filter to payslips within this SARS tax year (1 Mar Y-1 -> 28 Feb Y)
+  final start = DateTime(taxYear - 1, 3, 1);
+  final end = DateTime(taxYear, 2, 28, 23, 59, 59);
+  final yearSlips = payslips.where((p) {
+    final d = p.periodStart;
+    return d.isAfter(start.subtract(const Duration(seconds: 1))) &&
+        d.isBefore(end.add(const Duration(seconds: 1)));
+  }).toList();
+  if (yearSlips.isEmpty) return null;
+
+  final names = {
+    for (final e in employees) e.id: '${e.firstName} ${e.lastName}',
+  };
+  final ids = {for (final e in employees) e.id: e.idOrPassportNumber};
+
+  return Emp501Service.generate(
+    payslips: yearSlips,
+    employeeNames: names,
+    employeeIds: ids,
+    employerRef: 'ZA-PAYE-REF',
+    tradingName: '4 Directions Farm',
+    taxYear: taxYear,
+    totalEmp201Paye: 0.0,
+  );
+});
 
 // =============================================================================
 
@@ -74,7 +81,7 @@ class _Emp501ScreenState extends ConsumerState<Emp501Screen> {
         actions: [
           if (report != null)
             IconButton(
-              icon:    const Icon(Icons.download_outlined),
+              icon: const Icon(Icons.download_outlined),
               tooltip: 'Export CSV',
               onPressed: () => _exportCsv(report),
             ),
@@ -90,9 +97,10 @@ class _Emp501ScreenState extends ConsumerState<Emp501Screen> {
           if (report == null) ...[
             const SizedBox(height: 48),
             EmptyState(
-              icon:     const Icon(Icons.insert_chart_outlined, size: 56),
-              title:    'No payslips for ${ _taxYear - 1 }/$_taxYear',
-              subtitle: 'Payslips for this tax year will appear here once processed.',
+              icon: const Icon(Icons.insert_chart_outlined, size: 56),
+              title: 'No payslips for ${_taxYear - 1}/$_taxYear',
+              subtitle:
+                  'Payslips for this tax year will appear here once processed.',
             ),
           ] else ...[
             // ── Summary metric cards ───────────────────────────────────────
@@ -121,10 +129,7 @@ class _Emp501ScreenState extends ConsumerState<Emp501Screen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('CSV generated (${csv.split('\n').length - 1} rows)'),
-        action: SnackBarAction(
-          label: 'Copy',
-          onPressed: () {},
-        ),
+        action: SnackBarAction(label: 'Copy', onPressed: () {}),
       ),
     );
   }
@@ -135,7 +140,7 @@ class _Emp501ScreenState extends ConsumerState<Emp501Screen> {
 class _TaxYearHeader extends StatelessWidget {
   const _TaxYearHeader({required this.taxYear, required this.onStep});
 
-  final int            taxYear;
+  final int taxYear;
   final void Function(int) onStep;
 
   @override
@@ -162,10 +167,14 @@ class _TaxYearHeader extends StatelessWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color:        Colors.white.withAlpha(22),
+                  color: Colors.white.withAlpha(22),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.balance_outlined, color: Colors.white, size: 24),
+                child: const Icon(
+                  Icons.balance_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -175,7 +184,7 @@ class _TaxYearHeader extends StatelessWidget {
                     Text(
                       'EMP501 ANNUAL RECONCILIATION',
                       style: tt.labelSmall?.copyWith(
-                        color:        Colors.white.withAlpha(170),
+                        color: Colors.white.withAlpha(170),
                         letterSpacing: 1.4,
                       ),
                     ),
@@ -183,7 +192,7 @@ class _TaxYearHeader extends StatelessWidget {
                     Text(
                       'SARS Annual Return',
                       style: tt.titleLarge?.copyWith(
-                        color:      Colors.white,
+                        color: Colors.white,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -197,24 +206,30 @@ class _TaxYearHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             decoration: BoxDecoration(
-              color:        Colors.white.withAlpha(20),
+              color: Colors.white.withAlpha(20),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _YearButton(icon: Icons.chevron_left_rounded, onTap: () => onStep(-1)),
+                _YearButton(
+                  icon: Icons.chevron_left_rounded,
+                  onTap: () => onStep(-1),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
                     '${taxYear - 1} / $taxYear',
                     style: tt.titleMedium?.copyWith(
-                      color:      Colors.white,
+                      color: Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-                _YearButton(icon: Icons.chevron_right_rounded, onTap: () => onStep(1)),
+                _YearButton(
+                  icon: Icons.chevron_right_rounded,
+                  onTap: () => onStep(1),
+                ),
               ],
             ),
           ),
@@ -243,7 +258,7 @@ class _YearButton extends StatelessWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color:        Colors.white.withAlpha(25),
+          color: Colors.white.withAlpha(25),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: Colors.white, size: 20),
@@ -265,28 +280,28 @@ class _SummaryMetrics extends StatelessWidget {
       children: [
         Expanded(
           child: _MetricCard(
-            icon:        Icons.people_outline_rounded,
+            icon: Icons.people_outline_rounded,
             accentColor: PayrollTokens.teal,
-            label:       'Employees',
-            value:       '${report.irp5Count + report.it3aCount}',
+            label: 'Employees',
+            value: '${report.irp5Count + report.it3aCount}',
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _MetricCard(
-            icon:        Icons.account_balance_wallet_outlined,
+            icon: Icons.account_balance_wallet_outlined,
             accentColor: PayrollTokens.indigo,
-            label:       'Total PAYE',
-            value:       _zarD.format(report.totalCertificatePaye),
+            label: 'Total PAYE',
+            value: _zarD.format(report.totalCertificatePaye),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _MetricCard(
-            icon:        Icons.bar_chart_rounded,
+            icon: Icons.bar_chart_rounded,
             accentColor: PayrollTokens.purple,
-            label:       'Total Gross',
-            value:       _zarD.format(report.totalCertificateGross),
+            label: 'Total Gross',
+            value: _zarD.format(report.totalCertificateGross),
           ),
         ),
       ],
@@ -303,26 +318,26 @@ class _MetricCard extends StatelessWidget {
   });
 
   final IconData icon;
-  final Color    accentColor;
-  final String   label;
-  final String   value;
+  final Color accentColor;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:        cs.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: cs.outlineVariant),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(10),
             blurRadius: 6,
-            offset:     const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -330,10 +345,10 @@ class _MetricCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width:  34,
+            width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color:        accentColor.withAlpha(22),
+              color: accentColor.withAlpha(22),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 18, color: accentColor),
@@ -343,10 +358,10 @@ class _MetricCard extends StatelessWidget {
             value,
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w800,
-              color:      cs.onSurface,
+              color: cs.onSurface,
             ),
-            maxLines:  1,
-            overflow:  TextOverflow.ellipsis,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
@@ -370,9 +385,9 @@ class _ReconciliationStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme     = Theme.of(context);
-    final cs        = theme.colorScheme;
-    final balanced  = report.shortfall.abs() < 0.01;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final balanced = report.shortfall.abs() < 0.01;
     final shortfall = report.shortfall >= 0;
     final statusColor = balanced
         ? PayrollTokens.green
@@ -381,31 +396,31 @@ class _ReconciliationStatus extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color:        cs.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(14),
-        border:       Border.all(color: cs.outlineVariant),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(10),
             blurRadius: 6,
-            offset:     const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            width:  46,
+            width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color:        statusColor.withAlpha(18),
+              color: statusColor.withAlpha(18),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               balanced
                   ? Icons.check_circle_outline
                   : (shortfall ? Icons.error_outline : Icons.info_outline),
-              size:  24,
+              size: 24,
               color: statusColor,
             ),
           ),
@@ -448,7 +463,7 @@ class _ReconciliationStatus extends StatelessWidget {
                 Text(
                   _zarD.format(report.totalEtiCredit),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color:      PayrollTokens.green,
+                    color: PayrollTokens.green,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -470,18 +485,18 @@ class _CertificateList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color:        cs.surface,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
-        border:       Border.all(color: cs.outlineVariant),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color:      Colors.black.withAlpha(10),
+            color: Colors.black.withAlpha(10),
             blurRadius: 6,
-            offset:     const Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -493,15 +508,15 @@ class _CertificateList extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width:  34,
+                  width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color:        PayrollTokens.navy.withAlpha(18),
+                    color: PayrollTokens.navy.withAlpha(18),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.description_outlined,
-                    size:  18,
+                    size: 18,
                     color: PayrollTokens.navy,
                   ),
                 ),
@@ -535,18 +550,19 @@ class _CertificateList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: EmptyState(
-                icon:     const Icon(Icons.description_outlined, size: 56),
-                title:    'No certificates',
+                icon: const Icon(Icons.description_outlined, size: 56),
+                title: 'No certificates',
                 subtitle: 'No payslips were found for this tax year.',
               ),
             )
           else
             ListView.separated(
               shrinkWrap: true,
-              physics:    const NeverScrollableScrollPhysics(),
-              itemCount:  report.lines.length,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: report.lines.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (context, i) => _CertificateRow(line: report.lines[i]),
+              itemBuilder: (context, i) =>
+                  _CertificateRow(line: report.lines[i]),
             ),
         ],
       ),
@@ -562,7 +578,6 @@ class _CertificateRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
     final isIrp5 = line.certificateType == 'IRP5';
 
     return Padding(
@@ -583,7 +598,7 @@ class _CertificateRow extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color:        isIrp5
+                  color: isIrp5
                       ? PayrollTokens.sky.withAlpha(22)
                       : PayrollTokens.amber.withAlpha(22),
                   borderRadius: BorderRadius.circular(6),
@@ -591,7 +606,7 @@ class _CertificateRow extends StatelessWidget {
                 child: Text(
                   line.certificateType,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color:      isIrp5 ? PayrollTokens.sky : PayrollTokens.amber,
+                    color: isIrp5 ? PayrollTokens.sky : PayrollTokens.amber,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -601,7 +616,10 @@ class _CertificateRow extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              _LineDetail(label: 'Gross',  value: _zarD.format(line.annualGross)),
+              _LineDetail(
+                label: 'Gross',
+                value: _zarD.format(line.annualGross),
+              ),
               const SizedBox(width: 16),
               _LineDetail(
                 label: 'PAYE',
@@ -609,9 +627,9 @@ class _CertificateRow extends StatelessWidget {
                 valueColor: PayrollTokens.rose,
               ),
               const SizedBox(width: 16),
-              _LineDetail(label: 'UIF',  value: _zarD.format(line.annualUif)),
+              _LineDetail(label: 'UIF', value: _zarD.format(line.annualUif)),
               const SizedBox(width: 16),
-              _LineDetail(label: 'SDL',  value: _zarD.format(line.annualSdl)),
+              _LineDetail(label: 'SDL', value: _zarD.format(line.annualSdl)),
             ],
           ),
           if (line.employerEtiCredit > 0) ...[
@@ -630,7 +648,11 @@ class _CertificateRow extends StatelessWidget {
 }
 
 class _LineDetail extends StatelessWidget {
-  const _LineDetail({required this.label, required this.value, this.valueColor});
+  const _LineDetail({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
 
   final String label;
   final String value;
@@ -639,19 +661,21 @@ class _LineDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: theme.textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: cs.onSurfaceVariant,
+          ),
         ),
         Text(
           value,
           style: theme.textTheme.labelMedium?.copyWith(
-            color:      valueColor ?? cs.onSurface,
+            color: valueColor ?? cs.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -668,14 +692,14 @@ class _RegulatoryNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs    = theme.colorScheme;
+    final cs = theme.colorScheme;
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color:        PayrollTokens.sky.withAlpha(12),
+        color: PayrollTokens.sky.withAlpha(12),
         borderRadius: BorderRadius.circular(12),
-        border:       Border.all(color: PayrollTokens.sky.withAlpha(40)),
+        border: Border.all(color: PayrollTokens.sky.withAlpha(40)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -688,7 +712,7 @@ class _RegulatoryNote extends StatelessWidget {
               'tax year (Feb). Ensure your EMP201 monthly submissions match '
               'the totals shown above before filing.',
               style: theme.textTheme.bodySmall?.copyWith(
-                color:  cs.onSurfaceVariant,
+                color: cs.onSurfaceVariant,
                 height: 1.5,
               ),
             ),

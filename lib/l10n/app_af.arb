@@ -1,0 +1,41 @@
+{
+  "@@locale": "af",
+  "appName": "4Rigtings",
+  "loginTitle": "Welkom Terug",
+  "loginEmailHint": "E-posadres",
+  "loginPasswordHint": "Wagwoord",
+  "loginButton": "Teken in",
+  "loginForgotPassword": "Wagwoord vergeet?",
+
+  "dashboardTitle": "Kontroleskerm",
+  "dashboardAnimals": "Diere",
+  "dashboardFields": "Lande",
+  "dashboardAlerts": "Waarskuwings",
+
+  "cattleTitle": "Beeste",
+  "goatTitle": "Bokke",
+  "poultryTitle": "Pluimvee",
+  "cropTitle": "Gewasse",
+  "traceabilityTitle": "Naspeurbaarheid",
+  "payrollTitle": "Loonlys",
+  "insightsTitle": "Insigte",
+
+  "addAnimal": "Dier Byvoeg",
+  "addFlock": "Kudde Byvoeg",
+  "saveButton": "Stoor",
+  "cancelButton": "Kanselleer",
+  "deleteButton": "Verwyder",
+  "editButton": "Redigeer",
+  "searchHint": "Soek…",
+
+  "trialExpiresSoon": "Proeftydperk verval oor {days} dag(e). Gradeer op om voort te gaan.",
+  "upgradeNow": "Gradeer Nou Op",
+
+  "errorGeneral": "Iets het verkeerd gegaan. Probeer asseblief weer.",
+  "errorNetwork": "Geen internetverbinding nie. Kontroleer u netwerk.",
+  "errorUnauthorized": "Sessie verval. Teken asseblief weer in.",
+
+  "logoutButton": "Teken uit",
+  "settingsTitle": "Instellings",
+  "profileTitle": "My Profiel"
+}

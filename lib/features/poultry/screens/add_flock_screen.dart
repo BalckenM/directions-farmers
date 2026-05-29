@@ -3,16 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../models/vaccination_reference.dart';
-import '../models/poultry_flock.dart';
-import '../providers/poultry_providers.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/features/poultry/models/vaccination_reference.dart';
+import 'package:mobile_app/features/poultry/models/poultry_flock.dart';
+import 'package:mobile_app/features/poultry/providers/poultry_providers.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
 
 // ── Production type definition ────────────────────────────────────────────────
 
@@ -124,9 +125,19 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
   }
 
   String _monthName(int m) => const [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-      ][m - 1];
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][m - 1];
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -137,7 +148,8 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm)),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
       );
       return;
@@ -191,10 +203,12 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
         final lastFlock = pastFlocks.first;
         final lastPlacement = DateTime.tryParse(lastFlock.placementDate);
         if (lastPlacement != null && lastFlock.dayOfAge > 0) {
-          final estimatedVacated =
-              lastPlacement.add(Duration(days: lastFlock.dayOfAge));
-          final downtimeDays =
-              _placementDate!.difference(estimatedVacated).inDays;
+          final estimatedVacated = lastPlacement.add(
+            Duration(days: lastFlock.dayOfAge),
+          );
+          final downtimeDays = _placementDate!
+              .difference(estimatedVacated)
+              .inDays;
           if (downtimeDays < 14) {
             if (!mounted) return;
             setState(() => _submitting = false);
@@ -231,7 +245,7 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
     final now = DateTime.now();
     final newFlock = PoultryFlock(
       id: 'flock-${now.millisecondsSinceEpoch}',
-      farmId: 'farm-001',
+      farmId: ref.read(currentUserProvider)?.id ?? 'unknown',
       batchName: _batchNameCtrl.text.trim(),
       species: _productionType!.species,
       productionType: _productionType!.value,
@@ -246,8 +260,10 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
       dayOfAge: now.difference(_placementDate!).inDays.clamp(0, 999),
       livabilityPct: 100.0,
       unitCostPerChick: double.tryParse(_unitCostCtrl.text.trim()),
-      projectedSlaughterDate:
-          _expectedExitDate?.toIso8601String().substring(0, 10),
+      projectedSlaughterDate: _expectedExitDate?.toIso8601String().substring(
+        0,
+        10,
+      ),
       createdAt: now.toIso8601String(),
       updatedAt: now.toIso8601String(),
     );
@@ -257,11 +273,13 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-            'Flock "${_batchNameCtrl.text.trim()}" created successfully'),
+          'Flock "${_batchNameCtrl.text.trim()}" created successfully',
+        ),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.sm)),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
       ),
     );
 
@@ -317,10 +335,8 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                     isExpanded: true,
                     items: _productionTypes
                         .map(
-                          (t) => DropdownMenuItem(
-                            value: t,
-                            child: Text(t.label),
-                          ),
+                          (t) =>
+                              DropdownMenuItem(value: t, child: Text(t.label)),
                         )
                         .toList(),
                     onChanged: (t) => setState(() {
@@ -342,7 +358,9 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                       hint: const Text('Select strain'),
                       isExpanded: true,
                       items: _strainOptions
-                          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                          .map(
+                            (s) => DropdownMenuItem(value: s, child: Text(s)),
+                          )
                           .toList(),
                       onChanged: (s) => setState(() {
                         _strain = s;
@@ -461,8 +479,9 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                 label: 'Unit Cost per Chick (ZAR)',
                 hint: 'e.g. 14.50',
                 prefixIcon: const Icon(Icons.attach_money),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 textInputAction: TextInputAction.next,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -491,9 +510,7 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                       prefixIcon: const Icon(Icons.monitor_weight_outlined),
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
                         final n = int.tryParse(v.trim());
@@ -513,8 +530,7 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                         current: _expectedExitDate,
                         onPicked: (d) => setState(() => _expectedExitDate = d),
                         firstDate: _placementDate ?? DateTime.now(),
-                        lastDate:
-                            DateTime.now().add(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       ),
                     ),
                   ],
@@ -592,9 +608,7 @@ class _FormSection extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.card,
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withAlpha(80),
-        ),
+        side: BorderSide(color: theme.colorScheme.outlineVariant.withAlpha(80)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -679,7 +693,7 @@ class _VaccinationScheduleDialog extends StatelessWidget {
 
   String _fmt(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')} '
-      '${const ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.month - 1]} '
+      '${const ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.month - 1]} '
       '${d.year}';
 
   @override
@@ -694,20 +708,28 @@ class _VaccinationScheduleDialog extends StatelessWidget {
               color: AppColors.poultryColorContainer,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.vaccines_outlined,
-                color: AppColors.poultryColor, size: 20),
+            child: const Icon(
+              Icons.vaccines_outlined,
+              color: AppColors.poultryColor,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Vaccination Schedule',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                Text(flockName,
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurfaceVariant)),
+                const Text(
+                  'Vaccination Schedule',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  flockName,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -734,18 +756,20 @@ class _VaccinationScheduleDialog extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.poultryColor
-                              .withValues(alpha: 0.1),
+                          color: AppColors.poultryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           _fmt(e.dueDate),
                           style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.poultryColor),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.poultryColor,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -753,15 +777,20 @@ class _VaccinationScheduleDialog extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(e.vaccine,
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600)),
-                            Text(e.route,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: theme
-                                        .colorScheme.onSurfaceVariant)),
+                            Text(
+                              e.vaccine,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              e.route,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -776,7 +805,8 @@ class _VaccinationScheduleDialog extends StatelessWidget {
       actions: [
         FilledButton(
           style: FilledButton.styleFrom(
-              backgroundColor: AppColors.poultryColor),
+            backgroundColor: AppColors.poultryColor,
+          ),
           onPressed: () => Navigator.pop(context),
           child: const Text('Got it'),
         ),

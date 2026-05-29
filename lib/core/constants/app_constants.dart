@@ -1,7 +1,7 @@
 /// Application-wide constants for FarmTrack.
 abstract final class AppConstants {
   // ── App identity ─────────────────────────────────────────────────────────────
-  static const String appName = 'FarmTrack';
+  static const String appName = '4Directions';
   static const String appVersion = '1.0.0';
   static const String buildNumber = '1';
 
@@ -50,7 +50,6 @@ abstract final class AppConstants {
   static const Duration animSlow = Duration(milliseconds: 500);
   static const Duration animShimmer = Duration(milliseconds: 1200);
   static const Duration animCounter = Duration(milliseconds: 800);
-
 
   // ── Feature slug constants ────────────────────────────────────────────────────
   static const String featureAgriculture = 'agriculture';

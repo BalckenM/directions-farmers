@@ -3,19 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/loading_shimmer.dart';
-import '../../../../shared/widgets/section_header.dart';
-import '../../models/calendar_event.dart';
-import '../../models/crop_field.dart';
-import '../../models/planting_plan.dart';
-import '../../providers/crop_action_providers.dart';
-import '../../providers/crop_providers.dart';
-import '../../widgets/crop_illustration.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/shared/widgets/section_header.dart';
+import 'package:mobile_app/features/crop/models/calendar_event.dart';
+import 'package:mobile_app/features/crop/models/crop_field.dart';
+import 'package:mobile_app/features/crop/models/planting_plan.dart';
+import 'package:mobile_app/features/crop/providers/crop_action_providers.dart';
+import 'package:mobile_app/features/crop/providers/crop_providers.dart';
+import 'package:mobile_app/features/crop/widgets/crop_illustration.dart';
 
 class PlantingCalendarScreen extends ConsumerStatefulWidget {
   const PlantingCalendarScreen({super.key});
@@ -1978,7 +1978,7 @@ class _EditEventSheetState extends ConsumerState<_EditEventSheet> {
     _notesCtrl = TextEditingController(text: widget.event.notes ?? '');
     _activityType = widget.event.activityType;
     _scheduledDate = widget.event.scheduledDate;
-    _reminderDays = widget.event.reminderDaysBefore ?? 1;
+    _reminderDays = widget.event.reminderDaysBefore;
   }
 
   @override

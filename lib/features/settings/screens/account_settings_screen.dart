@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -8,6 +9,7 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class AccountSettingsScreen extends ConsumerStatefulWidget {
   const AccountSettingsScreen({super.key});
@@ -18,10 +20,20 @@ class AccountSettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _AccountSettingsScreenState extends ConsumerState<AccountSettingsScreen> {
-  final _nameCtrl = TextEditingController(text: 'Thabo Nkosi');
-  final _emailCtrl = TextEditingController(text: 'thabo@thornhillfarm.co.za');
-  final _roleCtrl = TextEditingController(text: 'Farm Owner');
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _roleCtrl = TextEditingController();
   bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = ref.read(currentUserProvider);
+    _nameCtrl.text = user?.fullName ?? '';
+    _emailCtrl.text = user?.email ?? '';
+    _roleCtrl.text = user?.jobTitle ??
+        (user?.isOwner == true ? 'Farm Owner' : user?.role ?? '');
+  }
 
   @override
   void dispose() {
