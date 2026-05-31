@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { cropController } from "../controllers/crop.controller";
-import { authenticate } from "../middleware/auth.middleware";
-import { requireModule } from "../middleware/module-guard.middleware";
-import { validate } from "../middleware/validate.middleware";
+import { cropController } from "../../controllers/crop/crop.controller";
+import { authenticate } from "../../middleware/auth.middleware";
+import { requireModule } from "../../middleware/module-guard.middleware";
+import { validate } from "../../middleware/validate.middleware";
 import {
   createFieldSchema,
   createHarvestRecordSchema,
@@ -11,7 +11,7 @@ import {
   createTaskSchema,
   updateFieldSchema,
   updatePlantingPlanSchema,
-} from "../validators/crop.validator";
+} from "../../validators/crop/crop.validator";
 
 export const cropRouter = Router();
 

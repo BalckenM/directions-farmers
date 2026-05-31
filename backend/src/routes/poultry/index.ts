@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { poultryController } from "../controllers/poultry.controller";
-import { authenticate } from "../middleware/auth.middleware";
-import { requireModule } from "../middleware/module-guard.middleware";
-import { validate } from "../middleware/validate.middleware";
+import { poultryController } from "../../controllers/poultry/poultry.controller";
+import { authenticate } from "../../middleware/auth.middleware";
+import { requireModule } from "../../middleware/module-guard.middleware";
+import { validate } from "../../middleware/validate.middleware";
 import {
     createDailyRecordSchema,
     createFlockSchema,
     createHarvestRecordSchema,
     createVaccinationScheduleSchema,
     updateFlockSchema,
-} from "../validators/poultry.validator";
+} from "../../validators/poultry/poultry.validator";
 
 export const poultryRouter = Router();
 

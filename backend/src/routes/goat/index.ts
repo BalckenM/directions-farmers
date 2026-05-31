@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { goatController } from "../controllers/goat/goat.controller";
-import { authenticate } from "../middleware/auth.middleware";
-import { requireModule } from "../middleware/module-guard.middleware";
-import { validate } from "../middleware/validate.middleware";
+import { goatController } from "../../controllers/goat/goat.controller";
+import { authenticate } from "../../middleware/auth.middleware";
+import { requireModule } from "../../middleware/module-guard.middleware";
+import { validate } from "../../middleware/validate.middleware";
 import {
   createBcsRecordSchema,
   createDailyMilkSchema,
@@ -25,7 +25,7 @@ import {
   updateHealthEventSchema,
   updateMatingSchema,
   updateSaleRecordSchema,
-} from "../validators/goat.validator";
+} from "../../validators/goat/goat.validator";
 
 export const goatRouter = Router();
 

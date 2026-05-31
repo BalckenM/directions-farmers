@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { cattleController } from "../controllers/cattle/cattle.controller";
-import { authenticate } from "../middleware/auth.middleware";
-import { requireModule } from "../middleware/module-guard.middleware";
-import { validate } from "../middleware/validate.middleware";
+import { cattleController } from "../../controllers/cattle/cattle.controller";
+import { authenticate } from "../../middleware/auth.middleware";
+import { requireModule } from "../../middleware/module-guard.middleware";
+import { validate } from "../../middleware/validate.middleware";
 import {
   createBcsRecordSchema,
   createBreedingRecordSchema,
@@ -24,7 +24,7 @@ import {
   updateCattleSchema,
   updateHealthEventSchema,
   updateSaleRecordSchema,
-} from "../validators/cattle.validator";
+} from "../../validators/cattle/cattle.validator";
 
 export const cattleRouter = Router();
 

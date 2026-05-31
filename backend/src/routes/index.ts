@@ -1,17 +1,20 @@
+// ── Module routes (each module has its own folder) ────────────────────────────
+export { cattleRouter } from "./cattle";
+export { cropRouter } from "./crop";
+export { goatRouter } from "./goat";
+export { payrollRouter } from "./payroll";
+export { poultryRouter } from "./poultry";
+
+// ── Shared / infrastructure routes ───────────────────────────────────────────
 export { advisorRouter } from "./advisor.routes";
 export { authRouter } from "./auth.routes";
-export { cattleRouter } from "./cattle.routes";
-export { cropRouter } from "./crop.routes";
 export { dashboardRouter } from "./dashboard.routes";
 export { diseaseRouter } from "./disease.routes";
 export { eventsRouter } from "./events.routes";
 export { farmRouter } from "./farm.routes";
 export { financialRouter } from "./financial.routes";
-export { goatRouter } from "./goat.routes";
 export { insightsRouter } from "./insights.routes";
 export { livestockRouter } from "./livestock.routes";
-export { payrollRouter } from "./payroll.routes";
-export { poultryRouter } from "./poultry.routes";
 export { productionRouter } from "./production.routes";
 export { recordRouter } from "./record.routes";
 export { settingsRouter } from "./settings.routes";
