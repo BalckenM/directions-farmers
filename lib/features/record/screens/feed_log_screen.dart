@@ -36,7 +36,7 @@ class FeedLogScreen extends ConsumerWidget {
         title: 'Feed Log',
         subtitle: 'Daily feed records',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordFeed),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Log Feed'),

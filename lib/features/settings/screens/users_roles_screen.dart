@@ -23,7 +23,7 @@ class UsersRolesScreen extends ConsumerWidget {
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'Team & Roles'),
       floatingActionButton: currentRole.canManageSettings
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton.extended(heroTag: null, 
               onPressed: () => _showInviteSheet(context, ref),
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.onPrimary,
@@ -55,33 +55,57 @@ class UsersRolesScreen extends ConsumerWidget {
             _SectionHeader(
               icon: Icons.group_rounded,
               label: 'Farm Team',
-              trailing: Text(
-                '${teamMembers.length} member${teamMembers.length == 1 ? '' : 's'}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+              trailing: teamMembers.when(
+                data: (members) => Text(
+                  '${members.length} member${members.length == 1 ? '' : 's'}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            if (teamMembers.isEmpty)
-              _EmptyTeamCard(isOwner: currentUser.isOwner)
-            else
-              ...teamMembers.map(
-                (m) => Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _TeamMemberCard(
-                    member: m,
-                    canManage: currentRole.canManageSettings,
-                    onChangeRole: currentRole.canManageSettings
-                        ? () => _showRoleSheet(context, ref, m)
-                        : null,
-                    onRevoke: currentRole.canManageSettings
-                        ? () => _confirmRevoke(context, m)
-                        : null,
-                  ),
+            teamMembers.when(
+              data: (members) {
+                if (members.isEmpty) {
+                  return _EmptyTeamCard(isOwner: currentUser.isOwner);
+                }
+                return Column(
+                  children: members
+                      .map(
+                        (m) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: _TeamMemberCard(
+                            member: m,
+                            canManage: currentRole.canManageSettings,
+                            onChangeRole: currentRole.canManageSettings
+                                ? () => _showRoleSheet(context, ref, m)
+                                : null,
+                            onRevoke: currentRole.canManageSettings
+                                ? () => _confirmRevoke(context, ref, m)
+                                : null,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.lg),
+                  child: CircularProgressIndicator(),
                 ),
               ),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Text('Failed to load team: $e'),
+                ),
+              ),
+            ),
           ],
 
           // bottom padding so FAB doesn't overlap last card
@@ -108,7 +132,7 @@ class UsersRolesScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmRevoke(BuildContext context, AuthUser member) {
+  void _confirmRevoke(BuildContext context, WidgetRef ref, AuthUser member) {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -124,14 +148,28 @@ class UsersRolesScreen extends ConsumerWidget {
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${member.fullName} removed from farm team.'),
-                  backgroundColor: AppColors.error,
-                ),
-              );
+              try {
+                final ds = ref.read(authRemoteDataSourceProvider);
+                await ds.deleteStaff(member.id);
+                ref.invalidate(teamMembersProvider);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${member.fullName} removed from farm team.'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to revoke: $e'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
             },
             child: const Text('Revoke'),
           ),
@@ -584,14 +622,14 @@ class _EmptyTeamCard extends StatelessWidget {
 
 // ── Invite member bottom sheet ──────────────────────────────────────────────
 
-class _InviteMemberSheet extends StatefulWidget {
+class _InviteMemberSheet extends ConsumerStatefulWidget {
   const _InviteMemberSheet();
 
   @override
-  State<_InviteMemberSheet> createState() => _InviteMemberSheetState();
+  ConsumerState<_InviteMemberSheet> createState() => _InviteMemberSheetState();
 }
 
-class _InviteMemberSheetState extends State<_InviteMemberSheet> {
+class _InviteMemberSheetState extends ConsumerState<_InviteMemberSheet> {
   final _firstNameCtrl = TextEditingController();
   final _lastNameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
@@ -605,7 +643,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     super.dispose();
   }
 
-  void _submit() {
+  void _submit() async {
     final firstName = _firstNameCtrl.text.trim();
     final lastName = _lastNameCtrl.text.trim();
     final email = _emailCtrl.text.trim();
@@ -615,14 +653,32 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
       );
       return;
     }
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'Invitation sent to $email as ${_selectedRole.displayName}.'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+    try {
+      final ds = ref.read(authRemoteDataSourceProvider);
+      await ds.inviteStaff(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        role: _selectedRole.name,
+      );
+      ref.invalidate(teamMembersProvider);
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invitation sent to $email as ${_selectedRole.displayName}.'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to invite: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override

@@ -34,7 +34,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
 
     return FarmScaffold(
       appBar: FarmAppBar(title: 'Crop Sales'),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addCropSale),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Record Sale'),

@@ -44,7 +44,7 @@ class FinancialScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addFinancialRecord),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Entry'),

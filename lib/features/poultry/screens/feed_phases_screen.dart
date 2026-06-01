@@ -34,7 +34,7 @@ class FeedPhasesScreen extends ConsumerWidget {
         title: 'Ration Schedule',
         subtitle: batchName,
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addFeedPhase(flockId)),
         backgroundColor: AppColors.poultryColor,
         foregroundColor: Colors.white,

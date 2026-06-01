@@ -358,7 +358,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         backgroundColor: PayrollTokens.teal,
         foregroundColor: Colors.white,
         onPressed: _saving ? null : _save,

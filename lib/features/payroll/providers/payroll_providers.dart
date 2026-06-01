@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_client.dart';
 import '../data/payroll_data_source.dart';
-import '../data/payroll_mock_data_source.dart';
+import '../data/payroll_remote_data_source.dart';
 import '../data/payroll_repository.dart';
 import '../models/attendance_record.dart';
 import '../models/audit_log_entry.dart';
@@ -28,7 +29,7 @@ import '../models/task_assignment.dart';
 // ─── Dependency Injection ────────────────────────────────────────────────────
 
 final payrollDataSourceProvider = Provider<PayrollDataSource>(
-  (ref) => PayrollMockDataSource(),
+  (ref) => PayrollRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final payrollRepositoryProvider = Provider<PayrollRepository>(

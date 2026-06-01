@@ -1,6 +1,5 @@
 ﻿import 'package:dio/dio.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../models/goat_animal.dart';
 import '../models/goat_records.dart';
 import 'goat_data_source.dart';
@@ -8,21 +7,9 @@ import 'goat_data_source.dart';
 /// Production remote data source — calls the FarmTrack REST API via Dio.
 /// All responses follow the shape: { "data": [...] } or { "data": {...} }.
 class GoatRemoteDataSource implements GoatDataSource {
-  GoatRemoteDataSource() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: AppConstants.apiBaseUrl,
-        connectTimeout: AppConstants.apiTimeout,
-        receiveTimeout: AppConstants.apiTimeout,
-        headers: {'Accept': 'application/json'},
-      ),
-    );
-    _dio.interceptors.add(
-      LogInterceptor(requestBody: false, responseBody: false),
-    );
-  }
+  GoatRemoteDataSource(this._dio);
 
-  late final Dio _dio;
+  final Dio _dio;
 
   // ── Helper ─────────────────────────────────────────────────────────────────
 

@@ -12,6 +12,18 @@ class ActivityItem {
     required this.timestamp,
   });
 
+  factory ActivityItem.fromJson(Map<String, dynamic> json) {
+    return ActivityItem(
+      type: ActivityType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => ActivityType.general,
+      ),
+      title: json['title'] as String? ?? '',
+      subtitle: json['subtitle'] as String? ?? '',
+      timestamp: json['timestamp'] as String? ?? '',
+    );
+  }
+
   final ActivityType type;
   final String title;
   final String subtitle;
@@ -65,6 +77,27 @@ class DashboardSummary {
     this.recentActivity = const [],
   });
 
+  factory DashboardSummary.fromJson(Map<String, dynamic> json) {
+    return DashboardSummary(
+      farmName: json['farmName'] as String? ?? '',
+      farmLocation: json['farmLocation'] as String? ?? '',
+      speciesSummaries: (json['speciesSummaries'] as List<dynamic>?)
+              ?.map((e) => SpeciesSummary.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      totalAnimals: json['totalAnimals'] as int? ?? 0,
+      recentHealthAlerts: json['recentHealthAlerts'] as int? ?? 0,
+      recentBreedingEvents: json['recentBreedingEvents'] as int? ?? 0,
+      pendingTaskCount: json['pendingTaskCount'] as int? ?? 0,
+      weatherTemp: json['weatherTemp'] as String? ?? '--',
+      weatherCondition: json['weatherCondition'] as String? ?? '',
+      recentActivity: (json['recentActivity'] as List<dynamic>?)
+              ?.map((e) => ActivityItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+
   final String farmName;
   final String farmLocation;
   final List<SpeciesSummary> speciesSummaries;
@@ -88,6 +121,15 @@ class SpeciesSummary {
     required this.activeCount,
     required this.alertCount,
   });
+
+  factory SpeciesSummary.fromJson(Map<String, dynamic> json) {
+    return SpeciesSummary(
+      species: json['species'] as String? ?? '',
+      headCount: json['headCount'] as int? ?? 0,
+      activeCount: json['activeCount'] as int? ?? 0,
+      alertCount: json['alertCount'] as int? ?? 0,
+    );
+  }
 
   final String species;
   final int headCount;

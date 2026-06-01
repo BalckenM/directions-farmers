@@ -15,6 +15,8 @@ import '../../../shared/widgets/farm_app_bar.dart';
 import '../../../shared/widgets/farm_scaffold.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/profile_image_provider.dart';
+import '../providers/settings_providers.dart';
+import 'paddocks_screen.dart' show paddocksProvider;
 import 'upgrade_plan_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -320,7 +322,9 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
     final tt = Theme.of(context).textTheme;
     final user = ref.watch(currentUserProvider);
     final imagePath = ref.watch(profileImageProvider);
-    final teamCount = ref.watch(teamMembersProvider).length;
+    final teamCount = ref.watch(teamMembersProvider).value?.length ?? 0;
+    final paddockCount = ref.watch(paddocksProvider).value?.length ?? 0;
+    final moduleCount = user?.activatedModules.length ?? 0;
 
     final farmName = user?.farmName ?? 'Your Farm';
     final location = (user != null && user.province.isNotEmpty)
@@ -424,23 +428,17 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _StatPill(
-                icon: Icons.pets_rounded,
-                value: '346',
-                label: 'Animals',
+                icon: Icons.extension_rounded,
+                value: '$moduleCount',
+                label: 'Modules',
               ),
               Container(width: 1, height: 32, color: cs.outlineVariant),
               _StatPill(icon: Icons.group_rounded, value: '$teamCount', label: 'Team'),
               Container(width: 1, height: 32, color: cs.outlineVariant),
               _StatPill(
                 icon: Icons.landscape_rounded,
-                value: '3',
+                value: '$paddockCount',
                 label: 'Paddocks',
-              ),
-              Container(width: 1, height: 32, color: cs.outlineVariant),
-              _StatPill(
-                icon: Icons.calendar_today_rounded,
-                value: '2019',
-                label: 'Est.',
               ),
             ],
           ),
@@ -550,7 +548,7 @@ class _QuickActionsRow extends StatelessWidget {
             child: _QuickBtn(
               icon: Icons.group_add_rounded,
               label: 'Manage Team',
-              onTap: () => context.push(AppRoutes.settingsAccount),
+              onTap: () => context.push(AppRoutes.settingsUsersRoles),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),

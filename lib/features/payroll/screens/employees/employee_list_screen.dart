@@ -73,7 +73,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
 
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'Employees'),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.payrollAddEmployee),
         icon: const Icon(Icons.person_add_rounded),
         label: const Text('Add Employee'),

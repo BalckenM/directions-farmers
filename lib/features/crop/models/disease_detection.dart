@@ -53,6 +53,21 @@ class TreatmentOption {
     this.waitingDays = 0,
   });
 
+  factory TreatmentOption.fromJson(Map<String, dynamic> json) {
+    return TreatmentOption(
+      name: json['name'] as String? ?? '',
+      type: TreatmentType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => TreatmentType.cultural,
+      ),
+      description: json['description'] as String? ?? '',
+      applicationMethod: json['applicationMethod'] as String? ?? '',
+      timing: json['timing'] as String? ?? '',
+      saProducts: (json['saProducts'] as List<dynamic>?)?.cast<String>(),
+      waitingDays: json['waitingDays'] as int? ?? 0,
+    );
+  }
+
   final String name;
   final TreatmentType type;
   final String description;
@@ -84,6 +99,34 @@ class DiseaseInfo {
     required this.requiresImmediateAction,
   });
 
+  factory DiseaseInfo.fromJson(Map<String, dynamic> json) {
+    return DiseaseInfo(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      scientificName: json['scientificName'] as String?,
+      cropTypes: (json['cropTypes'] as List<dynamic>?)?.cast<String>() ?? [],
+      category: DiseaseCategory.values.firstWhere(
+        (e) => e.name == json['category'],
+        orElse: () => DiseaseCategory.healthy,
+      ),
+      severity: DiseaseSeverity.values.firstWhere(
+        (e) => e.name == json['severity'],
+        orElse: () => DiseaseSeverity.low,
+      ),
+      description: json['description'] as String? ?? '',
+      visualSymptoms: json['visualSymptoms'] as String? ?? '',
+      spread: json['spread'] as String? ?? '',
+      treatments: (json['treatments'] as List<dynamic>?)
+              ?.map((e) => TreatmentOption.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      preventionTips:
+          (json['preventionTips'] as List<dynamic>?)?.cast<String>() ?? [],
+      requiresImmediateAction:
+          json['requiresImmediateAction'] as bool? ?? false,
+    );
+  }
+
   final String id;
   final String name;
   final String? scientificName;
@@ -114,6 +157,13 @@ class DiseaseMatch {
     required this.confidence,
   });
 
+  factory DiseaseMatch.fromJson(Map<String, dynamic> json) {
+    return DiseaseMatch(
+      disease: DiseaseInfo.fromJson(json['disease'] as Map<String, dynamic>),
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0,
+    );
+  }
+
   final DiseaseInfo disease;
 
   /// Confidence score 0.0–1.0 (mock uses seeded values).
@@ -136,6 +186,21 @@ class DiseaseDetectionResult {
     required this.matches,
     this.cropHint,
   });
+
+  factory DiseaseDetectionResult.fromJson(Map<String, dynamic> json) {
+    return DiseaseDetectionResult(
+      id: json['id'] as String? ?? '',
+      detectedAt: json['detectedAt'] != null
+          ? DateTime.parse(json['detectedAt'] as String)
+          : DateTime.now(),
+      imagePath: json['imagePath'] as String? ?? '',
+      matches: (json['matches'] as List<dynamic>?)
+              ?.map((e) => DiseaseMatch.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      cropHint: json['cropHint'] as String?,
+    );
+  }
 
   final String id;
   final DateTime detectedAt;

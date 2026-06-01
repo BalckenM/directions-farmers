@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
 import '../data/events_data_source.dart';
-import '../data/events_mock_data_source.dart';
+import '../data/events_remote_data_source.dart';
 import '../data/events_repository.dart';
 import '../models/breeding_event.dart';
 import '../models/health_event.dart';
 import '../models/weight_record.dart';
 
 final eventsDataSourceProvider = Provider<EventsDataSource>(
-  (ref) => EventsMockDataSource(),
+  (ref) => EventsRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final eventsRepositoryProvider = Provider<EventsRepository>(

@@ -73,7 +73,7 @@ class _GarnisheeOrdersScreenState extends ConsumerState<GarnisheeOrdersScreen> {
           }).toList(),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.payrollGarnisheeAdd),
         icon: const Icon(Icons.add),
         label: const Text('Add Order'),

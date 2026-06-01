@@ -28,7 +28,7 @@ class GroupsScreen extends ConsumerWidget {
         title: 'Groups & Herds',
         subtitle: 'Manage your animal groups',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addGroup),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Group'),

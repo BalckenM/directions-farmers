@@ -64,7 +64,7 @@ class _ExpenseTrackerScreenState extends ConsumerState<ExpenseTrackerScreen> {
 
     return FarmScaffold(
       appBar: FarmAppBar(title: 'Expense Tracker'),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addCropExpense),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Expense'),

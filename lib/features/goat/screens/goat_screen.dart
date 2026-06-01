@@ -61,7 +61,7 @@ class _GoatScreenState extends ConsumerState<GoatScreen> {
         ],
       ),
       floatingActionButton: ref.watch(canManageAnimalsProvider)
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton.extended(heroTag: null, 
               onPressed: () => context.push(AppRoutes.addGoat),
               backgroundColor: AppColors.goatColor,
               foregroundColor: Colors.white,

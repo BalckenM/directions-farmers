@@ -94,7 +94,7 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         backgroundColor: PayrollTokens.navy,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Add Shift',

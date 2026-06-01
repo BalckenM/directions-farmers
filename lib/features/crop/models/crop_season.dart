@@ -30,6 +30,17 @@ class CropSeason {
         notes: json['notes'] as String?,
       );
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'farm_id': farmId,
+    'name': name,
+    'season_type': seasonType,
+    'start_date': startDate.toIso8601String(),
+    'end_date': endDate.toIso8601String(),
+    'status': status,
+    'notes': notes,
+  };
+
   bool get isActive => status == 'active';
   bool get isCompleted => status == 'completed';
   bool get isPlanned => status == 'planned';

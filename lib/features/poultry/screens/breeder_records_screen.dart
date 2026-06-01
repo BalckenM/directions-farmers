@@ -18,7 +18,7 @@ class BreederRecordsScreen extends ConsumerWidget {
 
     return FarmScaffold(
       appBar: FarmAppBar(title: 'Breeder Records'),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(heroTag: null, 
         backgroundColor: AppColors.poultryColor,
         foregroundColor: Colors.white,
         onPressed: () => _showAddSheet(context, ref),

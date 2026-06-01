@@ -85,6 +85,7 @@ abstract final class AppRoutes {
   static const String splash = '/splash';
   static const String login = '/login';
   static const String register = '/register';
+  static const String farmSetup = '/farm-setup';
   static const String onboarding = '/onboarding';
   static const String intro = '/intro';
   static const String welcome = '/welcome';
@@ -258,6 +259,8 @@ abstract final class AppRoutes {
   // ── Auth extras ────────────────────────────────────────────────────────────────
   static const String mfaChallenge = '/auth/mfa';
   static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
+  static const String acceptInvite = '/accept-invite';
   static const String staffRegister = '/register/staff';
   static const String emailVerification = '/verify-email';
   static const String changePassword = '/settings/account/change-password';

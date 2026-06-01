@@ -83,7 +83,7 @@ class LivestockScreen extends ConsumerWidget {
               healthPct: healthPct,
             )
           : LoadingShimmer.list(count: 8),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => showModalBottomSheet(
           context: context,
           isScrollControlled: true,

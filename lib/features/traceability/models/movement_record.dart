@@ -146,6 +146,39 @@ class MovementRecord {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    final typeStr = switch (movementType) {
+      MovementType.farmToFarm => 'farm_to_farm',
+      MovementType.farmToAbattoir => 'farm_to_abattoir',
+      MovementType.farmToAuction => 'farm_to_auction',
+      MovementType.auctionToFarm => 'auction_to_farm',
+      MovementType.importFromAbroad => 'import',
+      MovementType.exportToAbroad => 'export',
+    };
+    return {
+      'id': id,
+      'farm_id': farmId,
+      'movement_date': movementDate,
+      'species': species,
+      'animal_ids': animalIds,
+      'movement_type': typeStr,
+      'from_location': fromLocation,
+      'to_location': toLocation,
+      'from_farm_registration_no': fromFarmRegistrationNo,
+      'to_farm_registration_no': toFarmRegistrationNo,
+      'transporter_name': transporterName,
+      'vehicle_reg_no': vehicleRegNo,
+      'permit_number': permitNumber,
+      'veterinary_health_cert_ref': veterinaryHealthCertRef,
+      'move_inspected_by': moveInspectedBy,
+      'distance_km': distanceKm,
+      'rmis_submitted': rmisSubmitted,
+      'rmis_submit_date': rmisSubmitDate,
+      'rmis_transaction_id': rmisTransactionId,
+      'notes': notes,
+    };
+  }
+
   MovementRecord copyWith({
     String? id,
     String? farmId,

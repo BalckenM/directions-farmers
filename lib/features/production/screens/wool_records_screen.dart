@@ -34,7 +34,7 @@ class WoolRecordsScreen extends ConsumerWidget {
         title: 'Wool & Mohair Records',
         subtitle: 'Shearing records & grading',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordWool),
         icon: const Icon(Icons.content_cut_rounded),
         label: const Text('Record Shearing'),

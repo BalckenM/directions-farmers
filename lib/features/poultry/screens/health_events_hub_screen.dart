@@ -103,7 +103,7 @@ class _HealthEventsHubScreenState
               )
             : null,
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         backgroundColor: AppColors.poultryColor,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),

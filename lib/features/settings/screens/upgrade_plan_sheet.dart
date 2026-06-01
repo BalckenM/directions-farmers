@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_radius.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -136,9 +137,15 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
   }
 
   Future<void> _confirmUpgrade(String planId, String planLabel) async {
+    if (!mounted) return;
+
+    // Capture references before any async gaps
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Upgrade to $planLabel?'),
         content: Text(
           'Your plan will be updated to $planLabel. '
@@ -146,11 +153,11 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('Confirm'),
           ),
         ],
@@ -165,23 +172,57 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
       _loading = true;
     });
 
-    // Mock: simulate network call
-    await Future.delayed(const Duration(milliseconds: 1200));
+    try {
+      final dio = ref.read(apiDioProvider);
+      await dio.put<Map<String, dynamic>>(
+        '/subscription/upgrade',
+        data: {'planId': planId},
+      );
 
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.of(context).pop(); // close sheet
+      if (!mounted) return;
+      setState(() => _loading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Plan upgraded to $planLabel successfully!'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.success,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
+      // Refresh the user profile so the new plan is reflected in the app
+      ref.invalidate(authProvider);
+
+      navigator.pop(); // close sheet
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Plan upgraded to $planLabel successfully!'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.success,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to upgrade plan: ${_extractError(e)}'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
+        ),
+      );
+    }
+  }
+
+  String _extractError(Object e) {
+    if (e is Exception) {
+      final str = e.toString();
+      if (str.contains('message')) {
+        final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(str);
+        if (match != null) return match.group(1)!;
+      }
+    }
+    return 'Please try again later';
   }
 }
 

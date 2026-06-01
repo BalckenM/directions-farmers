@@ -29,7 +29,7 @@ class WeightRecordsScreen extends ConsumerWidget {
         title: 'Weight Records',
         subtitle: 'Track growth over time',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordWeight),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Record Weight'),

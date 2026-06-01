@@ -46,6 +46,21 @@ class PestObservation {
         status: json['status'] as String,
       );
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'plan_id': planId,
+    'field_id': fieldId,
+    'observed_date': observedDate.toIso8601String(),
+    'pest_name': pestName,
+    'category': category,
+    'severity': severity,
+    'description': description,
+    'image_url': imageUrl,
+    'recommended_action': recommendedAction,
+    'follow_up_date': followUpDate?.toIso8601String(),
+    'status': status,
+  };
+
   bool get isOpen => status == 'open';
   bool get isTreated => status == 'treated';
   bool get isResolved => status == 'resolved';

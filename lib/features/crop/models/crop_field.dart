@@ -7,6 +7,8 @@ class CropFieldGps {
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
       );
+
+  Map<String, dynamic> toJson() => {'lat': lat, 'lng': lng};
 }
 
 class CropField {
@@ -46,6 +48,18 @@ class CropField {
             : null,
         notes: json['notes'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'farm_id': farmId,
+    'name': name,
+    'size_hectares': sizeHectares,
+    'soil_type': soilType,
+    'irrigation_type': irrigationType,
+    'prior_crop_id': priorCropId,
+    'gps_center': gpsCenter?.toJson(),
+    'notes': notes,
+  };
 
   String get irrigationLabel => switch (irrigationType) {
         'dryland' => 'Dryland',

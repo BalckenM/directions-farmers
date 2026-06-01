@@ -114,6 +114,45 @@ class HealthEvent {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    String? diseaseStr;
+    if (notifiableDisease != null) {
+      diseaseStr = switch (notifiableDisease!) {
+        NotifiableDisease.footAndMouth => 'fmd',
+        NotifiableDisease.africanSwineFever => 'asf',
+        NotifiableDisease.highlyPathogenicAvianInfluenza => 'hpai',
+        NotifiableDisease.contagiousBovineVirus => 'cbpp',
+        NotifiableDisease.lumpySkinDisease => 'lsd',
+        NotifiableDisease.eastCoastFever => 'ecf',
+        NotifiableDisease.brucellosis => 'brucellosis',
+        NotifiableDisease.africanHorseSickness => 'ahs',
+        NotifiableDisease.newcastleDisease => 'newcastle',
+        NotifiableDisease.rabies => 'rabies',
+      };
+    }
+    return {
+      'id': id,
+      'animal_id': animalId,
+      'animal_type': animalType,
+      'event_type': eventType,
+      'event_date': eventDate,
+      'description': description,
+      'diagnosis': diagnosis,
+      'treatment': treatment,
+      'product_name': productName,
+      'next_due_date': nextDueDate,
+      'cost_zar': costZar,
+      'notes': notes,
+      'withdrawal_days': withdrawalDays,
+      'withdrawal_end_date': withdrawalEndDate,
+      'famacha_score': famachaScore,
+      'dag_score': dagScore,
+      'is_notifiable': isNotifiable,
+      'notifiable_disease': diseaseStr,
+      'daff_report_ref': daffReportRef,
+    };
+  }
+
   String get displayType => eventType.replaceAll('_', ' ').toUpperCase();
 
   /// Whether the withdrawal period is still active (today is before withdrawal end)

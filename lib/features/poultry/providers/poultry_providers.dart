@@ -2,15 +2,17 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 import '../data/poultry_data_source.dart';
-import '../data/poultry_mock_data_source.dart';
+import '../data/poultry_remote_data_source.dart';
 import '../data/poultry_repository.dart';
 import '../models/flock.dart';
 import '../models/inventory_item.dart';
 import '../models/poultry_flock.dart';
 
 final poultryDataSourceProvider = Provider<PoultryDataSource>(
-  (ref) => PoultryMockDataSource(),
+  (ref) => PoultryRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final poultryRepositoryProvider = Provider<PoultryRepository>(
@@ -19,12 +21,13 @@ final poultryRepositoryProvider = Provider<PoultryRepository>(
 
 // ── Flocks ────────────────────────────────────────────────────────────────────
 
-/// Raw flock list from mock JSON. Not autoDisposed (cache persists).
-final _mockFlocksProvider = FutureProvider<List<PoultryFlock>>((ref) {
+/// Raw flock list from API. Not autoDisposed (cache persists).
+final _flocksApiProvider = FutureProvider<List<PoultryFlock>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getFlocks();
 });
 
-/// Holds flocks created in-session via AddFlockScreen (not persisted to JSON).
+/// Holds flocks created in-session via AddFlockScreen (not yet persisted).
 class AddedFlocksNotifier extends Notifier<List<PoultryFlock>> {
   @override
   List<PoultryFlock> build() => [];
@@ -44,8 +47,8 @@ final flocksProvider =
   final overrides = ref.watch(flockStatusOverrideProvider);
   final edits = ref.watch(flockEditProvider);
   final added = ref.watch(addedFlocksProvider);
-  return ref.watch(_mockFlocksProvider).whenData((mockFlocks) {
-    final allFlocks = [...added, ...mockFlocks];
+  return ref.watch(_flocksApiProvider).whenData((apiFlocks) {
+    final allFlocks = [...added, ...apiFlocks];
     return allFlocks.map((f) {
       var result = f;
       final fieldEdit = edits[f.id];
@@ -64,8 +67,8 @@ final flockDetailProvider =
   final overrides = ref.watch(flockStatusOverrideProvider);
   final edits = ref.watch(flockEditProvider);
   final added = ref.watch(addedFlocksProvider);
-  return ref.watch(_mockFlocksProvider).whenData((mockFlocks) {
-    final allFlocks = [...added, ...mockFlocks];
+  return ref.watch(_flocksApiProvider).whenData((apiFlocks) {
+    final allFlocks = [...added, ...apiFlocks];
     try {
       var f = allFlocks.firstWhere((f) => f.id == flockId);
       final fieldEdit = edits[flockId];
@@ -186,7 +189,8 @@ final newDailyRecordProvider = NotifierProvider<NewDailyRecordNotifier,
 
 // ── Daily Records ─────────────────────────────────────────────────────────────
 
-final _mockDailyRecordsProvider = FutureProvider<List<DailyRecord>>((ref) {
+final _dailyRecordsApiProvider = FutureProvider<List<DailyRecord>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getDailyRecords();
 });
 
@@ -197,7 +201,7 @@ final flockDailyRecordsProvider =
         (ref, flockId) {
   final deleted = ref.watch(dailyRecordDeleteProvider);
   final inSession = ref.watch(newDailyRecordProvider)[flockId] ?? [];
-  return ref.watch(_mockDailyRecordsProvider).whenData((records) {
+  return ref.watch(_dailyRecordsApiProvider).whenData((records) {
     final fromMock = records
         .where((r) => r.flockId == flockId && !deleted.contains(r.id))
         .toList();
@@ -209,8 +213,9 @@ final flockDailyRecordsProvider =
 
 // ── Vaccination Schedules ─────────────────────────────────────────────────────
 
-final _mockVaccinationSchedulesProvider =
+final _vaccinationSchedulesApiProvider =
     FutureProvider<List<VaccinationSchedule>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getVaccinationSchedules();
 });
 
@@ -260,7 +265,7 @@ final flockVaccinationProvider =
     Provider.autoDispose.family<AsyncValue<VaccinationSchedule?>, String>(
         (ref, flockId) {
   final overrides = ref.watch(vaccinationAdministrationProvider)[flockId] ?? {};
-  return ref.watch(_mockVaccinationSchedulesProvider).whenData((schedules) {
+  return ref.watch(_vaccinationSchedulesApiProvider).whenData((schedules) {
     try {
       final base = schedules.firstWhere((s) => s.flockId == flockId);
       if (overrides.isEmpty) return base;
@@ -284,7 +289,8 @@ final flockVaccinationProvider =
 
 // ── Feed Phases ───────────────────────────────────────────────────────────────
 
-final _mockFeedPhasesProvider = FutureProvider<List<FeedPhase>>((ref) {
+final _feedPhasesApiProvider = FutureProvider<List<FeedPhase>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getFeedPhases();
 });
 
@@ -292,7 +298,7 @@ final _mockFeedPhasesProvider = FutureProvider<List<FeedPhase>>((ref) {
 final flockFeedPhasesProvider =
     Provider.autoDispose.family<AsyncValue<List<FeedPhase>>, String>(
         (ref, flockId) {
-  return ref.watch(_mockFeedPhasesProvider).whenData((phases) {
+  return ref.watch(_feedPhasesApiProvider).whenData((phases) {
     return phases
         .where((p) => p.flockId == flockId)
         .toList()
@@ -302,7 +308,8 @@ final flockFeedPhasesProvider =
 
 // ── Harvest Records ───────────────────────────────────────────────────────────
 
-final _mockHarvestRecordsProvider = FutureProvider<List<HarvestRecord>>((ref) {
+final _harvestRecordsApiProvider = FutureProvider<List<HarvestRecord>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getHarvestRecords();
 });
 
@@ -310,7 +317,7 @@ final _mockHarvestRecordsProvider = FutureProvider<List<HarvestRecord>>((ref) {
 final flockHarvestRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<HarvestRecord>>, String>(
         (ref, flockId) {
-  return ref.watch(_mockHarvestRecordsProvider).whenData((records) {
+  return ref.watch(_harvestRecordsApiProvider).whenData((records) {
     return records
         .where((r) => r.flockId == flockId)
         .toList()
@@ -320,7 +327,8 @@ final flockHarvestRecordsProvider =
 
 // ── Medication Logs ───────────────────────────────────────────────────────────
 
-final _mockMedicationLogsProvider = FutureProvider<List<MedicationLog>>((ref) {
+final _medicationLogsApiProvider = FutureProvider<List<MedicationLog>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getMedicationLogs();
 });
 
@@ -340,7 +348,7 @@ final flockMedicationLogsProvider =
     Provider.autoDispose.family<AsyncValue<List<MedicationLog>>, String>(
         (ref, flockId) {
   final deleted = ref.watch(medicationDeleteProvider);
-  return ref.watch(_mockMedicationLogsProvider).whenData((logs) {
+  return ref.watch(_medicationLogsApiProvider).whenData((logs) {
     return logs
         .where((l) => l.flockId == flockId && !deleted.contains(l.id))
         .toList()
@@ -350,7 +358,8 @@ final flockMedicationLogsProvider =
 
 // ── Disease Events ────────────────────────────────────────────────────────────
 
-final _mockDiseaseEventsProvider = FutureProvider<List<DiseaseEvent>>((ref) {
+final _diseaseEventsApiProvider = FutureProvider<List<DiseaseEvent>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getDiseaseEvents();
 });
 
@@ -358,7 +367,7 @@ final _mockDiseaseEventsProvider = FutureProvider<List<DiseaseEvent>>((ref) {
 final flockDiseaseEventsProvider =
     Provider.autoDispose.family<AsyncValue<List<DiseaseEvent>>, String>(
         (ref, flockId) {
-  return ref.watch(_mockDiseaseEventsProvider).whenData((events) {
+  return ref.watch(_diseaseEventsApiProvider).whenData((events) {
     return events
         .where((e) => e.flockId == flockId)
         .toList()
@@ -368,8 +377,9 @@ final flockDiseaseEventsProvider =
 
 // ── Environment Readings ──────────────────────────────────────────────────────
 
-final _mockEnvironmentReadingsProvider =
+final _environmentReadingsApiProvider =
     FutureProvider<List<EnvironmentReading>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getEnvironmentReadings();
 });
 
@@ -377,7 +387,7 @@ final _mockEnvironmentReadingsProvider =
 final flockEnvironmentReadingsProvider =
     Provider.autoDispose.family<AsyncValue<List<EnvironmentReading>>, String>(
         (ref, flockId) {
-  return ref.watch(_mockEnvironmentReadingsProvider).whenData((readings) {
+  return ref.watch(_environmentReadingsApiProvider).whenData((readings) {
     return readings
         .where((r) => r.flockId == flockId)
         .toList()
@@ -406,18 +416,19 @@ final flockStatusOverrideProvider =
 /// Vaccination schedules exposed for farm-wide queries (e.g. hub screen).
 final allVaccinationSchedulesProvider =
     Provider.autoDispose<AsyncValue<List<VaccinationSchedule>>>((ref) {
-  return ref.watch(_mockVaccinationSchedulesProvider);
+  return ref.watch(_vaccinationSchedulesApiProvider);
 });
 
 // ── Inventory ─────────────────────────────────────────────────────────────────
 
-final _mockInventoryProvider = FutureProvider<List<InventoryItem>>((ref) {
+final _inventoryApiProvider = FutureProvider<List<InventoryItem>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getInventoryItems();
 });
 
 final inventoryProvider =
     Provider.autoDispose<AsyncValue<List<InventoryItem>>>((ref) {
-  return ref.watch(_mockInventoryProvider);
+  return ref.watch(_inventoryApiProvider);
 });
 
 // ── IoT Live Environment Stream ───────────────────────────────────────────────
@@ -902,7 +913,8 @@ final lowStockItemsProvider =
 
 // ── Egg Sales ─────────────────────────────────────────────────────────────────
 
-final _mockEggSalesProvider = FutureProvider<List<EggSale>>((ref) {
+final _eggSalesApiProvider = FutureProvider<List<EggSale>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getEggSales();
 });
 
@@ -929,14 +941,14 @@ final eggSaleNotifierProvider =
   EggSaleNotifier.new,
 );
 
-/// Egg sales for a specific flock — merges mock JSON + in-session additions.
+/// Egg sales for a specific flock — merges API + in-session additions.
 final flockEggSalesProvider =
     Provider.autoDispose.family<AsyncValue<List<EggSale>>, String>(
         (ref, flockId) {
   final inSession = ref.watch(eggSaleNotifierProvider)[flockId] ?? [];
-  return ref.watch(_mockEggSalesProvider).whenData((mockSales) {
+  return ref.watch(_eggSalesApiProvider).whenData((apiSales) {
     final combined = [
-      ...mockSales.where((s) => s.flockId == flockId),
+      ...apiSales.where((s) => s.flockId == flockId),
       ...inSession,
     ];
     combined.sort((a, b) => b.date.compareTo(a.date));
@@ -954,7 +966,8 @@ final flockEggSalesRevenueProvider =
 
 // ── Chick Sales ───────────────────────────────────────────────────────────────
 
-final _mockChickSalesProvider = FutureProvider<List<ChickSale>>((ref) {
+final _chickSalesApiProvider = FutureProvider<List<ChickSale>>((ref) {
+  if (!ref.watch(isAuthenticatedProvider)) return [];
   return ref.watch(poultryRepositoryProvider).getChickSales();
 });
 
@@ -981,14 +994,14 @@ final chickSaleNotifierProvider =
   ChickSaleNotifier.new,
 );
 
-/// Chick sales for a specific flock — merges mock JSON + in-session additions.
+/// Chick sales for a specific flock — merges API + in-session additions.
 final flockChickSalesProvider =
     Provider.autoDispose.family<AsyncValue<List<ChickSale>>, String>(
         (ref, flockId) {
   final inSession = ref.watch(chickSaleNotifierProvider)[flockId] ?? [];
-  return ref.watch(_mockChickSalesProvider).whenData((mockSales) {
+  return ref.watch(_chickSalesApiProvider).whenData((apiSales) {
     final combined = [
-      ...mockSales.where((s) => s.flockId == flockId),
+      ...apiSales.where((s) => s.flockId == flockId),
       ...inSession,
     ];
     combined.sort((a, b) => b.saleDate.compareTo(a.saleDate));

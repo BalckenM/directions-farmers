@@ -254,7 +254,7 @@ class _GoatFamachaScreenState extends ConsumerState<GoatFamachaScreen> {
         subtitle: 'Parasite load monitoring',
       ),
       floatingActionButton: animalsAsync.asData?.value != null
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton.extended(heroTag: null, 
               onPressed: () => _showAddForm(animalsAsync.asData!.value),
               icon: const Icon(Icons.add),
               label: const Text('Record Score'),

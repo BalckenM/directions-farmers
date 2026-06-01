@@ -172,11 +172,10 @@ class _PoultryScreenState extends ConsumerState<PoultryScreen> {
             tooltip: 'House Allocation',
             onPressed: () => context.push(AppRoutes.poultryHouses),
           ),
-          _RoleSwitcherButton(role: role),
         ],
       ),
       floatingActionButton: role.canAddFlock
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton.extended(heroTag: null, 
               onPressed: () => context.push(AppRoutes.addFlock),
               backgroundColor: AppColors.poultryColor,
               foregroundColor: Colors.white,
@@ -729,46 +728,4 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-// ── Role switcher (demo helper) ───────────────────────────────────────────────
 
-class _RoleSwitcherButton extends ConsumerWidget {
-  const _RoleSwitcherButton({required this.role});
-
-  final UserRole role;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return PopupMenuButton<UserRole>(
-      tooltip: 'Switch role (demo)',
-      icon: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.manage_accounts_outlined),
-          const SizedBox(width: 4),
-          Text(role.displayName,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-        ],
-      ),
-      itemBuilder: (_) => UserRole.values
-          .map(
-            (r) => PopupMenuItem<UserRole>(
-              value: r,
-              child: Row(
-                children: [
-                  if (r == role)
-                    const Icon(Icons.check, size: 16,
-                        color: AppColors.poultryColor)
-                  else
-                    const SizedBox(width: 16),
-                  const SizedBox(width: 8),
-                  Text(r.displayName),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-      onSelected: (r) =>
-          ref.read(userRoleProvider.notifier).setRole(r),
-    );
-  }
-}

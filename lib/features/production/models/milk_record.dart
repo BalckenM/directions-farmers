@@ -38,6 +38,18 @@ class MilkRecord {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'animal_id': animalId,
+    'animal_type': animalType,
+    'session_date': sessionDate,
+    'session': session,
+    'yield_litres': yieldLitres,
+    'fat_pct': fatPct,
+    'protein_pct': proteinPct,
+    'scc_cells_per_ml': sccCellsPerMl,
+  };
+
   String get qualityIndicator {
     final scc = sccCellsPerMl;
     if (scc == null) return '';

@@ -279,7 +279,7 @@ class _TabbedDetailViewState extends State<_TabbedDetailView>
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         key: ValueKey(_tabIndex),
         onPressed: () => context.push(fab.route),
         backgroundColor: color,

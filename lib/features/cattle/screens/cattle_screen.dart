@@ -60,7 +60,7 @@ class _CattleScreenState extends ConsumerState<CattleScreen> {
         ],
       ),
       floatingActionButton: ref.watch(canManageCattleProvider)
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton.extended(heroTag: null, 
               onPressed: () => context.push(AppRoutes.addCattle),
               backgroundColor: AppColors.cattleColor,
               foregroundColor: Colors.white,

@@ -3,7 +3,7 @@ import '../models/goat_records.dart';
 
 /// Contract for all goat data operations (GET / POST / PUT / PATCH / DELETE).
 ///
-/// Implemented by [GoatMockDataSource] (development) and
+/// Implemented by [GoatRemoteDataSource].
 /// [GoatRemoteDataSource] (production).
 abstract class GoatDataSource {
   // ── GET ──────────────────────────────────────────────────────────────────

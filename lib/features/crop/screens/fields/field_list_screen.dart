@@ -38,7 +38,7 @@ class FieldListScreen extends ConsumerWidget {
 
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'My Fields'),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addCropField),
         tooltip: 'Add Field',
         child: const Icon(Icons.add),

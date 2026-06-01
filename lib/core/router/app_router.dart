@@ -18,6 +18,9 @@ import 'package:mobile_app/features/auth/screens/login_screen.dart';
 import 'package:mobile_app/features/auth/screens/mfa_challenge_screen.dart';
 import 'package:mobile_app/features/auth/screens/onboarding_screen.dart';
 import 'package:mobile_app/features/auth/screens/registration_screen.dart';
+import 'package:mobile_app/features/auth/screens/farm_setup_screen.dart';
+import 'package:mobile_app/features/auth/screens/reset_password_screen.dart';
+import 'package:mobile_app/features/auth/screens/accept_invite_screen.dart';
 import 'package:mobile_app/features/auth/screens/splash_screen.dart';
 import 'package:mobile_app/features/auth/screens/welcome_screen.dart';
 import 'package:mobile_app/features/cattle/screens/add_calf_screen.dart';
@@ -598,6 +601,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         AppRoutes.splash,
         AppRoutes.login,
         AppRoutes.register,
+        AppRoutes.farmSetup,
         AppRoutes.onboarding,
         AppRoutes.intro,
         AppRoutes.welcome,
@@ -609,7 +613,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!isLoggedIn && !isOpen) return AppRoutes.login;
 
       // Logged in and still on auth screens → dashboard
-      if (isLoggedIn && isOpen && loc != AppRoutes.splash) {
+      // (except farmSetup — new social users need to complete it)
+      if (isLoggedIn && isOpen && loc != AppRoutes.splash && loc != AppRoutes.farmSetup) {
         return AppRoutes.dashboard;
       }
 
@@ -671,6 +676,20 @@ List<RouteBase> _buildRoutes() {
       builder: (_, _) => const ForgotPasswordScreen(),
     ),
     GoRoute(
+      path: AppRoutes.resetPassword,
+      builder: (_, state) {
+        final token = state.uri.queryParameters['token'] ?? '';
+        return ResetPasswordScreen(token: token);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.acceptInvite,
+      builder: (_, state) {
+        final token = state.uri.queryParameters['token'] ?? '';
+        return AcceptInviteScreen(token: token);
+      },
+    ),
+    GoRoute(
       path: AppRoutes.intro,
       builder: (context, state) => const IntroScreen(),
     ),
@@ -681,6 +700,10 @@ List<RouteBase> _buildRoutes() {
     GoRoute(
       path: AppRoutes.register,
       builder: (_, _) => const RegistrationScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.farmSetup,
+      builder: (_, _) => const FarmSetupScreen(),
     ),
     GoRoute(
       path: AppRoutes.welcome,
@@ -1404,15 +1427,14 @@ List<RouteBase> _buildRoutes() {
           ],
         ),
 
-        // ── Branch 5: Crop Farming (drawer-only, no bottom nav tab) ─────────
-        // Placing crop inside the shell ensures the bottom nav bar and
-        // FarmAppBar back-button work correctly on every crop screen.
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: AppRoutes.crop,
-              builder: (_, _) => const CropHubScreen(),
-              routes: [
+      ],
+    ),
+
+    // ── Crop Farming module (full-screen, outside shell) ──────────────────
+    GoRoute(
+      path: AppRoutes.crop,
+      builder: (_, _) => const CropHubScreen(),
+      routes: [
                 GoRoute(
                   path: 'catalog',
                   builder: (_, _) => const CropCatalogScreen(),
@@ -1656,10 +1678,6 @@ List<RouteBase> _buildRoutes() {
                 ),
               ],
             ),
-          ],
-        ),
-      ],
-    ),
 
     // ── MFA challenge ─────────────────────────────────────────────────────────
     GoRoute(

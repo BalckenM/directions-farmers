@@ -74,7 +74,7 @@ class _WorkerDisputesScreenState extends ConsumerState<WorkerDisputesScreen>
 
     return FarmScaffold(
       appBar: FarmAppBar(title: 'Worker Disputes'),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => _showFileDisputeSheet(context),
         label: const Text('File Dispute'),
         icon: const Icon(Icons.add_rounded),

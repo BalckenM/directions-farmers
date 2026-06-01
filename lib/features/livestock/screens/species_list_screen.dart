@@ -61,7 +61,7 @@ class _SpeciesListScreenState extends ConsumerState<SpeciesListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addAnimalPath(widget.species)),
         backgroundColor: color,
         foregroundColor: Colors.white,

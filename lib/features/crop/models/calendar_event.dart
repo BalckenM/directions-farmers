@@ -85,6 +85,34 @@ class CalendarEvent {
             (json['reminder_days_before'] as num).toInt(),
       );
 
+  Map<String, dynamic> toJson() {
+    final activityStr = switch (activityType) {
+      CalendarActivityType.landPrep => 'land_prep',
+      CalendarActivityType.inputPurchase => 'input_purchase',
+      CalendarActivityType.planting => 'planting',
+      CalendarActivityType.germinationCheck => 'germination_check',
+      CalendarActivityType.fertilizerApplication => 'fertilizer_application',
+      CalendarActivityType.weeding => 'weeding',
+      CalendarActivityType.irrigation => 'irrigation',
+      CalendarActivityType.scouting => 'scouting',
+      CalendarActivityType.spraying => 'spraying',
+      CalendarActivityType.harvest => 'harvest',
+      CalendarActivityType.postHarvest => 'post_harvest',
+    };
+    return {
+      'id': id,
+      'plan_id': planId,
+      'field_id': fieldId,
+      'activity_type': activityStr,
+      'title': title,
+      'scheduled_date': scheduledDate.toIso8601String(),
+      'completed_date': completedDate?.toIso8601String(),
+      'status': status,
+      'notes': notes,
+      'reminder_days_before': reminderDaysBefore,
+    };
+  }
+
   bool get isCompleted => status == 'completed';
   bool get isPending => status == 'pending';
   bool get isOverdue => status == 'overdue';

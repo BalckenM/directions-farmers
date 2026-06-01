@@ -29,7 +29,7 @@ class DeductionsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => _openSheet(context, ref, null),
         icon: const Icon(Icons.add),
         label: const Text('Add Rule'),

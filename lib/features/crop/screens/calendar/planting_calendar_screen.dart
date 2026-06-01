@@ -57,7 +57,7 @@ class _PlantingCalendarScreenState
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton: FloatingActionButton.extended(heroTag: null, 
           onPressed: () => showModalBottomSheet(
             context: context,
             isScrollControlled: true,

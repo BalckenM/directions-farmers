@@ -57,7 +57,7 @@ class _IncidentsScreenState extends ConsumerState<IncidentsScreen> {
                 .toList(),
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton: FloatingActionButton.extended(heroTag: null, 
           onPressed: () => _showAddIncidentSheet(context),
           icon: const Icon(Icons.add),
           label: const Text('Add Incident'),

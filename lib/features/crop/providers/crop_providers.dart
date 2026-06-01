@@ -1,19 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../core/network/api_client.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../data/advisor_data_source.dart';
-import '../data/advisor_mock_data_source.dart';
 import '../data/advisor_remote_data_source.dart';
 import '../data/advisor_repository.dart';
 import '../data/crop_data_source.dart';
-import '../data/crop_mock_data_source.dart';
+import '../data/crop_remote_data_source.dart';
 import '../data/crop_repository.dart';
 import '../data/disease_data_source.dart';
-import '../data/disease_mock_data_source.dart';
 import '../data/disease_remote_data_source.dart';
 import '../data/disease_repository.dart';
 import '../data/weather_data_source.dart';
-import '../data/weather_mock_data_source.dart';
+import '../data/weather_remote_data_source.dart';
 import '../data/weather_repository.dart';
 import '../models/advisor_models.dart';
 import '../models/advisory_content.dart';
@@ -36,21 +34,14 @@ import '../models/weather_alert.dart';
 // ── Farm Identity ─────────────────────────────────────────────────────────────
 
 /// Resolves the active farm ID for the currently signed-in user.
-///
-/// • Mock mode  — always returns the seeded mock constant ('FARM-001') so all
-///   pre-populated mock data is visible immediately after login.
-/// • Live mode  — returns the authenticated user's id, which the real API uses
-///   as the farm-owner identifier.  Falls back to 'FARM-001' when unauthenticated
-///   (only happens during onboarding before the session is established).
 final currentFarmIdProvider = Provider<String>((ref) {
-  if (AppConstants.useMockData) return 'FARM-001';
-  return ref.watch(currentUserProvider)?.id ?? 'FARM-001';
+  return ref.watch(currentUserProvider)?.id ?? '';
 });
 
 // ── Repository ───────────────────────────────────────────────────────────────
 
 final cropDataSourceProvider = Provider<CropDataSource>(
-  (ref) => CropMockDataSource(),
+  (ref) => CropRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final cropRepositoryProvider = Provider<CropRepository>(
@@ -263,7 +254,7 @@ final latestAdvisoryProvider = FutureProvider<AdvisoryContent?>((ref) async {
 // ── Weather ───────────────────────────────────────────────────────────────────
 
 final weatherDataSourceProvider = Provider<WeatherDataSource>(
-  (ref) => WeatherMockDataSource(),
+  (ref) => WeatherRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final weatherRepositoryProvider = Provider<WeatherRepository>(
@@ -293,9 +284,7 @@ final agriculturalAlertsProvider =
 // ── Disease Detection ─────────────────────────────────────────────────────────
 
 final diseaseDataSourceProvider = Provider<DiseaseDataSource>(
-  (ref) => AppConstants.useMockData
-      ? DiseaseMockDataSource()
-      : DiseaseRemoteDataSource(),
+  (ref) => DiseaseRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final diseaseRepositoryProvider = Provider<DiseaseRepository>(
@@ -309,9 +298,7 @@ final diseaseLibraryProvider = FutureProvider<List<DiseaseInfo>>((ref) async {
 // ── Advisor ───────────────────────────────────────────────────────────────────
 
 final advisorDataSourceProvider = Provider<AdvisorDataSource>(
-  (ref) => AppConstants.useMockData
-      ? AdvisorMockDataSource()
-      : AdvisorRemoteDataSource(),
+  (ref) => AdvisorRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final advisorRepositoryProvider = Provider<AdvisorRepository>(

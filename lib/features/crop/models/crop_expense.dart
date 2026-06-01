@@ -99,4 +99,18 @@ class CropExpense {
         quantity: (json['quantity'] as num?)?.toDouble(),
         unit: json['unit'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'farm_id': farmId,
+    'field_id': fieldId,
+    'plan_id': planId,
+    'category': category.name,
+    'description': description,
+    'amount_zar': amountZar,
+    'date': date.toIso8601String(),
+    'supplier': supplier,
+    'quantity': quantity,
+    'unit': unit,
+  };
 }

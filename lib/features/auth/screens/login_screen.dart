@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/social_auth_buttons.dart';
+import '../data/social_auth_service.dart';
 import '../models/auth_state.dart';
 import '../providers/auth_provider.dart';
 
@@ -71,6 +71,70 @@ class _LoginScreenState extends State<LoginScreen>
       context.go(AppRoutes.dashboard);
     } else if (authState is AuthMfaRequired) {
       context.go(AppRoutes.mfaChallenge, extra: authState);
+    } else if (authState is AuthError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authState.message),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleSocialSignIn(String provider) async {
+    final socialService = SocialAuthService();
+    SocialAuthResult? result;
+
+    try {
+      switch (provider) {
+        case 'google':
+          result = await socialService.signInWithGoogle();
+        case 'apple':
+          result = await socialService.signInWithApple();
+        case 'facebook':
+          result = await socialService.signInWithFacebook();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$provider sign-in failed: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      return;
+    }
+
+    // User cancelled
+    if (result == null) return;
+
+    setState(() => _loading = true);
+    final container = ProviderScope.containerOf(context);
+    final isNewUser = await container.read(authProvider.notifier).socialSignIn(
+          provider: result.provider,
+          idToken: result.idToken,
+        );
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    final authState = container.read(authProvider).value;
+    if (authState is AuthAuthenticated) {
+      if (isNewUser) {
+        context.go(AppRoutes.farmSetup);
+      } else {
+        context.go(AppRoutes.dashboard);
+      }
     } else if (authState is AuthError) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -165,6 +229,9 @@ class _LoginScreenState extends State<LoginScreen>
                         loading: _loading,
                         isDark: isDark,
                         onSignIn: _signIn,
+                        onGoogleSignIn: () => _handleSocialSignIn('google'),
+                        onAppleSignIn: () => _handleSocialSignIn('apple'),
+                        onFacebookSignIn: () => _handleSocialSignIn('facebook'),
                       ),
                     ),
                   ],
@@ -461,6 +528,9 @@ class _FormCard extends StatelessWidget {
     required this.loading,
     required this.isDark,
     required this.onSignIn,
+    required this.onGoogleSignIn,
+    required this.onAppleSignIn,
+    required this.onFacebookSignIn,
   });
 
   final GlobalKey<FormState> formKey;
@@ -469,6 +539,9 @@ class _FormCard extends StatelessWidget {
   final bool loading;
   final bool isDark;
   final VoidCallback onSignIn;
+  final VoidCallback onGoogleSignIn;
+  final VoidCallback onAppleSignIn;
+  final VoidCallback onFacebookSignIn;
 
   @override
   Widget build(BuildContext context) {
@@ -602,18 +675,6 @@ class _FormCard extends StatelessWidget {
 
                 const SizedBox(height: 14),
 
-                // ── Dev quick-login panel ─────────────────────────────────
-                if (AppConstants.useMockData) ...[
-                  _DevQuickLogin(
-                    onSelect: (email, password) {
-                      emailCtrl.text = email;
-                      passwordCtrl.text = password;
-                      onSignIn();
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                ],
-
                 // OR divider
                 Row(
                   children: [
@@ -643,9 +704,9 @@ class _FormCard extends StatelessWidget {
 
                 // Social auth
                 SocialAuthRow(
-                  onGoogle: () {},
-                  onApple: () {},
-                  onFacebook: () {},
+                  onGoogle: onGoogleSignIn,
+                  onApple: onAppleSignIn,
+                  onFacebook: onFacebookSignIn,
                 ),
 
                 const SizedBox(height: 12),
@@ -675,134 +736,6 @@ class _FormCard extends StatelessWidget {
               ],
             ), // end Column
           ), // end SingleChildScrollView
-        ),
-      ),
-    );
-  }
-}
-
-// ── Dev quick-login panel ──────────────────────────────────────────────────────
-
-class _DevQuickLogin extends StatelessWidget {
-  const _DevQuickLogin({required this.onSelect});
-
-  final void Function(String email, String password) onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF86EFAC), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.developer_mode_rounded,
-                size: 13,
-                color: Color(0xFF15803D),
-              ),
-              const SizedBox(width: 5),
-              const Text(
-                'DEV · Quick Login',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF15803D),
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _QuickBtn(
-                  name: 'Thabo Nkosi',
-                  label: 'Enterprise Farmer',
-                  icon: Icons.domain_rounded,
-                  color: Color(0xFF6A1B9A),
-                  onTap: () => onSelect('enterprise@4dfarmer.com', 'demo1234'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _QuickBtn(
-                  name: 'Sipho Ndlovu',
-                  label: 'Farm Manager',
-                  icon: Icons.manage_accounts_rounded,
-                  color: Color(0xFF00695C),
-                  onTap: () => onSelect('manager@greenvalley.com', 'staff1234'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickBtn extends StatelessWidget {
-  const _QuickBtn({
-    required this.name,
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String name;
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.09),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.28)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: color.withValues(alpha: 0.70),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

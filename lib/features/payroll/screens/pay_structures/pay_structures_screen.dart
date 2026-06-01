@@ -41,7 +41,7 @@ class PayStructuresScreen extends ConsumerWidget {
 
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'Pay Structures'),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(heroTag: null, 
         onPressed: () => context.push(AppRoutes.payrollAddPayStructure),
         backgroundColor: PayrollTokens.teal,
         foregroundColor: Colors.white,

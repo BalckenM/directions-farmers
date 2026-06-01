@@ -26,7 +26,7 @@ class MovementRecordsScreen extends ConsumerWidget {
         title: 'Movement Records',
         subtitle: 'B313 permits & RMIS submissions',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addMovementRecord),
         icon: const Icon(Icons.add_road_rounded),
         label: const Text('New B313 Permit'),

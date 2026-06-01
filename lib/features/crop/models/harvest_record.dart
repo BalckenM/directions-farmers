@@ -47,4 +47,21 @@ class HarvestRecord {
         lossReason: json['loss_reason'] as String?,
         notes: json['notes'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'plan_id': planId,
+    'field_id': fieldId,
+    'crop_id': cropId,
+    'harvest_date': harvestDate.toIso8601String(),
+    'actual_yield_tons': actualYieldTons,
+    'area_harvested_ha': areaHarvestedHa,
+    'yield_t_ha': yieldTHa,
+    'quality_grade': qualityGrade,
+    'moisture_percent': moisturePercent,
+    'storage_location': storageLocation,
+    'losses_tons': lossesTons,
+    'loss_reason': lossReason,
+    'notes': notes,
+  };
 }

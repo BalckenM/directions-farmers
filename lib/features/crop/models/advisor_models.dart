@@ -133,6 +133,19 @@ class AdvisorRecommendation {
     this.timing,
   });
 
+  factory AdvisorRecommendation.fromJson(Map<String, dynamic> json) {
+    return AdvisorRecommendation(
+      title: json['title'] as String? ?? '',
+      action: json['action'] as String? ?? '',
+      rationale: json['rationale'] as String? ?? '',
+      priority: AdvisorPriority.values.firstWhere(
+        (e) => e.name == json['priority'],
+        orElse: () => AdvisorPriority.planned,
+      ),
+      timing: json['timing'] as String?,
+    );
+  }
+
   final String title;
   final String action;
   final String rationale;
@@ -154,6 +167,32 @@ class AdvisorResponse {
     required this.generatedAt,
     this.disclaimer,
   });
+
+  factory AdvisorResponse.fromJson(Map<String, dynamic> json) {
+    return AdvisorResponse(
+      queryId: json['queryId'] as String? ?? '',
+      responseId: json['responseId'] as String? ?? '',
+      topic: AdvisorTopic.values.firstWhere(
+        (e) => e.name == json['topic'],
+        orElse: () => AdvisorTopic.generalFarming,
+      ),
+      headline: json['headline'] as String? ?? '',
+      explanation: json['explanation'] as String? ?? '',
+      recommendations: (json['recommendations'] as List<dynamic>?)
+              ?.map((e) =>
+                  AdvisorRecommendation.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      confidence: AdvisorConfidence.values.firstWhere(
+        (e) => e.name == json['confidence'],
+        orElse: () => AdvisorConfidence.low,
+      ),
+      generatedAt: json['generatedAt'] != null
+          ? DateTime.parse(json['generatedAt'] as String)
+          : DateTime.now(),
+      disclaimer: json['disclaimer'] as String?,
+    );
+  }
 
   final String queryId;
   final String responseId;

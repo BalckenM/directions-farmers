@@ -43,4 +43,18 @@ class FeedLog {
       notes: json['notes'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'date': date,
+    'species': species,
+    'group_id': groupId,
+    'group_name': groupName,
+    'animal_count': animalCount,
+    'feed_type': feedType,
+    'quantity_kg': quantityKg,
+    'cost_zar': costZar,
+    'recorded_by': recordedBy,
+    'notes': notes,
+  };
 }

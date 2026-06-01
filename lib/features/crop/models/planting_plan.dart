@@ -37,6 +37,18 @@ class PlantingPlan {
         createdAt: DateTime.parse(json['created_at'] as String),
       );
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'field_id': fieldId,
+    'season_id': seasonId,
+    'crop_id': cropId,
+    'planned_planting_date': plannedPlantingDate?.toIso8601String(),
+    'planned_harvest_date': plannedHarvestDate?.toIso8601String(),
+    'target_yield_t_ha': targetYieldTHa,
+    'status': status,
+    'created_at': createdAt.toIso8601String(),
+  };
+
   bool get isActive => status == 'active';
   bool get isCompleted => status == 'completed';
 }

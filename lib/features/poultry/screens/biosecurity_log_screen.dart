@@ -18,7 +18,7 @@ class BiosecurityLogScreen extends ConsumerWidget {
 
     return FarmScaffold(
       appBar: FarmAppBar(title: 'Biosecurity Log'),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(heroTag: null, 
         backgroundColor: AppColors.poultryColor,
         foregroundColor: Colors.white,
         onPressed: () => _showAddSheet(context, ref),

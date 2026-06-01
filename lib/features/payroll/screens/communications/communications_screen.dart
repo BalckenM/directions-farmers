@@ -39,7 +39,7 @@ class _CommunicationsScreenState extends ConsumerState<CommunicationsScreen> {
 
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'Communications'),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => _showComposeSheet(context),
         icon: const Icon(Icons.send_outlined),
         label: const Text('Compose'),

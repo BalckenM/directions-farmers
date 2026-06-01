@@ -38,4 +38,18 @@ class SprayRecord {
         reEntryDate: DateTime.parse(json['re_entry_date'] as String),
         outcome: json['outcome'] as String?,
       );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'pest_observation_id': pestObservationId,
+    'field_id': fieldId,
+    'spray_date': sprayDate.toIso8601String(),
+    'product_name': productName,
+    'dosage_per_ha': dosagePerHa,
+    'area_sprayed_ha': areaSprayedHa,
+    'applicator_name': applicatorName,
+    'withholding_days': withholdingDays,
+    're_entry_date': reEntryDate.toIso8601String(),
+    'outcome': outcome,
+  };
 }

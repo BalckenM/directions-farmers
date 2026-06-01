@@ -75,6 +75,9 @@ dependencies:
 
   # In-app update (Android only)
   in_app_update: ^4.2.5
+  google_sign_in: ^7.2.0
+  sign_in_with_apple: ^8.0.0
+  flutter_facebook_auth: ^7.1.5
 
 dev_dependencies:
   flutter_test:
@@ -108,8 +111,6 @@ flutter:
     - assets/icons/livestock/
     - assets/icons/farm/
     - assets/icons/crops/
-    # Payroll mock data
-    - assets/mock_data/payroll/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

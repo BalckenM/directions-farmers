@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/network/api_client.dart';
 import '../data/dashboard_data_source.dart';
-import '../data/dashboard_mock_data_source.dart';
+import '../data/dashboard_remote_data_source.dart';
 import '../data/dashboard_repository.dart';
 import '../models/dashboard_summary.dart';
 
 final dashboardDataSourceProvider = Provider<DashboardDataSource>(
-  (ref) => DashboardMockDataSource(),
+  (ref) => DashboardRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>(

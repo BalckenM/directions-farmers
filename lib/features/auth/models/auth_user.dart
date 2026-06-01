@@ -3,7 +3,7 @@ import 'dart:convert';
 /// The authenticated farmer user model.
 ///
 /// Fields mirror what the real 4D Farmer API will eventually return.
-/// Swap [AuthMockDataSource] for a real HTTP call to go live.
+/// User model returned by the auth API.
 class AuthUser {
   const AuthUser({
     required this.id,
@@ -66,27 +66,39 @@ class AuthUser {
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
     id: json['id'] as String? ?? '',
     email: json['email'] as String? ?? '',
-    firstName: json['first_name'] as String? ?? '',
-    lastName: json['last_name'] as String? ?? '',
-    farmName: json['farm_name'] as String? ?? '',
+    firstName: (json['firstName'] ?? json['first_name']) as String? ?? '',
+    lastName: (json['lastName'] ?? json['last_name']) as String? ?? '',
+    farmName: (json['farmName'] ?? json['farm_name']) as String? ?? '',
     country: json['country'] as String? ?? '',
     province: json['province'] as String? ?? '',
-    subscriptionPlan: json['subscription_plan'] as String? ?? 'starter',
-    subscriptionStatus: json['subscription_status'] as String? ?? 'trial',
+    subscriptionPlan:
+        (json['subscriptionPlan'] ?? json['subscription_plan']) as String? ??
+            'starter',
+    subscriptionStatus:
+        (json['subscriptionStatus'] ?? json['subscription_status'])
+                as String? ??
+            'trial',
     activatedModules:
-        (json['activated_modules'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [],
-    mfaEnabled: json['mfa_enabled'] as bool? ?? false,
-    trialEndsAt: json['trial_ends_at'] != null
-        ? DateTime.tryParse(json['trial_ends_at'] as String)
-        : null,
+        ((json['activatedModules'] ?? json['activated_modules'])
+                    as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            [],
+    mfaEnabled:
+        (json['mfaEnabled'] ?? json['mfa_enabled']) as bool? ?? false,
+    trialEndsAt: _parseDateTime(json['trialEndsAt'] ?? json['trial_ends_at']),
     phone: json['phone'] as String?,
     role: json['role'] as String? ?? 'superAdmin',
-    farmOwnerId: json['farm_owner_id'] as String?,
-    jobTitle: json['job_title'] as String?,
+    farmOwnerId:
+        (json['farmOwnerId'] ?? json['farm_owner_id']) as String?,
+    jobTitle: (json['jobTitle'] ?? json['job_title']) as String?,
   );
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,

@@ -99,7 +99,7 @@ class _AnimalDetailViewState extends State<_AnimalDetailView>
           _FinanceTab(animal: a),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => _showQuickAdd(context, a),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Record'),

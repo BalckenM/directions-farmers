@@ -41,6 +41,20 @@ class BreedingEvent {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'animal_id': animalId,
+    'animal_type': animalType,
+    'event_type': eventType,
+    'service_date': serviceDate,
+    'service_method': serviceMethod,
+    'sire_name': sireName,
+    'sire_breed': sireBreed,
+    'expected_birth_date': expectedBirthDate,
+    'pregnancy_result': pregnancyResult,
+    'notes': notes,
+  };
+
   String get displayType => eventType.replaceAll('_', ' ').toUpperCase();
 
   BreedingEvent copyWith({

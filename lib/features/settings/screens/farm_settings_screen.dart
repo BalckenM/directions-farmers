@@ -10,6 +10,7 @@ import '../../../shared/widgets/farm_scaffold.dart';
 import '../../../shared/widgets/farm_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/settings_providers.dart';
 
 class FarmSettingsScreen extends ConsumerStatefulWidget {
   const FarmSettingsScreen({super.key});
@@ -50,20 +51,54 @@ class _FarmSettingsScreenState extends ConsumerState<FarmSettingsScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Farm profile saved'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.success,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    try {
+      // Parse owner name into first/last
+      final nameParts = _ownerCtrl.text.trim().split(' ');
+      final firstName = nameParts.first;
+      final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+      // Parse location: "Province, Country" or just a single value
+      final locationParts = _locationCtrl.text.split(',').map((s) => s.trim()).toList();
+      final province = locationParts.isNotEmpty ? locationParts[0] : '';
+      final country = locationParts.length > 1 ? locationParts[1] : '';
+
+      await ref.read(settingsRepositoryProvider).updateProfile({
+        'farmName': _nameCtrl.text.trim(),
+        'firstName': firstName,
+        'lastName': lastName,
+        'province': province,
+        'country': country,
+        if (_phoneCtrl.text.trim().isNotEmpty) 'phone': _phoneCtrl.text.trim(),
+      });
+      // Refresh user profile to reflect changes
+      ref.invalidate(authProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Farm profile saved'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.success,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
         ),
-      ),
-    );
-    Navigator.of(context).pop();
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override

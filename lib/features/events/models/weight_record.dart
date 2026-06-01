@@ -35,6 +35,18 @@ class WeightRecord {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'animal_id': animalId,
+    'animal_type': animalType,
+    'weigh_date': weighDate,
+    'weight_kg': weightKg,
+    'body_condition_score': bodyConditionScore,
+    'adg_since_last_kg': adgSinceLastKg,
+    'method': method,
+    'notes': notes,
+  };
+
   WeightRecord copyWith({
     String? id,
     String? animalId,

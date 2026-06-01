@@ -55,7 +55,7 @@ class _GoatBreedScreenState extends ConsumerState<GoatBreedScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addGoat),
         backgroundColor: AppColors.goatColor,
         foregroundColor: Colors.white,

@@ -1,5 +1,6 @@
 import '../../../core/errors/app_exception.dart';
 import '../../../core/errors/failure.dart';
+import '../models/activity_entry.dart';
 import '../models/paddock.dart';
 import 'settings_data_source.dart';
 
@@ -17,5 +18,40 @@ class SettingsRepository {
       throw UnexpectedFailure(e.toString());
     }
   }
-}
 
+  Future<List<ActivityEntry>> getActivityLog({int page = 1, int limit = 20}) async {
+    try {
+      return await _source.getActivityLog(page: page, limit: limit);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw UnexpectedFailure(e.toString());
+    }
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _source.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw UnexpectedFailure(e.toString());
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    try {
+      return await _source.updateProfile(data);
+    } on AppException catch (e) {
+      throw Failure.fromException(e);
+    } catch (e) {
+      throw UnexpectedFailure(e.toString());
+    }
+  }
+}

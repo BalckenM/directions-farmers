@@ -183,4 +183,52 @@ class WoolRecord {
       notes: json['notes'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    String? gradeStr;
+    if (colorGrade != null) {
+      gradeStr = switch (colorGrade!) {
+        WoolColorGrade.aa => 'aa',
+        WoolColorGrade.a => 'a',
+        WoolColorGrade.b => 'b',
+        WoolColorGrade.c => 'c',
+      };
+    }
+    String? buyerStr;
+    if (woolBuyer != null) {
+      buyerStr = switch (woolBuyer!) {
+        WoolBuyer.bkb => 'bkb',
+        WoolBuyer.capeWoolsSa => 'cape_wools_sa',
+        WoolBuyer.agriBest => 'agri_best',
+        WoolBuyer.nedwool => 'nedwool',
+        WoolBuyer.capeMohairAuction => 'cape_mohair_auction',
+        WoolBuyer.samcra => 'samcra',
+        WoolBuyer.other => 'other',
+      };
+    }
+    return {
+      'id': id,
+      'farm_id': farmId,
+      'animal_id': animalId,
+      'animal_type': animalType,
+      'group_id': groupId,
+      'animal_count': animalCount,
+      'shearing_date': shearingDate,
+      'greasy_fleece_weight_kg': greasyFleeceWeightKg,
+      'skirted_weight_kg': skirtedWeightKg,
+      'wool_micron': woolMicron,
+      'staple_length_mm': stapleLengthMm,
+      'staple_strength_nktex': stapleStrengthNktex,
+      'vegetable_matter_pct': vegetableMatterPct,
+      'yield_pct': yieldPct,
+      'color_grade': gradeStr,
+      'wool_buyer': buyerStr,
+      'wool_buyer_other': woolBuyerOther,
+      'price_per_kg_zar': pricePerKgZar,
+      'bale_number': baleNumber,
+      'team_cert_ref': teamCertRef,
+      'is_mohair': isMohair,
+      'notes': notes,
+    };
+  }
 }

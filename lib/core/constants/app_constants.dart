@@ -5,12 +5,8 @@ abstract final class AppConstants {
   static const String appVersion = '1.0.0';
   static const String buildNumber = '1';
 
-  // ── Environment switch ────────────────────────────────────────────────────────
-  /// Set to [false] to point every feature repository at its RemoteDataSource.
-  static const bool useMockData = true;
-
-  // ── API endpoints (placeholder — replace with real base URL) ─────────────────
-  static const String apiBaseUrl = 'https://api.farmtrack.app/v1';
+  // ── API config ────────────────────────────────────────────────────────────────
+  /// Timeout for HTTP requests. Base URL lives ONLY in AppEnvironment.
   static const Duration apiTimeout = Duration(seconds: 30);
   static const int apiMaxRetries = 3;
 

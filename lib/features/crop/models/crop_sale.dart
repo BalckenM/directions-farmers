@@ -36,5 +36,18 @@ class CropSale {
         paymentStatus: json['payment_status'] as String,
       );
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'harvest_id': harvestId,
+    'farm_id': farmId,
+    'crop_id': cropId,
+    'sale_date': saleDate.toIso8601String(),
+    'quantity_tons': quantityTons,
+    'price_per_ton_zar': pricePerTonZar,
+    'total_amount_zar': totalAmountZar,
+    'buyer': buyer,
+    'payment_status': paymentStatus,
+  };
+
   bool get isPaid => paymentStatus == 'paid';
 }

@@ -81,6 +81,21 @@ class CropTask {
             : null,
       );
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'farm_id': farmId,
+    'field_id': fieldId,
+    'plan_id': planId,
+    'title': title,
+    'description': description,
+    'due_date': dueDate.toIso8601String(),
+    'priority': priority.name,
+    'status': status == TaskStatus.inProgress ? 'in_progress' : status.name,
+    'assigned_to': assignedTo,
+    'created_at': createdAt.toIso8601String(),
+    'completed_at': completedAt?.toIso8601String(),
+  };
+
   CropTask copyWith({TaskStatus? status, DateTime? completedAt}) => CropTask(
         id: id,
         farmId: farmId,

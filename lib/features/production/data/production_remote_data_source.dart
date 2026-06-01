@@ -1,31 +1,54 @@
+import 'package:dio/dio.dart';
+
 import '../models/egg_record.dart';
 import '../models/milk_record.dart';
 import '../models/wool_record.dart';
 import 'production_data_source.dart';
 
-/// Stub remote data source — replace with real Dio calls when backend is ready.
+/// Production remote data source — calls the FarmTrack REST API via Dio.
 class ProductionRemoteDataSource implements ProductionDataSource {
-  @override
-  Future<List<MilkRecord>> getMilkRecords() =>
-      throw UnimplementedError('ProductionRemoteDataSource.getMilkRecords not implemented');
+  ProductionRemoteDataSource(this._dio);
+
+  final Dio _dio;
+
+  dynamic _unwrap(dynamic body) =>
+      (body is Map<String, dynamic> && body.containsKey('data'))
+          ? body['data']
+          : body;
 
   @override
-  Future<List<EggRecord>> getEggRecords() =>
-      throw UnimplementedError('ProductionRemoteDataSource.getEggRecords not implemented');
+  Future<List<MilkRecord>> getMilkRecords() async {
+    final res = await _dio.get('/production/milk');
+    final list = _unwrap(res.data) as List<dynamic>;
+    return list.map((j) => MilkRecord.fromJson(j as Map<String, dynamic>)).toList();
+  }
 
   @override
-  Future<List<WoolRecord>> getWoolRecords() =>
-      throw UnimplementedError('ProductionRemoteDataSource.getWoolRecords not implemented');
+  Future<List<EggRecord>> getEggRecords() async {
+    final res = await _dio.get('/production/eggs');
+    final list = _unwrap(res.data) as List<dynamic>;
+    return list.map((j) => EggRecord.fromJson(j as Map<String, dynamic>)).toList();
+  }
 
   @override
-  Future<void> addMilkRecord(MilkRecord record) =>
-      throw UnimplementedError('ProductionRemoteDataSource.addMilkRecord not implemented');
+  Future<List<WoolRecord>> getWoolRecords() async {
+    final res = await _dio.get('/production/wool');
+    final list = _unwrap(res.data) as List<dynamic>;
+    return list.map((j) => WoolRecord.fromJson(j as Map<String, dynamic>)).toList();
+  }
 
   @override
-  Future<void> addEggRecord(EggRecord record) =>
-      throw UnimplementedError('ProductionRemoteDataSource.addEggRecord not implemented');
+  Future<void> addMilkRecord(MilkRecord record) async {
+    await _dio.post('/production/milk', data: record.toJson());
+  }
 
   @override
-  Future<void> addWoolRecord(WoolRecord record) =>
-      throw UnimplementedError('ProductionRemoteDataSource.addWoolRecord not implemented');
+  Future<void> addEggRecord(EggRecord record) async {
+    await _dio.post('/production/eggs', data: record.toJson());
+  }
+
+  @override
+  Future<void> addWoolRecord(WoolRecord record) async {
+    await _dio.post('/production/wool', data: record.toJson());
+  }
 }

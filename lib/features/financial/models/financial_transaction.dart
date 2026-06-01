@@ -40,4 +40,16 @@ class FinancialTransaction {
           [],
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'date': date,
+    'type': type,
+    'category': category,
+    'description': description,
+    'amount_zar': amountZar,
+    'reference': reference,
+    'notes': notes,
+    'animal_ids': animalIds,
+  };
 }

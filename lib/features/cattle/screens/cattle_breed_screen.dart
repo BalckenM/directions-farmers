@@ -55,7 +55,7 @@ class _CattleBreedScreenState extends ConsumerState<CattleBreedScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addCattle),
         backgroundColor: AppColors.cattleColor,
         foregroundColor: Colors.white,

@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_client.dart';
 import '../data/cattle_data_source.dart';
-import '../data/cattle_mock_data_source.dart';
+import '../data/cattle_remote_data_source.dart';
 import '../data/cattle_repository.dart';
 import '../models/cattle_animal.dart';
 import '../models/cattle_records.dart';
@@ -9,88 +10,88 @@ import '../models/cattle_records.dart';
 // ── DI providers ──────────────────────────────────────────────────────────────
 
 final cattleDataSourceProvider = Provider<CattleDataSource>(
-  (ref) => CattleMockDataSource(),
+  (ref) => CattleRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final cattleRepositoryProvider = Provider<CattleRepository>(
   (ref) => CattleRepository(ref.watch(cattleDataSourceProvider)),
 );
 
-// ── Raw data providers (mock layer) ──────────────────────────────────────────
+// ── Raw data providers ──────────────────────────────────────────
 
-final _mockCattleAnimalsProvider = FutureProvider<List<CattleAnimal>>((ref) {
+final _cattleAnimalsProvider = FutureProvider<List<CattleAnimal>>((ref) {
   return ref.watch(cattleRepositoryProvider).getAnimals();
 });
 
-final _mockCattleWeightRecordsProvider = FutureProvider<List<WeightRecord>>((
+final _cattleWeightRecordsProvider = FutureProvider<List<WeightRecord>>((
   ref,
 ) {
   return ref.watch(cattleRepositoryProvider).getWeightRecords();
 });
 
-final _mockCattleBreedingRecordsProvider = FutureProvider<List<BreedingRecord>>(
+final _cattleBreedingRecordsProvider = FutureProvider<List<BreedingRecord>>(
   (ref) {
     return ref.watch(cattleRepositoryProvider).getBreedingRecords();
   },
 );
 
-final _mockCattlePregnancyChecksProvider = FutureProvider<List<PregnancyCheck>>(
+final _cattlePregnancyChecksProvider = FutureProvider<List<PregnancyCheck>>(
   (ref) {
     return ref.watch(cattleRepositoryProvider).getPregnancyChecks();
   },
 );
 
-final _mockCalvingEventsProvider = FutureProvider<List<CalvingEvent>>((ref) {
+final _calvingEventsProvider = FutureProvider<List<CalvingEvent>>((ref) {
   return ref.watch(cattleRepositoryProvider).getCalvingEvents();
 });
 
-final _mockCattleMilkRecordsProvider = FutureProvider<List<DailyMilkRecord>>((
+final _cattleMilkRecordsProvider = FutureProvider<List<DailyMilkRecord>>((
   ref,
 ) {
   return ref.watch(cattleRepositoryProvider).getMilkRecords();
 });
 
-final _mockCattleHealthEventsProvider = FutureProvider<List<CattleHealthEvent>>(
+final _cattleHealthEventsProvider = FutureProvider<List<CattleHealthEvent>>(
   (ref) {
     return ref.watch(cattleRepositoryProvider).getHealthEvents();
   },
 );
 
-final _mockCattleMedicationLogsProvider =
+final _cattleMedicationLogsProvider =
     FutureProvider<List<CattleMedicationLog>>((ref) {
       return ref.watch(cattleRepositoryProvider).getMedicationLogs();
     });
 
-final _mockCattleVaccinationsProvider = FutureProvider<List<CattleVaccination>>(
+final _cattleVaccinationsProvider = FutureProvider<List<CattleVaccination>>(
   (ref) {
     return ref.watch(cattleRepositoryProvider).getVaccinations();
   },
 );
 
-final _mockCattleSaleRecordsProvider = FutureProvider<List<CattleSaleRecord>>((
+final _cattleSaleRecordsProvider = FutureProvider<List<CattleSaleRecord>>((
   ref,
 ) {
   return ref.watch(cattleRepositoryProvider).getSaleRecords();
 });
 
-final _mockCattleFeedRecordsProvider = FutureProvider<List<CattleFeedRecord>>((
+final _cattleFeedRecordsProvider = FutureProvider<List<CattleFeedRecord>>((
   ref,
 ) {
   return ref.watch(cattleRepositoryProvider).getFeedRecords();
 });
 
-final _mockCattlePastureRecordsProvider = FutureProvider<List<PastureRecord>>((
+final _cattlePastureRecordsProvider = FutureProvider<List<PastureRecord>>((
   ref,
 ) {
   return ref.watch(cattleRepositoryProvider).getPastureRecords();
 });
 
-final _mockCattleBodyConditionRecordsProvider =
+final _cattleBodyConditionRecordsProvider =
     FutureProvider<List<BodyConditionRecord>>((ref) {
       return ref.watch(cattleRepositoryProvider).getBodyConditionRecords();
     });
 
-final _mockCattleDippingRecordsProvider = FutureProvider<List<DippingRecord>>((
+final _cattleDippingRecordsProvider = FutureProvider<List<DippingRecord>>((
   ref,
 ) {
   return ref.watch(cattleRepositoryProvider).getDippingRecords();
@@ -430,15 +431,15 @@ CattleAnimal _applyCattleEdits(
   );
 }
 
-/// Full animal list: in-session additions + mock data, with overrides applied.
+/// Full animal list: in-session additions + API data, with overrides applied.
 final cattleProvider = Provider.autoDispose<AsyncValue<List<CattleAnimal>>>((
   ref,
 ) {
   final added = ref.watch(addedCattleProvider);
   final statusOverrides = ref.watch(cattleStatusOverrideProvider);
   final edits = ref.watch(cattleEditProvider);
-  return ref.watch(_mockCattleAnimalsProvider).whenData((mockAnimals) {
-    final all = [...added, ...mockAnimals];
+  return ref.watch(_cattleAnimalsProvider).whenData((apiAnimals) {
+    final all = [...added, ...apiAnimals];
     return all.map((a) {
       var result = a;
       final fieldEdit = edits[a.id];
@@ -458,8 +459,8 @@ final cattleDetailProvider = Provider.autoDispose
       final added = ref.watch(addedCattleProvider);
       final statusOverrides = ref.watch(cattleStatusOverrideProvider);
       final edits = ref.watch(cattleEditProvider);
-      return ref.watch(_mockCattleAnimalsProvider).whenData((mockAnimals) {
-        final all = [...added, ...mockAnimals];
+      return ref.watch(_cattleAnimalsProvider).whenData((apiAnimals) {
+        final all = [...added, ...apiAnimals];
         try {
           var a = all.firstWhere((a) => a.id == animalId);
           final fieldEdit = edits[animalId];
@@ -475,13 +476,13 @@ final cattleDetailProvider = Provider.autoDispose
 
 // ── Per-animal record providers ───────────────────────────────────────────────
 
-/// Weight records for a specific animal (mock + in-session).
+/// Weight records for a specific animal (API + in-session).
 final cattleWeightRecordsProvider = Provider.autoDispose
     .family<AsyncValue<List<WeightRecord>>, String>((ref, animalId) {
       final newRecords =
           ref.watch(newCattleWeightRecordProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleWeightRecordsProvider)
+          .watch(_cattleWeightRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.animalId == animalId)]
@@ -495,7 +496,7 @@ final cattleBreedingRecordsProvider = Provider.autoDispose
       final newRecords =
           ref.watch(newCattleBreedingRecordProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleBreedingRecordsProvider)
+          .watch(_cattleBreedingRecordsProvider)
           .whenData(
             (all) => [
               ...newRecords,
@@ -510,7 +511,7 @@ final cattlePregnancyChecksProvider = Provider.autoDispose
       final newChecks =
           ref.watch(newCattlePregnancyCheckProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattlePregnancyChecksProvider)
+          .watch(_cattlePregnancyChecksProvider)
           .whenData(
             (all) =>
                 [...newChecks, ...all.where((r) => r.animalId == animalId)]
@@ -523,7 +524,7 @@ final cattleCalvingEventsProvider = Provider.autoDispose
     .family<AsyncValue<List<CalvingEvent>>, String>((ref, damId) {
       final newEvents = ref.watch(newCalvingEventProvider)[damId] ?? [];
       return ref
-          .watch(_mockCalvingEventsProvider)
+          .watch(_calvingEventsProvider)
           .whenData(
             (all) =>
                 [...newEvents, ...all.where((e) => e.damId == damId)]
@@ -531,12 +532,12 @@ final cattleCalvingEventsProvider = Provider.autoDispose
           );
     });
 
-/// Daily milk records for a specific animal (mock + in-session).
+/// Daily milk records for a specific animal (API + in-session).
 final cattleMilkRecordsProvider = Provider.autoDispose
     .family<AsyncValue<List<DailyMilkRecord>>, String>((ref, animalId) {
       final newRecords = ref.watch(newCattleMilkRecordProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleMilkRecordsProvider)
+          .watch(_cattleMilkRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.animalId == animalId)]
@@ -549,7 +550,7 @@ final cattleHealthEventsProvider = Provider.autoDispose
     .family<AsyncValue<List<CattleHealthEvent>>, String>((ref, animalId) {
       final newEvents = ref.watch(newCattleHealthEventProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleHealthEventsProvider)
+          .watch(_cattleHealthEventsProvider)
           .whenData(
             (all) =>
                 [...newEvents, ...all.where((r) => r.animalId == animalId)]
@@ -562,7 +563,7 @@ final cattleMedicationLogsProvider = Provider.autoDispose
     .family<AsyncValue<List<CattleMedicationLog>>, String>((ref, animalId) {
       final newLogs = ref.watch(newCattleMedicationLogProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleMedicationLogsProvider)
+          .watch(_cattleMedicationLogsProvider)
           .whenData(
             (all) =>
                 [...newLogs, ...all.where((r) => r.animalId == animalId)]
@@ -575,7 +576,7 @@ final cattleVaccinationsProvider = Provider.autoDispose
     .family<AsyncValue<List<CattleVaccination>>, String>((ref, animalId) {
       final newVacs = ref.watch(newCattleVaccinationProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleVaccinationsProvider)
+          .watch(_cattleVaccinationsProvider)
           .whenData(
             (all) =>
                 [...newVacs, ...all.where((r) => r.animalId == animalId)]
@@ -588,7 +589,7 @@ final cattleSaleRecordsProvider = Provider.autoDispose
     .family<AsyncValue<List<CattleSaleRecord>>, String>((ref, animalId) {
       final newRecords = ref.watch(newCattleSaleRecordProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleSaleRecordsProvider)
+          .watch(_cattleSaleRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.animalId == animalId)]
@@ -601,7 +602,7 @@ final cattleBcsRecordsProvider = Provider.autoDispose
     .family<AsyncValue<List<BodyConditionRecord>>, String>((ref, animalId) {
       final newRecords = ref.watch(newCattleBcsRecordProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleBodyConditionRecordsProvider)
+          .watch(_cattleBodyConditionRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.animalId == animalId)]
@@ -615,7 +616,7 @@ final cattleDippingRecordsProvider = Provider.autoDispose
       final newRecords =
           ref.watch(newCattleDippingRecordProvider)[animalId] ?? [];
       return ref
-          .watch(_mockCattleDippingRecordsProvider)
+          .watch(_cattleDippingRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.animalId == animalId)]
@@ -638,7 +639,7 @@ final cattleHerdFeedRecordsProvider = Provider.autoDispose
     .family<AsyncValue<List<CattleFeedRecord>>, String>((ref, herdId) {
       final newRecords = ref.watch(newCattleFeedRecordProvider)[herdId] ?? [];
       return ref
-          .watch(_mockCattleFeedRecordsProvider)
+          .watch(_cattleFeedRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.animalId == herdId)]
@@ -652,7 +653,7 @@ final cattleHerdPastureRecordsProvider = Provider.autoDispose
       final newRecords =
           ref.watch(newCattlePastureRecordProvider)[herdId] ?? [];
       return ref
-          .watch(_mockCattlePastureRecordsProvider)
+          .watch(_cattlePastureRecordsProvider)
           .whenData(
             (all) =>
                 [...newRecords, ...all.where((r) => r.herdId == herdId)]
@@ -695,115 +696,115 @@ final cattleBreedAnimalsProvider = Provider.autoDispose
 
 // ── Module-level aggregate providers ─────────────────────────────────────────
 
-/// All cattle sale records (mock + in-session).
+/// All cattle sale records (API + in-session).
 final allCattleSaleRecordsProvider =
     Provider.autoDispose<AsyncValue<List<CattleSaleRecord>>>((ref) {
       final inSession = ref.watch(newCattleSaleRecordProvider);
-      return ref.watch(_mockCattleSaleRecordsProvider).whenData((mock) {
+      return ref.watch(_cattleSaleRecordsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All cattle vaccinations (mock + in-session).
+/// All cattle vaccinations (API + in-session).
 final allCattleVaccinationsProvider =
     Provider.autoDispose<AsyncValue<List<CattleVaccination>>>((ref) {
       final inSession = ref.watch(newCattleVaccinationProvider);
-      return ref.watch(_mockCattleVaccinationsProvider).whenData((mock) {
+      return ref.watch(_cattleVaccinationsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All cattle feed records (mock + in-session).
+/// All cattle feed records (API + in-session).
 final allCattleFeedRecordsProvider =
     Provider.autoDispose<AsyncValue<List<CattleFeedRecord>>>((ref) {
       final inSession = ref.watch(newCattleFeedRecordProvider);
-      return ref.watch(_mockCattleFeedRecordsProvider).whenData((mock) {
+      return ref.watch(_cattleFeedRecordsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All cattle pasture records (mock + in-session).
+/// All cattle pasture records (API + in-session).
 final allCattlePastureRecordsProvider =
     Provider.autoDispose<AsyncValue<List<PastureRecord>>>((ref) {
       final inSession = ref.watch(newCattlePastureRecordProvider);
-      return ref.watch(_mockCattlePastureRecordsProvider).whenData((mock) {
+      return ref.watch(_cattlePastureRecordsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All pregnancy checks (mock + in-session).
+/// All pregnancy checks (API + in-session).
 final allCattlePregnancyChecksProvider =
     Provider.autoDispose<AsyncValue<List<PregnancyCheck>>>((ref) {
       final inSession = ref.watch(newCattlePregnancyCheckProvider);
-      return ref.watch(_mockCattlePregnancyChecksProvider).whenData((mock) {
+      return ref.watch(_cattlePregnancyChecksProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All BCS records (mock + in-session).
+/// All BCS records (API + in-session).
 final allCattleBcsRecordsProvider =
     Provider.autoDispose<AsyncValue<List<BodyConditionRecord>>>((ref) {
       final inSession = ref.watch(newCattleBcsRecordProvider);
-      return ref.watch(_mockCattleBodyConditionRecordsProvider).whenData((
-        mock,
+      return ref.watch(_cattleBodyConditionRecordsProvider).whenData((
+        records,
       ) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All calving events (mock + in-session).
+/// All calving events (API + in-session).
 final allCalvingEventsProvider =
     Provider.autoDispose<AsyncValue<List<CalvingEvent>>>((ref) {
       final newEvents = ref.watch(newCalvingEventProvider);
-      return ref.watch(_mockCalvingEventsProvider).whenData((mock) {
+      return ref.watch(_calvingEventsProvider).whenData((records) {
         final allNew = newEvents.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All cattle health events (mock + in-session).
+/// All cattle health events (API + in-session).
 final allCattleHealthEventsProvider =
     Provider.autoDispose<AsyncValue<List<CattleHealthEvent>>>((ref) {
       final inSession = ref.watch(newCattleHealthEventProvider);
-      return ref.watch(_mockCattleHealthEventsProvider).whenData((mock) {
+      return ref.watch(_cattleHealthEventsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All weight records (mock + in-session).
+/// All weight records (API + in-session).
 final allCattleWeightRecordsProvider =
     Provider.autoDispose<AsyncValue<List<WeightRecord>>>((ref) {
       final inSession = ref.watch(newCattleWeightRecordProvider);
-      return ref.watch(_mockCattleWeightRecordsProvider).whenData((mock) {
+      return ref.watch(_cattleWeightRecordsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All milk records (mock + in-session).
+/// All milk records (API + in-session).
 final allCattleMilkRecordsProvider =
     Provider.autoDispose<AsyncValue<List<DailyMilkRecord>>>((ref) {
       final inSession = ref.watch(newCattleMilkRecordProvider);
-      return ref.watch(_mockCattleMilkRecordsProvider).whenData((mock) {
+      return ref.watch(_cattleMilkRecordsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
-/// All dipping records (mock + in-session).
+/// All dipping records (API + in-session).
 final allCattleDippingRecordsProvider =
     Provider.autoDispose<AsyncValue<List<DippingRecord>>>((ref) {
       final inSession = ref.watch(newCattleDippingRecordProvider);
-      return ref.watch(_mockCattleDippingRecordsProvider).whenData((mock) {
+      return ref.watch(_cattleDippingRecordsProvider).whenData((records) {
         final allNew = inSession.values.expand((l) => l).toList();
-        return [...allNew, ...mock];
+        return [...allNew, ...records];
       });
     });
 
@@ -833,7 +834,7 @@ final calvingDueSoonProvider =
 /// Overdue cattle vaccinations (due date passed, not yet given).
 final cattleVaccinationOverdueProvider =
     Provider.autoDispose<AsyncValue<List<CattleVaccination>>>((ref) {
-      return ref.watch(_mockCattleVaccinationsProvider).whenData((
+      return ref.watch(_cattleVaccinationsProvider).whenData((
         vaccinations,
       ) {
         return vaccinations.where((v) => v.isOverdue).toList()

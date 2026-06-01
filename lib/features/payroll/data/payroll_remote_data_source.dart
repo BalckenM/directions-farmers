@@ -23,12 +23,6 @@ import '../models/shift.dart';
 import '../models/task_assignment.dart';
 import 'payroll_data_source.dart';
 
-// Base URL — override via --dart-define=PAYROLL_API_URL=https://...
-const _kBaseUrl = String.fromEnvironment(
-  'PAYROLL_API_URL',
-  defaultValue: 'https://api.4dfarmer.com/v1',
-);
-
 /// Remote (API) implementation of [PayrollDataSource].
 ///
 /// Uses a write-through in-memory cache. Call [preload()] once at app start
@@ -37,7 +31,7 @@ const _kBaseUrl = String.fromEnvironment(
 /// NOTE: The [PayrollDataSource] interface is synchronous. Write methods use
 /// a best-effort sync wrapper. Migrate the interface to async in a future sprint.
 class PayrollRemoteDataSource implements PayrollDataSource {
-  PayrollRemoteDataSource({Dio? dio}) : _dio = dio ?? _buildDio();
+  PayrollRemoteDataSource(this._dio);
 
   final Dio _dio;
 
@@ -116,18 +110,6 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
-
-  static Dio _buildDio() => Dio(
-    BaseOptions(
-      baseUrl: _kBaseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    ),
-  )..interceptors.add(LogInterceptor(responseBody: false));
 
   Future<void> _fetchList<T>(
     String path,

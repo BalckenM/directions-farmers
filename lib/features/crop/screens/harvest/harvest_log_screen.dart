@@ -34,7 +34,7 @@ class _HarvestLogScreenState extends ConsumerState<HarvestLogScreen> {
       appBar: FarmAppBar(
         title: 'Harvest Records',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addCropHarvest),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Record'),

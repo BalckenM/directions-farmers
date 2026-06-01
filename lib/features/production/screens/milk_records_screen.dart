@@ -34,7 +34,7 @@ class MilkRecordsScreen extends ConsumerWidget {
         title: 'Milk Records',
         subtitle: 'Daily yield tracking',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordMilk),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Record Milking'),

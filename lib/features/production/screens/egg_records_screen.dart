@@ -34,7 +34,7 @@ class EggRecordsScreen extends ConsumerWidget {
         title: 'Egg Records',
         subtitle: 'Daily collection tracking',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordEggs),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Record Collection'),

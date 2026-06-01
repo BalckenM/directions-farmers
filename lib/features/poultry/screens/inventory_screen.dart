@@ -21,7 +21,7 @@ class InventoryScreen extends ConsumerWidget {
     return FarmScaffold(
       drawer: null,
       appBar: const FarmAppBar(title: 'Farm Inventory', subtitle: 'Stock levels'),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addDelivery),
         backgroundColor: AppColors.poultryColor,
         foregroundColor: Colors.white,

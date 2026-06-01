@@ -36,7 +36,7 @@ class HealthEventsScreen extends ConsumerWidget {
             ? '$speciesLabel — Vaccinations & treatments'
             : 'Vaccinations & treatments',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordHealth),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Event'),

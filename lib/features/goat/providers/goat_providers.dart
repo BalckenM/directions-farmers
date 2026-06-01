@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/network/api_client.dart';
 import '../data/goat_data_source.dart';
-import '../data/goat_mock_data_source.dart';
+import '../data/goat_remote_data_source.dart';
 import '../data/goat_repository.dart';
 import '../models/goat_animal.dart';
 import '../models/goat_records.dart';
@@ -9,78 +10,78 @@ import '../models/goat_records.dart';
 // ── DI providers ──────────────────────────────────────────────────────────────
 
 final goatDataSourceProvider = Provider<GoatDataSource>(
-  (ref) => GoatMockDataSource(),
+  (ref) => GoatRemoteDataSource(ref.read(apiDioProvider)),
 );
 
 final goatRepositoryProvider = Provider<GoatRepository>(
   (ref) => GoatRepository(ref.watch(goatDataSourceProvider)),
 );
 
-// ── Raw data providers (mock layer) ──────────────────────────────────────────
+// ── Raw data providers ──────────────────────────────────────────
 
-final _mockAnimalsProvider = FutureProvider<List<GoatAnimal>>((ref) {
+final _goatAnimalsProvider = FutureProvider<List<GoatAnimal>>((ref) {
   return ref.watch(goatRepositoryProvider).getAnimals();
 });
 
-final _mockWeightRecordsProvider = FutureProvider<List<WeightRecord>>((ref) {
+final _goatWeightRecordsProvider = FutureProvider<List<WeightRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getWeightRecords();
 });
 
-final _mockMatingRecordsProvider = FutureProvider<List<MatingRecord>>((ref) {
+final _goatMatingRecordsProvider = FutureProvider<List<MatingRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getMatingRecords();
 });
 
-final _mockPregnancyChecksProvider =
+final _goatPregnancyChecksProvider =
     FutureProvider<List<PregnancyCheck>>((ref) {
   return ref.watch(goatRepositoryProvider).getPregnancyChecks();
 });
 
-final _mockKiddingEventsProvider = FutureProvider<List<KiddingEvent>>((ref) {
+final _goatKiddingEventsProvider = FutureProvider<List<KiddingEvent>>((ref) {
   return ref.watch(goatRepositoryProvider).getKiddingEvents();
 });
 
-final _mockMilkRecordsProvider = FutureProvider<List<DailyMilkRecord>>((ref) {
+final _goatMilkRecordsProvider = FutureProvider<List<DailyMilkRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getMilkRecords();
 });
 
-final _mockShearingRecordsProvider =
+final _goatShearingRecordsProvider =
     FutureProvider<List<ShearingRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getShearingRecords();
 });
 
-final _mockHealthEventsProvider = FutureProvider<List<GoatHealthEvent>>((ref) {
+final _goatHealthEventsProvider = FutureProvider<List<GoatHealthEvent>>((ref) {
   return ref.watch(goatRepositoryProvider).getHealthEvents();
 });
 
-final _mockMedicationLogsProvider =
+final _goatMedicationLogsProvider =
     FutureProvider<List<GoatMedicationLog>>((ref) {
   return ref.watch(goatRepositoryProvider).getMedicationLogs();
 });
 
-final _mockVaccinationsProvider =
+final _goatVaccinationsProvider =
     FutureProvider<List<GoatVaccination>>((ref) {
   return ref.watch(goatRepositoryProvider).getVaccinations();
 });
 
-final _mockSaleRecordsProvider = FutureProvider<List<GoatSaleRecord>>((ref) {
+final _goatSaleRecordsProvider = FutureProvider<List<GoatSaleRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getSaleRecords();
 });
 
-final _mockFeedRecordsProvider = FutureProvider<List<GoatFeedRecord>>((ref) {
+final _goatFeedRecordsProvider = FutureProvider<List<GoatFeedRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getFeedRecords();
 });
 
-final _mockPastureRecordsProvider =
+final _goatPastureRecordsProvider =
     FutureProvider<List<PastureRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getPastureRecords();
 });
 
-final _mockFamachaRecordsProvider =
+final _goatFamachaRecordsProvider =
     FutureProvider<List<FamachaRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getFamachaRecords();
 });
 
-final _mockBodyConditionRecordsProvider =
+final _goatBodyConditionRecordsProvider =
     FutureProvider<List<BodyConditionRecord>>((ref) {
   return ref.watch(goatRepositoryProvider).getBodyConditionRecords();
 });
@@ -196,14 +197,14 @@ GoatAnimal _applyAnimalEdits(
   );
 }
 
-/// Full animal list: in-session additions + mock data, with overrides applied.
+/// Full animal list: in-session additions + API data, with overrides applied.
 final animalsProvider =
     Provider.autoDispose<AsyncValue<List<GoatAnimal>>>((ref) {
   final added = ref.watch(addedAnimalsProvider);
   final statusOverrides = ref.watch(animalStatusOverrideProvider);
   final edits = ref.watch(animalEditProvider);
-  return ref.watch(_mockAnimalsProvider).whenData((mockAnimals) {
-    final all = [...added, ...mockAnimals];
+  return ref.watch(_goatAnimalsProvider).whenData((apiAnimals) {
+    final all = [...added, ...apiAnimals];
     return all.map((a) {
       var result = a;
       final fieldEdit = edits[a.id];
@@ -222,8 +223,8 @@ final animalDetailProvider =
   final added = ref.watch(addedAnimalsProvider);
   final statusOverrides = ref.watch(animalStatusOverrideProvider);
   final edits = ref.watch(animalEditProvider);
-  return ref.watch(_mockAnimalsProvider).whenData((mockAnimals) {
-    final all = [...added, ...mockAnimals];
+  return ref.watch(_goatAnimalsProvider).whenData((apiAnimals) {
+    final all = [...added, ...apiAnimals];
     try {
       var a = all.firstWhere((a) => a.id == animalId);
       final fieldEdit = edits[animalId];
@@ -239,12 +240,12 @@ final animalDetailProvider =
 
 // ── Per-animal record providers ───────────────────────────────────────────────
 
-/// Weight records for a specific animal (mock + in-session new records).
+/// Weight records for a specific animal (API + in-session new records).
 final animalWeightRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<WeightRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newWeightRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockWeightRecordsProvider).whenData(
+  return ref.watch(_goatWeightRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.animalId == animalId),
@@ -257,7 +258,7 @@ final animalMatingRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<MatingRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newMatingRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockMatingRecordsProvider).whenData(
+  return ref.watch(_goatMatingRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.doeId == animalId || r.buckId == animalId),
@@ -270,7 +271,7 @@ final animalPregnancyChecksProvider =
     Provider.autoDispose.family<AsyncValue<List<PregnancyCheck>>, String>(
         (ref, animalId) {
   final newChecks = ref.watch(newPregnancyCheckProvider)[animalId] ?? [];
-  return ref.watch(_mockPregnancyChecksProvider).whenData(
+  return ref.watch(_goatPregnancyChecksProvider).whenData(
         (all) => [
           ...newChecks,
           ...all.where((r) => r.animalId == animalId),
@@ -283,7 +284,7 @@ final animalKiddingEventsProvider =
     Provider.autoDispose.family<AsyncValue<List<KiddingEvent>>, String>(
         (ref, damId) {
   final newEvents = ref.watch(newKiddingEventProvider)[damId] ?? [];
-  return ref.watch(_mockKiddingEventsProvider).whenData(
+  return ref.watch(_goatKiddingEventsProvider).whenData(
         (all) => [
           ...newEvents,
           ...all.where((e) => e.damId == damId),
@@ -291,12 +292,12 @@ final animalKiddingEventsProvider =
       );
 });
 
-/// Daily milk records for a specific animal (mock + in-session).
+/// Daily milk records for a specific animal (API + in-session).
 final animalMilkRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<DailyMilkRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newMilkRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockMilkRecordsProvider).whenData(
+  return ref.watch(_goatMilkRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.animalId == animalId),
@@ -309,7 +310,7 @@ final animalShearingRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<ShearingRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newShearingRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockShearingRecordsProvider).whenData(
+  return ref.watch(_goatShearingRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.animalId == animalId),
@@ -322,7 +323,7 @@ final animalHealthEventsProvider =
     Provider.autoDispose.family<AsyncValue<List<GoatHealthEvent>>, String>(
         (ref, animalId) {
   final newEvents = ref.watch(newHealthEventProvider)[animalId] ?? [];
-  return ref.watch(_mockHealthEventsProvider).whenData(
+  return ref.watch(_goatHealthEventsProvider).whenData(
         (all) => [
           ...newEvents,
           ...all.where((r) => r.animalId == animalId),
@@ -335,7 +336,7 @@ final animalMedicationLogsProvider =
     Provider.autoDispose.family<AsyncValue<List<GoatMedicationLog>>, String>(
         (ref, animalId) {
   final newLogs = ref.watch(newMedicationLogProvider)[animalId] ?? [];
-  return ref.watch(_mockMedicationLogsProvider).whenData(
+  return ref.watch(_goatMedicationLogsProvider).whenData(
         (all) => [
           ...newLogs,
           ...all.where((r) => r.animalId == animalId),
@@ -348,7 +349,7 @@ final animalVaccinationsProvider =
     Provider.autoDispose.family<AsyncValue<List<GoatVaccination>>, String>(
         (ref, animalId) {
   final newVacs = ref.watch(newVaccinationProvider)[animalId] ?? [];
-  return ref.watch(_mockVaccinationsProvider).whenData(
+  return ref.watch(_goatVaccinationsProvider).whenData(
         (all) => [
           ...newVacs,
           ...all.where((r) => r.animalId == animalId),
@@ -361,7 +362,7 @@ final animalSaleRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<GoatSaleRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newSaleRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockSaleRecordsProvider).whenData(
+  return ref.watch(_goatSaleRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.animalId == animalId),
@@ -374,7 +375,7 @@ final animalFamachaRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<FamachaRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newFamachaRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockFamachaRecordsProvider).whenData(
+  return ref.watch(_goatFamachaRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.animalId == animalId),
@@ -387,7 +388,7 @@ final animalBcsRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<BodyConditionRecord>>, String>(
         (ref, animalId) {
   final newRecords = ref.watch(newBcsRecordProvider)[animalId] ?? [];
-  return ref.watch(_mockBodyConditionRecordsProvider).whenData(
+  return ref.watch(_goatBodyConditionRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.animalId == animalId),
@@ -411,7 +412,7 @@ final herdFeedRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<GoatFeedRecord>>, String>(
         (ref, herdId) {
   final newRecords = ref.watch(newFeedRecordProvider)[herdId] ?? [];
-  return ref.watch(_mockFeedRecordsProvider).whenData(
+  return ref.watch(_goatFeedRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.herdId == herdId),
@@ -424,7 +425,7 @@ final herdPastureRecordsProvider =
     Provider.autoDispose.family<AsyncValue<List<PastureRecord>>, String>(
         (ref, herdId) {
   final newRecords = ref.watch(newPastureRecordProvider)[herdId] ?? [];
-  return ref.watch(_mockPastureRecordsProvider).whenData(
+  return ref.watch(_goatPastureRecordsProvider).whenData(
         (all) => [
           ...newRecords,
           ...all.where((r) => r.herdId == herdId),
@@ -458,7 +459,7 @@ final kiddingDueSoonProvider =
 /// Overdue vaccinations (due date passed, not yet given).
 final vaccinationOverdueProvider =
     Provider.autoDispose<AsyncValue<List<GoatVaccination>>>((ref) {
-  return ref.watch(_mockVaccinationsProvider).whenData((vaccinations) {
+  return ref.watch(_goatVaccinationsProvider).whenData((vaccinations) {
     return vaccinations.where((v) => v.isOverdue).toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
   });
@@ -536,63 +537,63 @@ final canManageFinancialsProvider = Provider<bool>((ref) => true);
 
 // ── Module-level aggregate providers ─────────────────────────────────────────
 
-/// All sale records (mock + in-session).
+/// All sale records (API + in-session).
 final allGoatSaleRecordsProvider =
     Provider.autoDispose<AsyncValue<List<GoatSaleRecord>>>((ref) {
   final inSession = ref.watch(newSaleRecordProvider);
-  return ref.watch(_mockSaleRecordsProvider).whenData((mock) {
+  return ref.watch(_goatSaleRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
-/// All vaccinations (mock + in-session).
+/// All vaccinations (API + in-session).
 final allGoatVaccinationsProvider =
     Provider.autoDispose<AsyncValue<List<GoatVaccination>>>((ref) {
   final inSession = ref.watch(newVaccinationProvider);
-  return ref.watch(_mockVaccinationsProvider).whenData((mock) {
+  return ref.watch(_goatVaccinationsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
-/// All feed records (mock + in-session).
+/// All feed records (API + in-session).
 final allGoatFeedRecordsProvider =
     Provider.autoDispose<AsyncValue<List<GoatFeedRecord>>>((ref) {
   final inSession = ref.watch(newFeedRecordProvider);
-  return ref.watch(_mockFeedRecordsProvider).whenData((mock) {
+  return ref.watch(_goatFeedRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
-/// All pasture records (mock + in-session).
+/// All pasture records (API + in-session).
 final allGoatPastureRecordsProvider =
     Provider.autoDispose<AsyncValue<List<PastureRecord>>>((ref) {
   final inSession = ref.watch(newPastureRecordProvider);
-  return ref.watch(_mockPastureRecordsProvider).whenData((mock) {
+  return ref.watch(_goatPastureRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
-/// All pregnancy checks (mock + in-session).
+/// All pregnancy checks (API + in-session).
 final allGoatPregnancyChecksProvider =
     Provider.autoDispose<AsyncValue<List<PregnancyCheck>>>((ref) {
   final inSession = ref.watch(newPregnancyCheckProvider);
-  return ref.watch(_mockPregnancyChecksProvider).whenData((mock) {
+  return ref.watch(_goatPregnancyChecksProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
-/// All BCS records (mock + in-session).
+/// All BCS records (API + in-session).
 final allGoatBcsRecordsProvider =
     Provider.autoDispose<AsyncValue<List<BodyConditionRecord>>>((ref) {
   final inSession = ref.watch(newBcsRecordProvider);
-  return ref.watch(_mockBodyConditionRecordsProvider).whenData((mock) {
+  return ref.watch(_goatBodyConditionRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
@@ -602,9 +603,9 @@ final allGoatBcsRecordsProvider =
 final allGoatKiddingEventsProvider =
     Provider.autoDispose<AsyncValue<List<KiddingEvent>>>((ref) {
   final newEvents = ref.watch(newKiddingEventProvider);
-  return ref.watch(_mockKiddingEventsProvider).whenData((mock) {
+  return ref.watch(_goatKiddingEventsProvider).whenData((records) {
     final allNew = newEvents.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
@@ -612,9 +613,9 @@ final allGoatKiddingEventsProvider =
 final allGoatFamachaRecordsProvider =
     Provider.autoDispose<AsyncValue<List<FamachaRecord>>>((ref) {
   final inSession = ref.watch(newFamachaRecordProvider);
-  return ref.watch(_mockFamachaRecordsProvider).whenData((mock) {
+  return ref.watch(_goatFamachaRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
@@ -622,9 +623,9 @@ final allGoatFamachaRecordsProvider =
 final allGoatHealthEventsProvider =
     Provider.autoDispose<AsyncValue<List<GoatHealthEvent>>>((ref) {
   final inSession = ref.watch(newHealthEventProvider);
-  return ref.watch(_mockHealthEventsProvider).whenData((mock) {
+  return ref.watch(_goatHealthEventsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
@@ -632,9 +633,9 @@ final allGoatHealthEventsProvider =
 final allGoatWeightRecordsProvider =
     Provider.autoDispose<AsyncValue<List<WeightRecord>>>((ref) {
   final inSession = ref.watch(newWeightRecordProvider);
-  return ref.watch(_mockWeightRecordsProvider).whenData((mock) {
+  return ref.watch(_goatWeightRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
@@ -642,9 +643,9 @@ final allGoatWeightRecordsProvider =
 final allGoatMilkRecordsProvider =
     Provider.autoDispose<AsyncValue<List<DailyMilkRecord>>>((ref) {
   final inSession = ref.watch(newMilkRecordProvider);
-  return ref.watch(_mockMilkRecordsProvider).whenData((mock) {
+  return ref.watch(_goatMilkRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 
@@ -652,9 +653,9 @@ final allGoatMilkRecordsProvider =
 final allGoatShearingRecordsProvider =
     Provider.autoDispose<AsyncValue<List<ShearingRecord>>>((ref) {
   final inSession = ref.watch(newShearingRecordProvider);
-  return ref.watch(_mockShearingRecordsProvider).whenData((mock) {
+  return ref.watch(_goatShearingRecordsProvider).whenData((records) {
     final allNew = inSession.values.expand((l) => l).toList();
-    return [...allNew, ...mock];
+    return [...allNew, ...records];
   });
 });
 

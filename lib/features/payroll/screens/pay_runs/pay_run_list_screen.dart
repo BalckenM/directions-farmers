@@ -85,7 +85,7 @@ class _PayRunListScreenState extends ConsumerState<PayRunListScreen> {
     );
   }
 
-  Widget _fab(BuildContext context) => FloatingActionButton.extended(
+  Widget _fab(BuildContext context) => FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.payrollRunPayroll),
         icon: const Icon(Icons.play_arrow_rounded),
         label: const Text('New Run'),

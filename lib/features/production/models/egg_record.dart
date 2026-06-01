@@ -29,6 +29,16 @@ class EggRecord {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'flock_id': flockId,
+    'collection_date': collectionDate,
+    'collection_session': collectionSession,
+    'eggs_collected': eggsCollected,
+    'eggs_broken': eggsBroken,
+    'eggs_graded': eggsGraded,
+  };
+
   double get breakageRate {
     final broken = eggsBroken ?? 0;
     if (eggsCollected == 0) return 0;

@@ -40,12 +40,12 @@ Color _moduleColor(ExportModule m) => switch (m) {
 };
 
 String _recordCount(ExportModule m) => switch (m) {
-  ExportModule.livestock => '346 animals',
-  ExportModule.payroll => '12 employees, 3 payslip runs',
-  ExportModule.financial => '47 transactions',
-  ExportModule.crop => '3 fields, 5 planted plans',
-  ExportModule.health => '128 treatment records',
-  ExportModule.movements => '22 movements',
+  ExportModule.livestock => 'Animal records & history',
+  ExportModule.payroll => 'Employee & payslip data',
+  ExportModule.financial => 'Income & expense records',
+  ExportModule.crop => 'Fields, seasons & harvests',
+  ExportModule.health => 'Treatments & vaccinations',
+  ExportModule.movements => 'Movement certificates',
 };
 
 // â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

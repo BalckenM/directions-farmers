@@ -38,7 +38,7 @@ class BreedingEventsScreen extends ConsumerWidget {
             ? '$speciesLabel — Mating & pregnancy tracking'
             : 'Mating & pregnancy tracking',
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
         onPressed: () => context.push(AppRoutes.addRecordBreeding),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Record Event'),

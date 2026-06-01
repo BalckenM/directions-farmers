@@ -92,7 +92,7 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
             final tab = DefaultTabController.of(ctx);
             return AnimatedBuilder(
               animation: tab,
-              builder: (_, __) => FloatingActionButton.extended(
+              builder: (_, __) => FloatingActionButton.extended(heroTag: null, 
                 onPressed: () => tab.index == 0
                     ? ctx.push(AppRoutes.addPestObs)
                     : ctx.push(AppRoutes.addSprayRecord),

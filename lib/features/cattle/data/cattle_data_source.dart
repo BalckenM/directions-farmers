@@ -3,7 +3,7 @@ import '../models/cattle_records.dart';
 
 /// Contract for all cattle data operations (GET / POST / PUT / PATCH / DELETE).
 ///
-/// Implemented by [CattleMockDataSource] (development) and
+/// Implemented by [CattleRemoteDataSource].
 /// [CattleRemoteDataSource] (production).
 abstract class CattleDataSource {
   // ── GET ───────────────────────────────────────────────────────────────────
