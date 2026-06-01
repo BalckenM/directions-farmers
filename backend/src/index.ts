@@ -1,7 +1,7 @@
 import { buildApp } from "./app";
+import { pool } from "./config/database";
 import "./config/env"; // validate env vars first
 import { env } from "./config/env";
-import { pool } from "./config/database";
 import { closeRedis } from "./lib/redis";
 
 async function start() {

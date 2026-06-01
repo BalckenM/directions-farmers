@@ -1,10 +1,10 @@
 import {
-  boolean,
-  datetime,
-  index,
-  mysqlTable,
-  uniqueIndex,
-  varchar,
+    boolean,
+    datetime,
+    index,
+    mysqlTable,
+    uniqueIndex,
+    varchar,
 } from "drizzle-orm/mysql-core";
 
 export const farmOwners = mysqlTable(

@@ -1,7 +1,7 @@
 import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
-import { sendError } from "../lib/response";
 import { getRedis } from "../lib/redis";
+import { sendError } from "../lib/response";
 
 const buildLimiter = (max: number, windowMinutes: number) => {
   const redis = getRedis();
