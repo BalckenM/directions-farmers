@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendNoContent, sendOne } from "../../lib/response";
 import { payrollService } from "../../services/payroll/payroll.service";
 
 // CRITICAL: Payroll GET lists return raw arrays (no wrapper) for Flutter PayrollRemoteDataSource compat
@@ -28,6 +27,19 @@ export const payrollContractsController = {
           ),
         },
       });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  updateContractById: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const updated = await payrollService.updateContract(
+        req.auth.farmOwnerId,
+        (req.params as Record<string, string>)["id"],
+        req.body,
+      );
+      res.json(updated);
     } catch (err) {
       next(err);
     }

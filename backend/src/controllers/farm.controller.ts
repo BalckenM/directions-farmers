@@ -49,4 +49,16 @@ export const farmController = {
       next(err);
     }
   },
+
+  getActivityLog: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await farmService.getActivityLog(
+        req.auth.farmOwnerId,
+        req.query as Record<string, unknown>,
+      );
+      sendList(res, result.data, result.meta);
+    } catch (err) {
+      next(err);
+    }
+  },
 };

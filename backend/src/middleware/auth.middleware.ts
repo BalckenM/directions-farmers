@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { verifyToken } from "../lib/jwt";
 import { sendError } from "../lib/response";
+import { isRevoked } from "../lib/token-store";
 
 export async function authMiddleware(
   req: Request,
@@ -22,6 +23,12 @@ export async function authMiddleware(
   try {
     const payload = await verifyToken(token);
 
+    // Check token revocation (jti-based blocklist)
+    if (payload.jti && (await isRevoked(payload.jti))) {
+      sendError(res, 401, "TOKEN_REVOKED", "Token has been revoked");
+      return;
+    }
+
     const farmOwnerId =
       payload.subType === "owner" ? payload.sub : payload.farmId;
 
@@ -32,6 +39,7 @@ export async function authMiddleware(
       modules: payload.modules,
       role: payload.role,
       farmOwnerId,
+      jti: payload.jti,
     };
 
     next();

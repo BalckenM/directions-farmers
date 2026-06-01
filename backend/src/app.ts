@@ -3,8 +3,10 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
+import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler.middleware";
 import { globalLimiter } from "./middleware/rate-limiter.middleware";
+import { requestIdMiddleware } from "./middleware/request-id.middleware";
 
 import { advisorRouter } from "./routes/advisor.routes";
 import { authRouter } from "./routes/auth.routes";
@@ -23,6 +25,7 @@ import { poultryRouter } from "./routes/poultry";
 import { productionRouter } from "./routes/production.routes";
 import { recordRouter } from "./routes/record.routes";
 import { settingsRouter } from "./routes/settings.routes";
+import { subscriptionRouter } from "./routes/subscription.routes";
 import { traceabilityRouter } from "./routes/traceability.routes";
 import { weatherRouter } from "./routes/weather.routes";
 
@@ -32,11 +35,15 @@ export function buildApp(): express.Application {
   app.set("trust proxy", 1);
 
   app.use(helmet());
+  app.use(requestIdMiddleware);
   app.use(compression());
   app.use(
     cors({
-      origin: process.env["ALLOWED_ORIGINS"]?.split(",") ?? "*",
+      origin: env.ALLOWED_ORIGINS.split(",").map((s) => s.trim()),
       credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      maxAge: 86400,
     }),
   );
   app.use(pinoHttp());
@@ -69,6 +76,7 @@ export function buildApp(): express.Application {
   v1.use("/advisor", advisorRouter);
   v1.use("/disease", diseaseRouter);
   v1.use("/insights", insightsRouter);
+  v1.use("/subscription", subscriptionRouter);
 
   app.use("/v1", v1);
 

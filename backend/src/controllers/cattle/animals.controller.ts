@@ -10,7 +10,7 @@ export const cattleAnimalsController = {
         req.auth.farmOwnerId,
         req.query as Record<string, unknown>,
       );
-      sendOne(res, result.data);
+      sendOne(res, result);
     } catch (err) {
       next(err);
     }

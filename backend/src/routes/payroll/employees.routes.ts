@@ -2,17 +2,17 @@ import { Router } from "express";
 import { payrollController } from "../../controllers/payroll/payroll.controller";
 import { validate } from "../../middleware/validate.middleware";
 import {
-  createContractSchema,
-  createDeductionRuleSchema,
-  createEmployeeSchema,
-  createGarnisheeOrderSchema,
-  createPayGroupSchema,
-  createPayStructureSchema,
-  updateDeductionRuleSchema,
-  updateEmployeeSchema,
-  updateGarnisheeOrderSchema,
-  updatePayGroupSchema,
-  updatePayStructureSchema,
+    createContractSchema,
+    createDeductionRuleSchema,
+    createEmployeeSchema,
+    createGarnisheeOrderSchema,
+    createPayGroupSchema,
+    createPayStructureSchema,
+    updateDeductionRuleSchema,
+    updateEmployeeSchema,
+    updateGarnisheeOrderSchema,
+    updatePayGroupSchema,
+    updatePayStructureSchema,
 } from "../../validators/payroll/payroll.validator";
 
 export const employeesRouter = Router();
@@ -23,10 +23,12 @@ employeesRouter.post("/employees", validate(createEmployeeSchema), payrollContro
 employeesRouter.get("/employees/:id", payrollController.getEmployee);
 employeesRouter.put("/employees/:id", validate(updateEmployeeSchema), payrollController.updateEmployee);
 employeesRouter.delete("/employees/:id", payrollController.deleteEmployee);
+employeesRouter.patch("/employees/:id/terminate", payrollController.terminateEmployee);
 
 // ── Contracts ─────────────────────────────────────────────────────────────────
 employeesRouter.get("/contracts", payrollController.listAllContracts);
 employeesRouter.post("/contracts", validate(createContractSchema), payrollController.createContract);
+employeesRouter.put("/contracts/:id", payrollController.updateContractById);
 employeesRouter.patch("/contracts/:id/void", payrollController.voidContract);
 employeesRouter.get("/employees/:id/contracts", payrollController.listContracts);
 
@@ -34,6 +36,7 @@ employeesRouter.get("/employees/:id/contracts", payrollController.listContracts)
 employeesRouter.get("/pay-groups", payrollController.listPayGroups);
 employeesRouter.post("/pay-groups", validate(createPayGroupSchema), payrollController.createPayGroup);
 employeesRouter.put("/pay-groups/:id", validate(updatePayGroupSchema), payrollController.updatePayGroup);
+employeesRouter.patch("/pay-groups/:id/deactivate", payrollController.deactivatePayGroup);
 
 // ── Pay Structures ────────────────────────────────────────────────────────────
 employeesRouter.get("/pay-structures", payrollController.listPayStructures);

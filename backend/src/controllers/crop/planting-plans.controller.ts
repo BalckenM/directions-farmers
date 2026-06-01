@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendList, sendOne } from "../../lib/response";
+import { sendList, sendNoContent, sendOne } from "../../lib/response";
 import { cropPlantingPlansService } from "../../services/crop/planting-plans.service";
 
 export const cropPlantingPlansController = {
@@ -54,6 +54,18 @@ export const cropPlantingPlansController = {
           req.body,
         ),
       );
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  deletePlan: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await cropPlantingPlansService.deletePlantingPlan(
+        req.auth.farmOwnerId,
+        (req.params as Record<string, string>)["id"],
+      );
+      sendNoContent(res);
     } catch (err) {
       next(err);
     }

@@ -1,5 +1,3 @@
-import { and, desc, eq } from "drizzle-orm";
-import { db } from "../../config/database";
 import {
   cattleAnimals,
   cattleBcsRecords,
@@ -17,19 +15,20 @@ import {
   cattleWeightRecords,
 } from "../../db/schema";
 
-// SELECT projections (return Flutter field names)
+// SELECT projections — aligned to the ACTUAL schema columns
 
 export const animalSelect = {
   id: cattleAnimals.id,
-  farmId: cattleAnimals.farmOwnerId,
-  tagNumber: cattleAnimals.tagNumber,
+  farmOwnerId: cattleAnimals.farmOwnerId,
+  tagId: cattleAnimals.tagId,
   name: cattleAnimals.name,
   breed: cattleAnimals.breed,
-  productionType: cattleAnimals.productionType,
   sex: cattleAnimals.sex,
-  status: cattleAnimals.status,
-  herdId: cattleAnimals.herdId,
   dateOfBirth: cattleAnimals.dateOfBirth,
+  color: cattleAnimals.color,
+  status: cattleAnimals.status,
+  productionType: cattleAnimals.productionType,
+  herdId: cattleAnimals.herdId,
   isPregnant: cattleAnimals.isPregnant,
   isLactating: cattleAnimals.isLactating,
   notes: cattleAnimals.notes,
@@ -39,10 +38,9 @@ export const animalSelect = {
 
 export const weightSelect = {
   id: cattleWeightRecords.id,
-  animalId: cattleWeightRecords.animalId,
-  date: cattleWeightRecords.date,
+  cattleId: cattleWeightRecords.cattleId,
   weightKg: cattleWeightRecords.weightKg,
-  bodyConditionScore: cattleWeightRecords.bodyConditionScore,
+  recordedAt: cattleWeightRecords.recordedAt,
   notes: cattleWeightRecords.notes,
 };
 
@@ -50,145 +48,107 @@ export const breedingSelect = {
   id: cattleBreedingRecords.id,
   cowId: cattleBreedingRecords.cowId,
   bullId: cattleBreedingRecords.bullId,
-  serviceDate: cattleBreedingRecords.serviceDate,
-  serviceMethod: cattleBreedingRecords.serviceMethod,
-  semenSource: cattleBreedingRecords.semenSource,
-  technician: cattleBreedingRecords.technician,
-  expectedCalvingDate: cattleBreedingRecords.expectedCalvingDate,
-  outcome: cattleBreedingRecords.outcome,
+  breedingDate: cattleBreedingRecords.breedingDate,
+  method: cattleBreedingRecords.method,
   notes: cattleBreedingRecords.notes,
 };
 
 export const pregnancyCheckSelect = {
   id: cattlePregnancyChecks.id,
-  animalId: cattlePregnancyChecks.animalId,
-  date: cattlePregnancyChecks.date,
-  method: cattlePregnancyChecks.method,
+  cattleId: cattlePregnancyChecks.cattleId,
+  checkDate: cattlePregnancyChecks.checkDate,
   result: cattlePregnancyChecks.result,
   expectedCalvingDate: cattlePregnancyChecks.expectedCalvingDate,
-  daysPregnant: cattlePregnancyChecks.daysPregnant,
-  checkedBy: cattlePregnancyChecks.checkedBy,
   notes: cattlePregnancyChecks.notes,
 };
 
 export const calvingSelect = {
   id: cattleCalvingEvents.id,
-  damId: cattleCalvingEvents.damId,
+  cowId: cattleCalvingEvents.cowId,
   calvingDate: cattleCalvingEvents.calvingDate,
-  calvingEase: cattleCalvingEvents.calvingEase,
-  calfAlive: cattleCalvingEvents.calfAlive,
-  calfId: cattleCalvingEvents.calfId,
-  calfSex: cattleCalvingEvents.calfSex,
-  calfWeightKg: cattleCalvingEvents.calfWeightKg,
-  complications: cattleCalvingEvents.complications,
+  calvesAlive: cattleCalvingEvents.calvesAlive,
+  calvesDead: cattleCalvingEvents.calvesDead,
   notes: cattleCalvingEvents.notes,
 };
 
 export const milkSelect = {
   id: cattleDailyMilk.id,
-  animalId: cattleDailyMilk.animalId,
-  date: cattleDailyMilk.date,
+  cattleId: cattleDailyMilk.cattleId,
+  recordDate: cattleDailyMilk.recordDate,
   morningLitres: cattleDailyMilk.morningLitres,
   eveningLitres: cattleDailyMilk.eveningLitres,
-  lactationDay: cattleDailyMilk.lactationDay,
-  qualityFlag: cattleDailyMilk.qualityFlag,
-  notes: cattleDailyMilk.notes,
+  totalLitres: cattleDailyMilk.totalLitres,
 };
 
 export const healthSelect = {
   id: cattleHealthEvents.id,
-  animalId: cattleHealthEvents.animalId,
-  date: cattleHealthEvents.date,
+  cattleId: cattleHealthEvents.cattleId,
+  eventDate: cattleHealthEvents.eventDate,
   eventType: cattleHealthEvents.eventType,
   diagnosis: cattleHealthEvents.diagnosis,
-  severity: cattleHealthEvents.severity,
-  treatedBy: cattleHealthEvents.treatedBy,
-  isNotifiable: cattleHealthEvents.isNotifiable,
+  treatment: cattleHealthEvents.treatment,
   outcome: cattleHealthEvents.outcome,
   notes: cattleHealthEvents.notes,
 };
 
 export const medicationSelect = {
   id: cattleMedicationLogs.id,
-  animalId: cattleMedicationLogs.animalId,
-  date: cattleMedicationLogs.date,
+  cattleId: cattleMedicationLogs.cattleId,
   medicationName: cattleMedicationLogs.medicationName,
-  route: cattleMedicationLogs.route,
-  doseMg: cattleMedicationLogs.doseMg,
-  withdrawalDaysMeat: cattleMedicationLogs.withdrawalDaysMeat,
-  withdrawalDaysMilk: cattleMedicationLogs.withdrawalDaysMilk,
-  veterinarianApproved: cattleMedicationLogs.veterinarianApproved,
+  dosage: cattleMedicationLogs.dosage,
+  administeredAt: cattleMedicationLogs.administeredAt,
   administeredBy: cattleMedicationLogs.administeredBy,
   notes: cattleMedicationLogs.notes,
 };
 
 export const vaccinationSelect = {
   id: cattleVaccinations.id,
-  animalId: cattleVaccinations.animalId,
+  cattleId: cattleVaccinations.cattleId,
   vaccineName: cattleVaccinations.vaccineName,
-  dueDate: cattleVaccinations.dueDate,
-  givenDate: cattleVaccinations.givenDate,
-  batchNumber: cattleVaccinations.batchNumber,
+  vaccinationDate: cattleVaccinations.vaccinationDate,
   nextDueDate: cattleVaccinations.nextDueDate,
-  route: cattleVaccinations.route,
-  siteOnBody: cattleVaccinations.siteOnBody,
-  administeredBy: cattleVaccinations.administeredBy,
+  batchNumber: cattleVaccinations.batchNumber,
+  notes: cattleVaccinations.notes,
 };
 
 export const saleSelect = {
   id: cattleSaleRecords.id,
-  animalId: cattleSaleRecords.animalId,
+  cattleId: cattleSaleRecords.cattleId,
   saleDate: cattleSaleRecords.saleDate,
   buyerName: cattleSaleRecords.buyerName,
-  saleWeightKg: cattleSaleRecords.saleWeightKg,
-  pricePerKg: cattleSaleRecords.pricePerKg,
-  totalAmount: cattleSaleRecords.totalAmount,
-  transportCost: cattleSaleRecords.transportCost,
-  permitNumber: cattleSaleRecords.permitNumber,
-  invoiceRef: cattleSaleRecords.invoiceRef,
+  salePrice: cattleSaleRecords.salePrice,
   notes: cattleSaleRecords.notes,
 };
 
 export const feedSelect = {
   id: cattleFeedRecords.id,
-  animalId: cattleFeedRecords.animalId,
-  date: cattleFeedRecords.date,
+  cattleId: cattleFeedRecords.cattleId,
   feedType: cattleFeedRecords.feedType,
   quantityKg: cattleFeedRecords.quantityKg,
-  costPerKg: cattleFeedRecords.costPerKg,
-  feedlotPenId: cattleFeedRecords.feedlotPenId,
-  rationName: cattleFeedRecords.rationName,
+  feedDate: cattleFeedRecords.feedDate,
   notes: cattleFeedRecords.notes,
 };
 
 export const pastureSelect = {
   id: cattlePastureRecords.id,
-  herdId: cattlePastureRecords.herdId,
-  campId: cattlePastureRecords.campId,
-  entryDate: cattlePastureRecords.entryDate,
-  exitDate: cattlePastureRecords.exitDate,
-  estimatedHa: cattlePastureRecords.estimatedHa,
-  veldCondition: cattlePastureRecords.veldCondition,
+  pastureName: cattlePastureRecords.pastureName,
+  moveDate: cattlePastureRecords.moveDate,
   notes: cattlePastureRecords.notes,
 };
 
 export const bcsSelect = {
   id: cattleBcsRecords.id,
-  animalId: cattleBcsRecords.animalId,
-  date: cattleBcsRecords.date,
+  cattleId: cattleBcsRecords.cattleId,
   score: cattleBcsRecords.score,
-  assessedBy: cattleBcsRecords.assessedBy,
+  recordDate: cattleBcsRecords.recordDate,
   notes: cattleBcsRecords.notes,
 };
 
 export const dippingSelect = {
   id: cattleDippingRecords.id,
-  animalId: cattleDippingRecords.animalId,
   dippingDate: cattleDippingRecords.dippingDate,
-  productUsed: cattleDippingRecords.productUsed,
+  chemical: cattleDippingRecords.chemical,
   concentration: cattleDippingRecords.concentration,
-  method: cattleDippingRecords.method,
-  nextDueDays: cattleDippingRecords.nextDueDays,
-  veterinarianApproved: cattleDippingRecords.veterinarianApproved,
+  numberOfCattle: cattleDippingRecords.numberOfCattle,
   notes: cattleDippingRecords.notes,
 };

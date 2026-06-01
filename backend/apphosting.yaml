@@ -5,14 +5,4 @@ runConfig:
   cpu: 1
   memoryMiB: 512
 
-env:
-  - variable: NODE_ENV
-    value: production
-  - variable: DATABASE_URL
-    secret: DATABASE_URL
-  - variable: JWT_SECRET
-    secret: JWT_SECRET
-  - variable: SMTP_USER
-    secret: SMTP_USER
-  - variable: SMTP_PASS
-    secret: SMTP_PASS
+

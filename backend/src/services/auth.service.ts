@@ -2,11 +2,15 @@ import crypto, { randomUUID } from "crypto";
 import type { z } from "zod";
 import { signAccessToken, signRefreshToken, verifyToken } from "../lib/jwt";
 import { hashPassword, verifyPassword } from "../lib/password";
+import { socialVerifier, type SocialProfile } from "../lib/social-verifier";
+import { revokeToken } from "../lib/token-store";
 import { authRepo } from "../repositories/auth.repo";
 import type {
   acceptInviteSchema,
   loginSchema,
   registerSchema,
+  SocialAuthInput,
+  UpdateProfileInput,
 } from "../validators/auth.validator";
 import { emailService } from "./email.service";
 import { subscriptionService } from "./subscription.service";
@@ -85,6 +89,15 @@ export const authService = {
         status: 401,
         code: "INVALID_CREDENTIALS",
       });
+
+    // Social-only accounts cannot use email/password login
+    if (owner.passwordHash.startsWith("SOCIAL:")) {
+      const provider = owner.passwordHash.split(":")[1];
+      throw Object.assign(
+        new Error(`This account uses ${provider} sign-in. Please use the ${provider} button to log in.`),
+        { status: 401, code: "SOCIAL_ACCOUNT" },
+      );
+    }
 
     const valid = await verifyPassword(input.password, owner.passwordHash);
     if (!valid)
@@ -165,7 +178,10 @@ export const authService = {
     return { accessToken, refreshToken: newRefreshToken };
   },
 
-  logout: async (refreshToken: string) => {
+  logout: async (refreshToken: string, accessJti?: string) => {
+    // Revoke the current access token so it can't be reused
+    if (accessJti) await revokeToken(accessJti);
+
     const tokenHash = hashTokenValue(refreshToken);
     const stored = await authRepo.findRefreshToken(tokenHash);
     if (stored) await authRepo.deleteRefreshToken(stored.id);
@@ -273,5 +289,127 @@ export const authService = {
     });
 
     return { accessToken, refreshToken };
+  },
+
+  changePassword: async (userId: string, userType: string, currentPassword: string, newPassword: string) => {
+    if (userType !== "owner") {
+      throw Object.assign(new Error("Only farm owners can change password"), { status: 403 });
+    }
+    const owner = await authRepo.findOwnerById(userId);
+    if (!owner) throw Object.assign(new Error("User not found"), { status: 404 });
+
+    // Social-only users cannot change password (they don't have one)
+    if (owner.passwordHash.startsWith("SOCIAL:")) {
+      throw Object.assign(new Error("Account uses social login — no password to change"), { status: 400, code: "SOCIAL_ACCOUNT" });
+    }
+
+    const valid = await verifyPassword(currentPassword, owner.passwordHash);
+    if (!valid) throw Object.assign(new Error("Current password is incorrect"), { status: 401 });
+
+    const passwordHash = await hashPassword(newPassword);
+    await authRepo.updateOwnerPassword(userId, passwordHash);
+  },
+
+  updateProfile: async (userId: string, userType: string, input: UpdateProfileInput) => {
+    if (userType !== "owner") {
+      throw Object.assign(new Error("Only farm owners can update profile"), { status: 403 });
+    }
+    await authRepo.updateOwnerProfile(userId, input);
+    const updated = await authRepo.findOwnerById(userId);
+    if (!updated) throw Object.assign(new Error("User not found"), { status: 404 });
+    const { passwordHash: _pw, ...safe } = updated;
+    return safe;
+  },
+
+  /**
+   * Social login/registration flow.
+   * 1. Verify ID token with the provider
+   * 2. Find or create user by email
+   * 3. Issue JWT tokens
+   * Returns tokens + isNewUser flag so frontend knows to show farm setup wizard.
+   */
+  socialLogin: async (input: SocialAuthInput) => {
+    // Verify the token with the appropriate provider
+    let profile: SocialProfile;
+    switch (input.provider) {
+      case "google":
+        profile = await socialVerifier.verifyGoogle(input.idToken);
+        break;
+      case "apple":
+        profile = await socialVerifier.verifyApple(input.idToken);
+        break;
+      case "facebook":
+        profile = await socialVerifier.verifyFacebook(input.idToken);
+        break;
+      default:
+        throw Object.assign(new Error("Unsupported provider"), {
+          status: 400,
+          code: "UNSUPPORTED_PROVIDER",
+        });
+    }
+
+    if (!profile.email) {
+      throw Object.assign(new Error("Social account has no email"), {
+        status: 400,
+        code: "NO_EMAIL",
+      });
+    }
+
+    // Check if user already exists
+    let owner = await authRepo.findOwnerByEmail(profile.email);
+    let isNewUser = false;
+
+    if (!owner) {
+      // Create new user (social signup) — no password needed
+      isNewUser = true;
+      const id = randomUUID();
+      await authRepo.createOwner({
+        id,
+        email: profile.email,
+        passwordHash: `SOCIAL:${input.provider}`, // Marker — cannot be used for password login
+        firstName: profile.firstName || "Farmer",
+        lastName: profile.lastName || "",
+        phone: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Mark email as verified since the social provider already verified it
+      if (profile.emailVerified) {
+        await authRepo.setEmailVerified(id, new Date());
+      }
+
+      owner = await authRepo.findOwnerById(id);
+    }
+
+    if (!owner) {
+      throw Object.assign(new Error("Failed to create user"), { status: 500 });
+    }
+
+    // Get activated modules (empty for new users)
+    const modules = await subscriptionService.getModulesForFarm(owner.id);
+
+    const accessToken = await signAccessToken({
+      sub: owner.id,
+      subType: "owner",
+      farmId: owner.id,
+      role: "owner",
+      modules,
+    });
+    const refreshToken = await signRefreshToken({
+      sub: owner.id,
+      subType: "owner",
+    });
+    const rtHash = hashTokenValue(refreshToken);
+    await authRepo.saveRefreshToken({
+      id: randomUUID(),
+      userId: owner.id,
+      userType: "owner",
+      tokenHash: rtHash,
+      expiresAt: new Date(Date.now() + 30 * 86400_000),
+      createdAt: new Date(),
+    });
+
+    return { accessToken, refreshToken, isNewUser };
   },
 };

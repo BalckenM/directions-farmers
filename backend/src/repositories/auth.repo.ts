@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import { db } from "../config/database";
 import {
-  emailVerificationTokens,
-  farmOwners,
-  farmStaff,
-  passwordResetTokens,
-  refreshTokens,
-  staffInviteTokens,
+    emailVerificationTokens,
+    farmOwners,
+    farmStaff,
+    passwordResetTokens,
+    refreshTokens,
+    staffInviteTokens,
 } from "../db/schema";
 
 export const authRepo = {
@@ -37,6 +37,12 @@ export const authRepo = {
     db
       .update(farmOwners)
       .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(farmOwners.id, id)),
+
+  updateOwnerProfile: (id: string, data: Partial<Pick<typeof farmOwners.$inferInsert, 'firstName' | 'lastName' | 'farmName' | 'country' | 'province' | 'phone'>>) =>
+    db
+      .update(farmOwners)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(farmOwners.id, id)),
 
   findStaffByEmail: (email: string) =>

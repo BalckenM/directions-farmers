@@ -18,9 +18,20 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  ALLOWED_ORIGINS: z
+    .string()
+    .min(1)
+    .default("http://localhost:8080,http://localhost:3000"),
   WEATHER_API_KEY: z.string().optional(),
   ADVISOR_API_KEY: z.string().optional(),
   DISEASE_API_KEY: z.string().optional(),
+  // Redis (optional — falls back to in-memory stores if unset)
+  REDIS_URL: z.string().url().optional(),
+  // Social auth provider credentials (optional — social login disabled if unset)
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  APPLE_CLIENT_ID: z.string().optional(),
+  FACEBOOK_APP_ID: z.string().optional(),
+  FACEBOOK_APP_SECRET: z.string().optional(),
 });
 
 const result = envSchema.safeParse(process.env);

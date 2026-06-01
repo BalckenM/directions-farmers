@@ -1,26 +1,9 @@
 import { randomUUID } from "crypto";
 import type { z } from "zod";
-import { parsePagination } from "../../lib/pagination";
 import { payrollRepo } from "../../repositories/payroll/payroll.repo";
 import type {
-    createContractSchema,
-    createDeductionRuleSchema,
-    createEmployeeSchema,
-    createGarnisheeOrderSchema,
-    createIncidentSchema,
-    createLeaveRequestSchema,
-    createPayGroupSchema,
-    createPayRunSchema,
-    createPayStructureSchema,
-    createPieceworkLogSchema,
-    sendCommunicationSchema,
-    updateDeductionRuleSchema,
-    updateEmployeeSchema,
-    updateGarnisheeOrderSchema,
-    updateIncidentSchema,
-    updatePayGroupSchema,
-    updatePayStructureSchema,
-} from "../../validators/payroll.validator";
+    createContractSchema
+} from "../../validators/payroll/payroll.validator";
 
 export const payrollContractsService = {
   listContracts: (farmOwnerId: string, employeeId: string) =>
@@ -39,6 +22,32 @@ export const payrollContractsService = {
       updatedAt: new Date(),
     });
     return id;
+  },
+
+  getContract: async (farmOwnerId: string, id: string) => {
+    const contract = await payrollRepo.findContractById(farmOwnerId, id);
+    if (!contract)
+      throw Object.assign(new Error("Not found"), {
+        status: 404,
+        code: "NOT_FOUND",
+      });
+    return contract;
+  },
+
+  updateContract: async (
+    farmOwnerId: string,
+    id: string,
+    input: Record<string, unknown>,
+  ) => {
+    await payrollRepo.findContractById(farmOwnerId, id).then((c) => {
+      if (!c)
+        throw Object.assign(new Error("Not found"), {
+          status: 404,
+          code: "NOT_FOUND",
+        });
+    });
+    await payrollRepo.updateContract(farmOwnerId, id, input);
+    return payrollRepo.findContractById(farmOwnerId, id);
   },
 };
 

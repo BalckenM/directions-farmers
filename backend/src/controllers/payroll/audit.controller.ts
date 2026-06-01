@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendNoContent, sendOne } from "../../lib/response";
 import { payrollService } from "../../services/payroll/payroll.service";
 
 // CRITICAL: Payroll GET lists return raw arrays (no wrapper) for Flutter PayrollRemoteDataSource compat
@@ -45,6 +44,18 @@ export const payrollAuditController = {
         req.body,
       );
       res.json({ data: { message: "Updated" } });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  deactivateIncident: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = (req.params as Record<string, string>)["id"];
+      await payrollService.updateIncident(req.auth.farmOwnerId, id, {
+        status: "closed",
+      });
+      res.json({ data: { message: "Deactivated" } });
     } catch (err) {
       next(err);
     }

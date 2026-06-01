@@ -69,5 +69,21 @@ export const payrollEmployeesController = {
       next(err);
     }
   },
+
+  terminateEmployee: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = (req.params as Record<string, string>)["id"];
+      const { terminationDate, reason } = req.body;
+      await payrollService.updateEmployee(req.auth.farmOwnerId, id, {
+        isActive: false,
+        endDate: terminationDate,
+        notes: reason,
+      });
+      const emp = await payrollService.getEmployee(req.auth.farmOwnerId, id);
+      res.json(emp);
+    } catch (err) {
+      next(err);
+    }
+  },
 };
 

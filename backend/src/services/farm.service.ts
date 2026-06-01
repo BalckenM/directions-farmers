@@ -1,14 +1,17 @@
 import crypto, { randomUUID } from "crypto";
+import { count, desc, eq } from "drizzle-orm";
+import { db } from "../config/database";
+import { auditLogs } from "../db/schema";
 import { parsePagination } from "../lib/pagination";
 import { authRepo } from "../repositories/auth.repo";
 import { farmRepo } from "../repositories/farm.repo";
-import { emailService } from "./email.service";
 import type {
-  CreatePaddockInput,
-  InviteStaffInput,
-  UpdatePaddockInput,
-  UpdateStaffInput,
+    CreatePaddockInput,
+    InviteStaffInput,
+    UpdatePaddockInput,
+    UpdateStaffInput,
 } from "../validators/farm.validator";
+import { emailService } from "./email.service";
 
 export const farmService = {
   // ── Team ───────────────────────────────────────────────────────────────────
@@ -112,5 +115,22 @@ export const farmService = {
         code: "NOT_FOUND",
       });
     await farmRepo.deletePaddock(farmOwnerId, paddockId);
+  },
+
+  getActivityLog: async (farmOwnerId: string, query: Record<string, unknown>) => {
+    const { page, limit, offset } = parsePagination(query);
+    const [totalRow] = await db
+      .select({ value: count() })
+      .from(auditLogs)
+      .where(eq(auditLogs.farmOwnerId, farmOwnerId));
+    const total = totalRow?.value ?? 0;
+    const rows = await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.farmOwnerId, farmOwnerId))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+    return { data: rows, meta: { page, limit, total } };
   },
 };

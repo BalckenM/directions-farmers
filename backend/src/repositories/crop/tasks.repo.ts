@@ -12,6 +12,13 @@ export const cropTasksRepo = {
       .limit(limit)
       .offset(offset),
 
+  findById: (farmOwnerId: string, id: string) =>
+    db
+      .select()
+      .from(cropTasks)
+      .where(and(eq(cropTasks.farmOwnerId, farmOwnerId), eq(cropTasks.id, id)))
+      .then((r) => r[0] ?? null),
+
   createTask: (data: any) =>
     db.insert(cropTasks).values(data),
 
@@ -19,5 +26,10 @@ export const cropTasksRepo = {
     db
       .update(cropTasks)
       .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(cropTasks.farmOwnerId, farmOwnerId), eq(cropTasks.id, id))),
+
+  deleteTask: (farmOwnerId: string, id: string) =>
+    db
+      .delete(cropTasks)
       .where(and(eq(cropTasks.farmOwnerId, farmOwnerId), eq(cropTasks.id, id))),
 };

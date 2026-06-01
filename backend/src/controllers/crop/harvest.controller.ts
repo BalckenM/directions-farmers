@@ -1,18 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendList } from "../../lib/response";
+import { sendList, sendNoContent, sendOne } from "../../lib/response";
 import { cropHarvestService } from "../../services/crop/harvest.service";
 
 export const cropHarvestController = {
   listHarvest: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      sendList(
-        res,
-        await cropHarvestService.listHarvestRecords(
-          req.auth.farmOwnerId,
-          (req.params as Record<string, string>)["id"],
-        ),
-        { page: 1, limit: 100, total: 0 },
+      const records = await cropHarvestService.listHarvestRecords(
+        req.auth.farmOwnerId,
       );
+      sendList(res, records, { page: 1, limit: 100, total: records.length });
     } catch (err) {
       next(err);
     }
@@ -20,15 +16,38 @@ export const cropHarvestController = {
 
   addHarvest: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      res.status(201).json({
-        data: {
-          id: await cropHarvestService.addHarvestRecord(
-            req.auth.farmOwnerId,
-            (req.params as Record<string, string>)["id"],
-            req.body,
-          ),
-        },
-      });
+      const id = await cropHarvestService.addHarvestRecord(
+        req.auth.farmOwnerId,
+        req.body,
+      );
+      res.status(201).json({ data: { id } });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  updateHarvest: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      sendOne(
+        res,
+        await cropHarvestService.updateHarvestRecord(
+          req.auth.farmOwnerId,
+          (req.params as Record<string, string>)["id"],
+          req.body,
+        ),
+      );
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  deleteHarvest: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await cropHarvestService.deleteHarvestRecord(
+        req.auth.farmOwnerId,
+        (req.params as Record<string, string>)["id"],
+      );
+      sendNoContent(res);
     } catch (err) {
       next(err);
     }

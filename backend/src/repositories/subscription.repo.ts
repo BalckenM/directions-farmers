@@ -1,10 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../config/database";
 import {
-  farmModuleActivations,
-  farmSubscriptions,
-  modules,
-  subscriptionPlans,
+    farmModuleActivations,
+    farmSubscriptions,
+    modules,
+    planModuleAccess,
+    subscriptionPlans,
 } from "../db/schema";
 
 export const subscriptionRepo = {
@@ -52,4 +53,20 @@ export const subscriptionRepo = {
       .update(farmSubscriptions)
       .set({ planId, updatedAt: new Date() })
       .where(eq(farmSubscriptions.farmOwnerId, farmOwnerId)),
+
+  createSubscription: (data: typeof farmSubscriptions.$inferInsert) =>
+    db.insert(farmSubscriptions).values(data),
+
+  findAllModules: () =>
+    db
+      .select()
+      .from(modules)
+      .where(eq(modules.isActive, true)),
+
+  getModulesForPlan: (planId: string) =>
+    db
+      .select({ id: modules.id, slug: modules.slug })
+      .from(planModuleAccess)
+      .innerJoin(modules, eq(planModuleAccess.moduleId, modules.id))
+      .where(eq(planModuleAccess.planId, planId)),
 };

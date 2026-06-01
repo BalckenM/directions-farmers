@@ -46,4 +46,14 @@ export const cropPlantingPlansRepo = {
           eq(cropPlantingPlans.id, id),
         ),
       ),
+
+  deletePlantingPlan: (farmOwnerId: string, id: string) =>
+    db
+      .delete(cropPlantingPlans)
+      .where(
+        and(
+          eq(cropPlantingPlans.farmOwnerId, farmOwnerId),
+          eq(cropPlantingPlans.id, id),
+        ),
+      ),
 };

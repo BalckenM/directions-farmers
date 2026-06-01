@@ -1,24 +1,10 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../config/database";
 import {
-  goatAnimals,
-  goatBcsRecords,
-  goatDailyMilk,
-  goatFamachaRecords,
-  goatFeedRecords,
-  goatHealthEvents,
-  goatKiddingEvents,
-  goatMatingRecords,
-  goatMedicationLogs,
-  goatPastureRecords,
-  goatPregnancyChecks,
-  goatSaleRecords,
-  goatShearingRecords,
-  goatVaccinations,
-  goatWeightRecords,
+    goatBcsRecords
 } from "../../db/schema";
 
-import { animalSelect, weightSelect, matingSelect, pregnancyCheckSelect, kiddingSelect, milkSelect, shearingSelect, healthSelect, medicationSelect, vaccinationSelect, saleSelect, feedSelect, pastureSelect, famachaSelect, bcsSelect } from "./_projections";
+import { bcsSelect } from "./_projections";
 
 // ── Repository ────────────────────────────────────────────────────────────────
 
@@ -28,7 +14,7 @@ export const goatBcsRepo = {
       .select(bcsSelect)
       .from(goatBcsRecords)
       .where(eq(goatBcsRecords.farmOwnerId, farmOwnerId))
-      .orderBy(desc(goatBcsRecords.date)),
+      .orderBy(desc(goatBcsRecords.recordDate)),
 
   findBcsRecordById: (farmOwnerId: string, id: string) =>
     db

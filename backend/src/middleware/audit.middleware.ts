@@ -1,7 +1,10 @@
 import { randomUUID } from "crypto";
 import { NextFunction, Request, Response } from "express";
+import pino from "pino";
 import { db } from "../config/database";
 import { auditLogs } from "../db/schema";
+
+const logger = pino({ name: "audit" });
 
 export function audit(action: string, resource: string) {
   return async (
@@ -27,8 +30,8 @@ export function audit(action: string, resource: string) {
           ipAddress: req.ip ?? null,
           createdAt: new Date(),
         })
-        .catch(() => {
-          // Non-blocking — log failure silently
+        .catch((err) => {
+          logger.error({ err, action, resource, farmOwnerId }, "Audit log insert failed");
         });
     }
     next();

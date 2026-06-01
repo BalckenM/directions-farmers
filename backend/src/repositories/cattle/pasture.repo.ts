@@ -1,23 +1,10 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../config/database";
 import {
-  cattleAnimals,
-  cattleBcsRecords,
-  cattleBreedingRecords,
-  cattleCalvingEvents,
-  cattleDailyMilk,
-  cattleDippingRecords,
-  cattleFeedRecords,
-  cattleHealthEvents,
-  cattleMedicationLogs,
-  cattlePastureRecords,
-  cattlePregnancyChecks,
-  cattleSaleRecords,
-  cattleVaccinations,
-  cattleWeightRecords,
+    cattlePastureRecords
 } from "../../db/schema";
 
-import { animalSelect, weightSelect, breedingSelect, pregnancyCheckSelect, calvingSelect, milkSelect, healthSelect, medicationSelect, vaccinationSelect, saleSelect, feedSelect, pastureSelect, bcsSelect, dippingSelect } from "./_projections";
+import { pastureSelect } from "./_projections";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -28,7 +15,7 @@ export const cattlePastureRepo = {
       .select(pastureSelect)
       .from(cattlePastureRecords)
       .where(eq(cattlePastureRecords.farmOwnerId, farmOwnerId))
-      .orderBy(desc(cattlePastureRecords.entryDate)),
+      .orderBy(desc(cattlePastureRecords.moveDate)),
 
   findPastureRecordById: (farmOwnerId: string, id: string) =>
     db

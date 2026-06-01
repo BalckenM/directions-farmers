@@ -134,6 +134,66 @@ export const sendCommunicationSchema = z
   })
   .strict();
 
+// ── Shifts ────────────────────────────────────────────────────────────────────
+export const createShiftSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    shiftDate: z.string().date(),
+    startTime: z.string().max(10),
+    endTime: z.string().max(10),
+    breakMinutes: z.number().int().min(0).optional(),
+    shiftType: z.string().max(50).optional(),
+    status: z.enum(["scheduled", "completed", "cancelled"]).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
+export const updateShiftSchema = createShiftSchema.partial();
+
+// ── Task Assignments ──────────────────────────────────────────────────────────
+export const createTaskAssignmentSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    taskName: z.string().min(1).max(255),
+    assignedDate: z.string().date(),
+    dueDate: z.string().date().optional(),
+    status: z.enum(["assigned", "in_progress", "completed", "cancelled"]).optional(),
+    priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
+export const updateTaskAssignmentSchema = createTaskAssignmentSchema.partial();
+
+// ── Attendance ────────────────────────────────────────────────────────────────
+export const createAttendanceRecordSchema = z
+  .object({
+    employeeId: z.string().uuid(),
+    attendanceDate: z.string().date(),
+    clockIn: z.string().max(10).optional(),
+    clockOut: z.string().max(10).optional(),
+    hoursWorked: z.number().min(0).optional(),
+    status: z.enum(["present", "absent", "late", "leave"]).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
+export const updateAttendanceRecordSchema = createAttendanceRecordSchema.partial();
+
+// ── Employer Config ───────────────────────────────────────────────────────────
+export const upsertEmployerConfigSchema = z
+  .object({
+    companyName: z.string().max(255).optional(),
+    taxNumber: z.string().max(50).optional(),
+    uifNumber: z.string().max(50).optional(),
+    sdlNumber: z.string().max(50).optional(),
+    payDay: z.number().int().min(1).max(31).optional(),
+    overtimeMultiplier: z.number().min(1).max(5).optional(),
+    currency: z.string().length(3).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .strict();
+
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 export type CreateContractInput = z.infer<typeof createContractSchema>;

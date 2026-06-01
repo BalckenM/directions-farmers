@@ -3,8 +3,8 @@ import { farmController } from "../controllers/farm.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import {
-  inviteStaffSchema,
-  updateStaffSchema,
+    inviteStaffSchema,
+    updateStaffSchema,
 } from "../validators/farm.validator";
 
 export const farmRouter = Router();
@@ -13,6 +13,9 @@ farmRouter.use(authenticate);
 
 // GET /v1/farm/team — list all staff for the authenticated farm owner
 farmRouter.get("/team", farmController.getTeam);
+
+// GET /v1/farm/activity — fetch audit log entries
+farmRouter.get("/activity", farmController.getActivityLog);
 
 // POST   /v1/farm/staff       — invite a new staff member
 // PUT    /v1/farm/staff/:id   — update an existing staff member

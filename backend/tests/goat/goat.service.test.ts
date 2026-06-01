@@ -11,7 +11,7 @@ vi.mock("../../src/repositories/goat.repo", () => ({
 }));
 
 import { goatRepo } from "../../src/repositories/goat.repo";
-import { goatService } from "../../src/services/goat.service";
+import { goatService } from "../../src/services/goat/goat.service";
 
 describe("goatService", () => {
   const farmOwnerId = "owner-1";

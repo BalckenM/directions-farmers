@@ -13,7 +13,7 @@ vi.mock("../../src/repositories/auth.repo", () => ({
 
 vi.mock("../../src/services/email.service", () => ({
   emailService: {
-    sendVerificationEmail: vi.fn(),
+    sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
   },
 }));
 

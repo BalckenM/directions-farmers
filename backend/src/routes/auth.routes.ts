@@ -8,11 +8,14 @@ import {
 import { validate } from "../middleware/validate.middleware";
 import {
     acceptInviteSchema,
+    changePasswordSchema,
     forgotPasswordSchema,
     loginSchema,
     refreshSchema,
     registerSchema,
     resetPasswordSchema,
+    socialAuthSchema,
+    updateProfileSchema,
 } from "../validators/auth.validator";
 
 export const authRouter = Router();
@@ -60,4 +63,24 @@ authRouter.post(
   authGeneralLimiter,
   validate(acceptInviteSchema),
   authController.acceptInvite,
+);
+authRouter.put(
+  "/change-password",
+  authenticate,
+  authGeneralLimiter,
+  validate(changePasswordSchema),
+  authController.changePassword,
+);
+authRouter.put(
+  "/profile",
+  authenticate,
+  authGeneralLimiter,
+  validate(updateProfileSchema),
+  authController.updateProfile,
+);
+authRouter.post(
+  "/social",
+  authGeneralLimiter,
+  validate(socialAuthSchema),
+  authController.socialLogin,
 );

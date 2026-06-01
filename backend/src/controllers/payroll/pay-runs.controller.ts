@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendNoContent, sendOne } from "../../lib/response";
+import { sendOne } from "../../lib/response";
 import { payrollService } from "../../services/payroll/payroll.service";
 
 // CRITICAL: Payroll GET lists return raw arrays (no wrapper) for Flutter PayrollRemoteDataSource compat
@@ -49,6 +49,44 @@ export const payrollPayRunsController = {
           (req.params as Record<string, string>)["id"],
         ),
       );
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  calculatePayRun: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const run = await payrollService.createPayRun(
+        req.auth.farmOwnerId,
+        req.body,
+      );
+      res.status(201).json(run);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  approvePayRun: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = (req.params as Record<string, string>)["id"];
+      await payrollService.updatePayRun(req.auth.farmOwnerId, id, {
+        status: "approved",
+      });
+      const run = await payrollService.getPayRun(req.auth.farmOwnerId, id);
+      res.json(run);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  disbursePayRun: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = (req.params as Record<string, string>)["id"];
+      await payrollService.updatePayRun(req.auth.farmOwnerId, id, {
+        status: "disbursed",
+      });
+      const run = await payrollService.getPayRun(req.auth.farmOwnerId, id);
+      res.json(run);
     } catch (err) {
       next(err);
     }

@@ -5,14 +5,12 @@ import { poultryVaccinationsService } from "../../services/poultry/vaccinations.
 export const poultryVaccinationsController = {
   listVaccinations: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      sendList(
-        res,
-        await poultryVaccinationsService.listVaccinationSchedules(
-          req.auth.farmOwnerId,
-          (req.params as Record<string, string>)["id"],
-        ),
-        { page: 1, limit: 100, total: 0 },
+      const flockId = (req.query as Record<string, string>)["flockId"];
+      const records = await poultryVaccinationsService.listVaccinationSchedules(
+        req.auth.farmOwnerId,
+        flockId,
       );
+      sendList(res, records, { page: 1, limit: 100, total: records.length });
     } catch (err) {
       next(err);
     }
@@ -20,15 +18,12 @@ export const poultryVaccinationsController = {
 
   addVaccination: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      res.status(201).json({
-        data: {
-          id: await poultryVaccinationsService.addVaccinationSchedule(
-            req.auth.farmOwnerId,
-            (req.params as Record<string, string>)["id"],
-            req.body,
-          ),
-        },
-      });
+      const id = await poultryVaccinationsService.addVaccinationSchedule(
+        req.auth.farmOwnerId,
+        req.body.flockId,
+        req.body,
+      );
+      res.status(201).json({ data: { id } });
     } catch (err) {
       next(err);
     }

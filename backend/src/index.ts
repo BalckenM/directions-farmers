@@ -2,6 +2,7 @@ import { buildApp } from "./app";
 import "./config/env"; // validate env vars first
 import { env } from "./config/env";
 import { pool } from "./config/database";
+import { closeRedis } from "./lib/redis";
 
 async function start() {
   // Verify DB is reachable before accepting traffic
@@ -9,9 +10,20 @@ async function start() {
   conn.release();
 
   const app = buildApp();
-  app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, () => {
     console.log(`Server listening on port ${env.PORT}`);
   });
+
+  // Graceful shutdown
+  const shutdown = async () => {
+    console.log("Shutting down...");
+    server.close();
+    await closeRedis();
+    await pool.end();
+    process.exit(0);
+  };
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 }
 
 start().catch((err) => {

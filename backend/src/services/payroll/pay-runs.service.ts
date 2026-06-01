@@ -3,24 +3,8 @@ import type { z } from "zod";
 import { parsePagination } from "../../lib/pagination";
 import { payrollRepo } from "../../repositories/payroll/payroll.repo";
 import type {
-    createContractSchema,
-    createDeductionRuleSchema,
-    createEmployeeSchema,
-    createGarnisheeOrderSchema,
-    createIncidentSchema,
-    createLeaveRequestSchema,
-    createPayGroupSchema,
-    createPayRunSchema,
-    createPayStructureSchema,
-    createPieceworkLogSchema,
-    sendCommunicationSchema,
-    updateDeductionRuleSchema,
-    updateEmployeeSchema,
-    updateGarnisheeOrderSchema,
-    updateIncidentSchema,
-    updatePayGroupSchema,
-    updatePayStructureSchema,
-} from "../../validators/payroll.validator";
+    createPayRunSchema
+} from "../../validators/payroll/payroll.validator";
 
 import { payrollService } from "./payroll.service";
 
@@ -58,6 +42,16 @@ export const payrollPayRunsService = {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    return payrollRepo.findPayRunById(farmOwnerId, id);
+  },
+
+  updatePayRun: async (
+    farmOwnerId: string,
+    id: string,
+    input: Record<string, unknown>,
+  ) => {
+    await payrollService.getPayRun(farmOwnerId, id);
+    await payrollRepo.updatePayRun(farmOwnerId, id, input);
     return payrollRepo.findPayRunById(farmOwnerId, id);
   },
 

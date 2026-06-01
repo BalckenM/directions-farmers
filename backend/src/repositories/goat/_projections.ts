@@ -1,5 +1,3 @@
-import { and, count, desc, eq } from "drizzle-orm";
-import { db } from "../../config/database";
 import {
   goatAnimals,
   goatBcsRecords,
@@ -23,7 +21,7 @@ import {
 export const animalSelect = {
   id: goatAnimals.id,
   farmId: goatAnimals.farmOwnerId,
-  tagNumber: goatAnimals.tagNumber,
+  tagNumber: goatAnimals.tagId,
   name: goatAnimals.name,
   breed: goatAnimals.breed,
   productionType: goatAnimals.productionType,
@@ -31,13 +29,24 @@ export const animalSelect = {
   status: goatAnimals.status,
   herdId: goatAnimals.herdId,
   dateOfBirth: goatAnimals.dateOfBirth,
+  color: goatAnimals.color,
   damId: goatAnimals.damId,
-  sireId: goatAnimals.sireId,
   registrationNumber: goatAnimals.registrationNumber,
-  purchaseDate: goatAnimals.purchaseDate,
-  purchasePrice: goatAnimals.purchasePrice,
+  currentWeightKg: goatAnimals.currentWeightKg,
+  targetWeightKg: goatAnimals.targetWeightKg,
+  bodyConditionScore: goatAnimals.bodyConditionScore,
   isPregnant: goatAnimals.isPregnant,
+  expectedKiddingDate: goatAnimals.expectedKiddingDate,
+  lastKiddingDate: goatAnimals.lastKiddingDate,
+  totalKidsRaised: goatAnimals.totalKidsRaised,
   isLactating: goatAnimals.isLactating,
+  currentMilkLitrePd: goatAnimals.currentMilkLitrePd,
+  lactationNumber: goatAnimals.lactationNumber,
+  dryOffDate: goatAnimals.dryOffDate,
+  lastShearingDate: goatAnimals.lastShearingDate,
+  lastDewormingDate: goatAnimals.lastDewormingDate,
+  famachaScore: goatAnimals.famachaScore,
+  specificData: goatAnimals.specificData,
   notes: goatAnimals.notes,
   createdAt: goatAnimals.createdAt,
   updatedAt: goatAnimals.updatedAt,
@@ -45,153 +54,139 @@ export const animalSelect = {
 
 export const weightSelect = {
   id: goatWeightRecords.id,
-  animalId: goatWeightRecords.animalId,
-  date: goatWeightRecords.date,
+  goatId: goatWeightRecords.goatId,
   weightKg: goatWeightRecords.weightKg,
-  bodyConditionScore: goatWeightRecords.bodyConditionScore,
+  recordedAt: goatWeightRecords.recordedAt,
   notes: goatWeightRecords.notes,
+  createdAt: goatWeightRecords.createdAt,
 };
 
 export const matingSelect = {
   id: goatMatingRecords.id,
   doeId: goatMatingRecords.doeId,
   buckId: goatMatingRecords.buckId,
-  serviceDate: goatMatingRecords.serviceDate,
-  serviceMethod: goatMatingRecords.serviceMethod,
-  expectedKiddingDate: goatMatingRecords.expectedKiddingDate,
-  outcome: goatMatingRecords.outcome,
+  matingDate: goatMatingRecords.matingDate,
+  method: goatMatingRecords.method,
   notes: goatMatingRecords.notes,
+  createdAt: goatMatingRecords.createdAt,
 };
 
 export const pregnancyCheckSelect = {
   id: goatPregnancyChecks.id,
-  animalId: goatPregnancyChecks.animalId,
-  date: goatPregnancyChecks.date,
-  method: goatPregnancyChecks.method,
+  goatId: goatPregnancyChecks.goatId,
+  checkDate: goatPregnancyChecks.checkDate,
   result: goatPregnancyChecks.result,
   expectedKiddingDate: goatPregnancyChecks.expectedKiddingDate,
-  daysPregnant: goatPregnancyChecks.daysPregnant,
   notes: goatPregnancyChecks.notes,
+  createdAt: goatPregnancyChecks.createdAt,
 };
 
 export const kiddingSelect = {
   id: goatKiddingEvents.id,
-  damId: goatKiddingEvents.damId,
+  doeId: goatKiddingEvents.doeId,
   kiddingDate: goatKiddingEvents.kiddingDate,
-  totalKidsBorn: goatKiddingEvents.totalKidsBorn,
-  kidsAliveBorn: goatKiddingEvents.kidsAliveBorn,
-  kidsStillborn: goatKiddingEvents.kidsStillborn,
-  birthWeights: goatKiddingEvents.birthWeights,
-  kidIds: goatKiddingEvents.kidIds,
-  assisted: goatKiddingEvents.assisted,
-  complications: goatKiddingEvents.complications,
+  kidsAlive: goatKiddingEvents.kidsAlive,
+  kidsDead: goatKiddingEvents.kidsDead,
   notes: goatKiddingEvents.notes,
+  createdAt: goatKiddingEvents.createdAt,
 };
 
 export const milkSelect = {
   id: goatDailyMilk.id,
-  animalId: goatDailyMilk.animalId,
-  date: goatDailyMilk.date,
+  goatId: goatDailyMilk.goatId,
+  recordDate: goatDailyMilk.recordDate,
   morningLitres: goatDailyMilk.morningLitres,
   eveningLitres: goatDailyMilk.eveningLitres,
-  lactationDay: goatDailyMilk.lactationDay,
-  notes: goatDailyMilk.notes,
+  totalLitres: goatDailyMilk.totalLitres,
+  createdAt: goatDailyMilk.createdAt,
 };
 
 export const shearingSelect = {
   id: goatShearingRecords.id,
-  animalId: goatShearingRecords.animalId,
+  goatId: goatShearingRecords.goatId,
   shearingDate: goatShearingRecords.shearingDate,
   fleeceWeightKg: goatShearingRecords.fleeceWeightKg,
-  stapleLength: goatShearingRecords.stapleLength,
-  micron: goatShearingRecords.micron,
-  colorGrade: goatShearingRecords.colorGrade,
-  pricePerKg: goatShearingRecords.pricePerKg,
   notes: goatShearingRecords.notes,
+  createdAt: goatShearingRecords.createdAt,
 };
 
 export const healthSelect = {
   id: goatHealthEvents.id,
-  animalId: goatHealthEvents.animalId,
-  date: goatHealthEvents.date,
-  condition: goatHealthEvents.condition,
-  severity: goatHealthEvents.severity,
+  goatId: goatHealthEvents.goatId,
+  eventDate: goatHealthEvents.eventDate,
+  eventType: goatHealthEvents.eventType,
+  diagnosis: goatHealthEvents.diagnosis,
   treatment: goatHealthEvents.treatment,
-  vet: goatHealthEvents.vet,
   outcome: goatHealthEvents.outcome,
   notes: goatHealthEvents.notes,
+  createdAt: goatHealthEvents.createdAt,
 };
 
 export const medicationSelect = {
   id: goatMedicationLogs.id,
-  animalId: goatMedicationLogs.animalId,
-  date: goatMedicationLogs.date,
-  drug: goatMedicationLogs.drug,
-  dose: goatMedicationLogs.dose,
-  route: goatMedicationLogs.route,
-  reason: goatMedicationLogs.reason,
-  withdrawalDays: goatMedicationLogs.withdrawalDays,
+  goatId: goatMedicationLogs.goatId,
+  medicationName: goatMedicationLogs.medicationName,
+  dosage: goatMedicationLogs.dosage,
+  administeredAt: goatMedicationLogs.administeredAt,
   administeredBy: goatMedicationLogs.administeredBy,
   notes: goatMedicationLogs.notes,
+  createdAt: goatMedicationLogs.createdAt,
 };
 
 export const vaccinationSelect = {
   id: goatVaccinations.id,
-  animalId: goatVaccinations.animalId,
+  goatId: goatVaccinations.goatId,
   vaccineName: goatVaccinations.vaccineName,
-  dueDate: goatVaccinations.dueDate,
-  givenDate: goatVaccinations.givenDate,
-  batchNumber: goatVaccinations.batchNumber,
+  vaccinationDate: goatVaccinations.vaccinationDate,
   nextDueDate: goatVaccinations.nextDueDate,
-  administeredBy: goatVaccinations.administeredBy,
+  batchNumber: goatVaccinations.batchNumber,
+  notes: goatVaccinations.notes,
+  createdAt: goatVaccinations.createdAt,
 };
 
 export const saleSelect = {
   id: goatSaleRecords.id,
-  animalId: goatSaleRecords.animalId,
+  goatId: goatSaleRecords.goatId,
   saleDate: goatSaleRecords.saleDate,
   buyerName: goatSaleRecords.buyerName,
-  saleWeightKg: goatSaleRecords.saleWeightKg,
-  pricePerKg: goatSaleRecords.pricePerKg,
-  totalRevenue: goatSaleRecords.totalRevenue,
-  invoiceRef: goatSaleRecords.invoiceRef,
+  salePrice: goatSaleRecords.salePrice,
   notes: goatSaleRecords.notes,
+  createdAt: goatSaleRecords.createdAt,
 };
 
 export const feedSelect = {
   id: goatFeedRecords.id,
-  herdId: goatFeedRecords.herdId,
-  date: goatFeedRecords.date,
+  goatId: goatFeedRecords.goatId,
   feedType: goatFeedRecords.feedType,
   quantityKg: goatFeedRecords.quantityKg,
-  costPerKg: goatFeedRecords.costPerKg,
+  feedDate: goatFeedRecords.feedDate,
   notes: goatFeedRecords.notes,
+  createdAt: goatFeedRecords.createdAt,
 };
 
 export const pastureSelect = {
   id: goatPastureRecords.id,
-  herdId: goatPastureRecords.herdId,
-  campId: goatPastureRecords.campId,
-  entryDate: goatPastureRecords.entryDate,
-  exitDate: goatPastureRecords.exitDate,
-  estimatedHa: goatPastureRecords.estimatedHa,
-  veldCondition: goatPastureRecords.veldCondition,
+  pastureId: goatPastureRecords.pastureId,
+  pastureName: goatPastureRecords.pastureName,
+  moveDate: goatPastureRecords.moveDate,
   notes: goatPastureRecords.notes,
+  createdAt: goatPastureRecords.createdAt,
 };
 
 export const famachaSelect = {
   id: goatFamachaRecords.id,
-  animalId: goatFamachaRecords.animalId,
-  date: goatFamachaRecords.date,
+  goatId: goatFamachaRecords.goatId,
   score: goatFamachaRecords.score,
-  actionTaken: goatFamachaRecords.actionTaken,
+  recordDate: goatFamachaRecords.recordDate,
   notes: goatFamachaRecords.notes,
+  createdAt: goatFamachaRecords.createdAt,
 };
 
 export const bcsSelect = {
   id: goatBcsRecords.id,
-  animalId: goatBcsRecords.animalId,
-  date: goatBcsRecords.date,
+  goatId: goatBcsRecords.goatId,
   score: goatBcsRecords.score,
+  recordDate: goatBcsRecords.recordDate,
   notes: goatBcsRecords.notes,
+  createdAt: goatBcsRecords.createdAt,
 };

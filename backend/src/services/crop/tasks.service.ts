@@ -10,6 +10,16 @@ export const cropTasksService = {
     return cropTasksRepo.listTasks(farmOwnerId, offset, limit);
   },
 
+  getTask: async (farmOwnerId: string, id: string) => {
+    const row = await cropTasksRepo.findById(farmOwnerId, id);
+    if (!row)
+      throw Object.assign(new Error("Not found"), {
+        status: 404,
+        code: "NOT_FOUND",
+      });
+    return row;
+  },
+
   createTask: async (
     farmOwnerId: string,
     input: z.infer<typeof createTaskSchema>,
@@ -23,5 +33,16 @@ export const cropTasksService = {
       updatedAt: new Date(),
     });
     return id;
+  },
+
+  updateTask: async (farmOwnerId: string, id: string, input: any) => {
+    await cropTasksService.getTask(farmOwnerId, id);
+    await cropTasksRepo.updateTask(farmOwnerId, id, input);
+    return cropTasksRepo.findById(farmOwnerId, id);
+  },
+
+  deleteTask: async (farmOwnerId: string, id: string) => {
+    await cropTasksService.getTask(farmOwnerId, id);
+    await cropTasksRepo.deleteTask(farmOwnerId, id);
   },
 };

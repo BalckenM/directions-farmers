@@ -2,8 +2,8 @@ import { Router } from "express";
 import { payrollController } from "../../controllers/payroll/payroll.controller";
 import { validate } from "../../middleware/validate.middleware";
 import {
-  createIncidentSchema,
-  updateIncidentSchema,
+    createIncidentSchema,
+    updateIncidentSchema,
 } from "../../validators/payroll/payroll.validator";
 
 export const complianceRouter = Router();
@@ -19,3 +19,4 @@ complianceRouter.get("/audit-log", payrollController.listAuditLog);
 complianceRouter.get("/incidents", payrollController.listIncidents);
 complianceRouter.post("/incidents", validate(createIncidentSchema), payrollController.createIncident);
 complianceRouter.put("/incidents/:id", validate(updateIncidentSchema), payrollController.updateIncident);
+complianceRouter.patch("/incidents/:id/deactivate", payrollController.deactivateIncident);

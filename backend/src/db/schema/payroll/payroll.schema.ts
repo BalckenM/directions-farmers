@@ -401,3 +401,102 @@ export const payrollPieceworkLogs = mysqlTable(
     ),
   }),
 );
+
+export const payrollShifts = mysqlTable(
+  "payroll_shifts",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
+    employeeId: varchar("employee_id", { length: 36 }).notNull(),
+    shiftDate: date("shift_date").notNull(),
+    startTime: varchar("start_time", { length: 10 }).notNull(),
+    endTime: varchar("end_time", { length: 10 }).notNull(),
+    breakMinutes: int("break_minutes").notNull().default(0),
+    shiftType: varchar("shift_type", { length: 50 }),
+    status: varchar("status", { length: 20 }).notNull().default("scheduled"),
+    notes: text("notes"),
+    createdAt: datetime("created_at").notNull(),
+    updatedAt: datetime("updated_at").notNull(),
+  },
+  (t) => ({
+    farmOwnerIdx: index("payroll_shifts_farm_owner_idx").on(t.farmOwnerId),
+    employeeIdx: index("payroll_shifts_employee_idx").on(t.employeeId),
+  }),
+);
+
+export const payrollTaskAssignments = mysqlTable(
+  "payroll_task_assignments",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
+    employeeId: varchar("employee_id", { length: 36 }).notNull(),
+    taskName: varchar("task_name", { length: 255 }).notNull(),
+    assignedDate: date("assigned_date").notNull(),
+    dueDate: date("due_date"),
+    completedAt: datetime("completed_at"),
+    status: varchar("status", { length: 20 }).notNull().default("assigned"),
+    priority: varchar("priority", { length: 20 }).default("normal"),
+    notes: text("notes"),
+    createdAt: datetime("created_at").notNull(),
+    updatedAt: datetime("updated_at").notNull(),
+  },
+  (t) => ({
+    farmOwnerIdx: index("payroll_task_assignments_farm_owner_idx").on(
+      t.farmOwnerId,
+    ),
+    employeeIdx: index("payroll_task_assignments_employee_idx").on(
+      t.employeeId,
+    ),
+  }),
+);
+
+export const payrollAttendanceRecords = mysqlTable(
+  "payroll_attendance_records",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
+    employeeId: varchar("employee_id", { length: 36 }).notNull(),
+    attendanceDate: date("attendance_date").notNull(),
+    clockIn: varchar("clock_in", { length: 10 }),
+    clockOut: varchar("clock_out", { length: 10 }),
+    hoursWorked: decimal("hours_worked", { precision: 5, scale: 2 }),
+    status: varchar("status", { length: 20 }).notNull().default("present"),
+    notes: text("notes"),
+    createdAt: datetime("created_at").notNull(),
+    updatedAt: datetime("updated_at").notNull(),
+  },
+  (t) => ({
+    farmOwnerIdx: index("payroll_attendance_records_farm_owner_idx").on(
+      t.farmOwnerId,
+    ),
+    employeeIdx: index("payroll_attendance_records_employee_idx").on(
+      t.employeeId,
+    ),
+  }),
+);
+
+export const payrollEmployerConfig = mysqlTable(
+  "payroll_employer_config",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull().unique(),
+    companyName: varchar("company_name", { length: 255 }),
+    taxNumber: varchar("tax_number", { length: 50 }),
+    uifNumber: varchar("uif_number", { length: 50 }),
+    sdlNumber: varchar("sdl_number", { length: 50 }),
+    payDay: int("pay_day").default(25),
+    overtimeMultiplier: decimal("overtime_multiplier", {
+      precision: 3,
+      scale: 2,
+    }).default("1.50"),
+    currency: varchar("currency", { length: 3 }).default("ZAR"),
+    notes: text("notes"),
+    createdAt: datetime("created_at").notNull(),
+    updatedAt: datetime("updated_at").notNull(),
+  },
+  (t) => ({
+    farmOwnerIdx: index("payroll_employer_config_farm_owner_idx").on(
+      t.farmOwnerId,
+    ),
+  }),
+);

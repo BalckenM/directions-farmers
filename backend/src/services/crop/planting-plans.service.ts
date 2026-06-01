@@ -3,8 +3,8 @@ import type { z } from "zod";
 import { parsePagination } from "../../lib/pagination";
 import { cropPlantingPlansRepo } from "../../repositories/crop/planting-plans.repo";
 import type {
-  createPlantingPlanSchema,
-  updatePlantingPlanSchema,
+    createPlantingPlanSchema,
+    updatePlantingPlanSchema,
 } from "../../validators/crop/crop.validator";
 
 export const cropPlantingPlansService = {
@@ -51,5 +51,10 @@ export const cropPlantingPlansService = {
     await cropPlantingPlansService.getPlantingPlan(farmOwnerId, id);
     await cropPlantingPlansRepo.updatePlantingPlan(farmOwnerId, id, input);
     return cropPlantingPlansRepo.findPlantingPlanById(farmOwnerId, id);
+  },
+
+  deletePlantingPlan: async (farmOwnerId: string, id: string) => {
+    await cropPlantingPlansService.getPlantingPlan(farmOwnerId, id);
+    await cropPlantingPlansRepo.deletePlantingPlan(farmOwnerId, id);
   },
 };

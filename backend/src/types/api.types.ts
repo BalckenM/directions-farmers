@@ -26,4 +26,7 @@ export interface JwtPayload {
   farmId: string;
   modules: string[];
   role: string;
+  jti?: string;
+  iss?: string;
+  aud?: string;
 }

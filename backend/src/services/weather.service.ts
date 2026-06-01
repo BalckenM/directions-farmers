@@ -42,7 +42,7 @@ export const weatherService = {
     return data;
   },
 
-  // Open-Meteo does not expose an alerts endpoint; return empty structure
+  // Open-Meteo does not expose an alerts endpoint; return empty array
   getAlerts: (_lat: number, _lon: number) =>
-    Promise.resolve({ alerts: [] as unknown[] }),
+    Promise.resolve([] as unknown[]),
 };
