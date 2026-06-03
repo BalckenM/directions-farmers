@@ -8,7 +8,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/stat_card.dart';
 import '../../models/compliance_alert.dart';
 import '../../providers/payroll_providers.dart';
 import '../../theme/payroll_tokens.dart';
@@ -49,13 +48,9 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
           _Filter.resolved => resolvedAlerts,
         })..sort((a, b) {
           if (a.severity == ComplianceSeverity.critical &&
-              b.severity != ComplianceSeverity.critical) {
-            return -1;
-          }
+              b.severity != ComplianceSeverity.critical) return -1;
           if (b.severity == ComplianceSeverity.critical &&
-              a.severity != ComplianceSeverity.critical) {
-            return 1;
-          }
+              a.severity != ComplianceSeverity.critical) return 1;
           return b.raisedAt.compareTo(a.raisedAt);
         });
 
@@ -63,164 +58,187 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
       appBar: const FarmAppBar(title: 'Compliance'),
       body: Column(
         children: [
-          // ── Prominent alert count banner ─────────────────────────────
+          // ── Status banner ─────────────────────────────────────────────
           _AlertsBanner(
             openCount: openAlerts.length,
             criticalCount: criticalAlerts.length,
           ),
 
-          // ── Summary stats ────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              0,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: StatCard(
-                    label: 'Open Alerts',
-                    value: openAlerts.length.toString(),
-                    icon: Icons.warning_amber_rounded,
-                    accentColor: openAlerts.isEmpty
-                        ? PayrollTokens.green
-                        : cs.error,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: StatCard(
-                    label: 'Critical',
-                    value: criticalAlerts.length.toString(),
-                    icon: Icons.error_rounded,
-                    accentColor: criticalAlerts.isEmpty
-                        ? PayrollTokens.green
-                        : PayrollTokens.rose,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: StatCard(
-                    label: 'Warnings',
-                    value: warningAlerts.length.toString(),
-                    icon: Icons.info_outline_rounded,
-                    accentColor: warningAlerts.isEmpty
-                        ? PayrollTokens.green
-                        : PayrollTokens.amber,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: StatCard(
-                    label: 'Resolved',
-                    value: resolvedAlerts.length.toString(),
-                    icon: Icons.check_circle_outline_rounded,
-                    accentColor: PayrollTokens.green,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Quick links to compliance sub-screens ──────────────────
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              0,
-            ),
-            child: Row(
-              children: [
-                _QuickLink(
-                  icon: Icons.receipt_long_outlined,
-                  label: 'PAYE',
-                  onTap: () => context.push(AppRoutes.payrollPaye),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _QuickLink(
-                  icon: Icons.people_alt_outlined,
-                  label: 'UIF',
-                  onTap: () => context.push(AppRoutes.payrollUifReturns),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _QuickLink(
-                  icon: Icons.school_outlined,
-                  label: 'SDL',
-                  onTap: () => context.push(AppRoutes.payrollSdl),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _QuickLink(
-                  icon: Icons.summarize_outlined,
-                  label: 'EMP501',
-                  onTap: () => context.push(AppRoutes.payrollEmp501),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Filter chips ─────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _Filter.values.map((f) {
-                  final label = switch (f) {
-                    _Filter.all => 'All (${allAlerts.length})',
-                    _Filter.open => 'Open (${openAlerts.length})',
-                    _Filter.critical => 'Critical (${criticalAlerts.length})',
-                    _Filter.resolved => 'Resolved (${resolvedAlerts.length})',
-                  };
-                  return Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.sm),
-                    child: FilterChip(
-                      label: Text(label),
-                      selected: _filter == f,
-                      onSelected: (_) => setState(() => _filter = f),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-
-          // ── Alert list ───────────────────────────────────────────────
           Expanded(
-            child: filtered.isEmpty
-                ? const EmptyState(
-                    icon: Icon(
-                      Icons.verified_outlined,
-                      size: 56,
-                      color: PayrollTokens.green,
-                    ),
-                    title: 'No alerts',
-                    subtitle: 'No compliance issues found for this filter.',
-                  )
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      ref.invalidate(allComplianceAlertsProvider);
-                      ref.invalidate(complianceAlertsProvider);
-                    },
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        0,
-                        AppSpacing.md,
-                        100,
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 32),
+              children: [
+                // ── Compact stats strip ─────────────────────────────────
+                _StatsStrip(
+                  openCount: openAlerts.length,
+                  criticalCount: criticalAlerts.length,
+                  warningCount: warningAlerts.length,
+                  resolvedCount: resolvedAlerts.length,
+                ),
+
+                const SizedBox(height: AppSpacing.md),
+
+                // ── Compliance sub-modules ──────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: AppSpacing.xs),
+                        child: Text(
+                          'Statutory Returns',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: cs.onSurfaceVariant,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
                       ),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: AppSpacing.sm),
-                      itemBuilder: (_, i) => _AlertCard(alert: filtered[i]),
-                    ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: cs.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: cs.outlineVariant),
+                        ),
+                        child: Column(
+                          children: [
+                            _ModuleRow(
+                              icon: Icons.receipt_long_outlined,
+                              label: 'PAYE',
+                              subtitle: 'Pay As You Earn tax',
+                              color: PayrollTokens.navy,
+                              isFirst: true,
+                              onTap: () =>
+                                  context.push(AppRoutes.payrollPaye),
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _ModuleRow(
+                              icon: Icons.people_alt_outlined,
+                              label: 'UIF Returns',
+                              subtitle: 'Unemployment Insurance Fund',
+                              color: PayrollTokens.teal,
+                              onTap: () =>
+                                  context.push(AppRoutes.payrollUifReturns),
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _ModuleRow(
+                              icon: Icons.school_outlined,
+                              label: 'SDL',
+                              subtitle: 'Skills Development Levy',
+                              color: PayrollTokens.indigo,
+                              onTap: () =>
+                                  context.push(AppRoutes.payrollSdl),
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _ModuleRow(
+                              icon: Icons.summarize_outlined,
+                              label: 'EMP501 Reconciliation',
+                              subtitle: 'Annual employer reconciliation',
+                              color: PayrollTokens.purple,
+                              isLast: true,
+                              onTap: () =>
+                                  context.push(AppRoutes.payrollEmp501),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+
+                const SizedBox(height: AppSpacing.md),
+
+                // ── Filter chips ─────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: AppSpacing.xs),
+                        child: Text(
+                          'Compliance Alerts',
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(
+                                color: cs.onSurfaceVariant,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _Filter.values.map((f) {
+                            final label = switch (f) {
+                              _Filter.all =>
+                                'All (${allAlerts.length})',
+                              _Filter.open =>
+                                'Open (${openAlerts.length})',
+                              _Filter.critical =>
+                                'Critical (${criticalAlerts.length})',
+                              _Filter.resolved =>
+                                'Resolved (${resolvedAlerts.length})',
+                            };
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  right: AppSpacing.sm),
+                              child: FilterChip(
+                                label: Text(label),
+                                selected: _filter == f,
+                                onSelected: (_) =>
+                                    setState(() => _filter = f),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+
+                      // Alert list inline (not Expanded)
+                      if (filtered.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xl),
+                          child: EmptyState(
+                            icon: const Icon(
+                              Icons.verified_outlined,
+                              size: 56,
+                              color: PayrollTokens.green,
+                            ),
+                            title: 'No alerts',
+                            subtitle:
+                                'No compliance issues found for this filter.',
+                          ),
+                        )
+                      else
+                        RefreshIndicator(
+                          onRefresh: () async {
+                            ref.invalidate(allComplianceAlertsProvider);
+                            ref.invalidate(complianceAlertsProvider);
+                          },
+                          child: Column(
+                            children: [
+                              for (int i = 0; i < filtered.length; i++) ...[
+                                _AlertCard(alert: filtered[i]),
+                                if (i < filtered.length - 1)
+                                  const SizedBox(
+                                      height: AppSpacing.sm),
+                              ],
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -229,31 +247,163 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Alert Card
+// Compact stats strip
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Quick link chip
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _QuickLink extends StatelessWidget {
-  const _QuickLink({
-    required this.icon,
-    required this.label,
-    required this.onTap,
+class _StatsStrip extends StatelessWidget {
+  const _StatsStrip({
+    required this.openCount,
+    required this.criticalCount,
+    required this.warningCount,
+    required this.resolvedCount,
   });
 
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+  final int openCount;
+  final int criticalCount;
+  final int warningCount;
+  final int resolvedCount;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return ActionChip(
-      avatar: Icon(icon, size: 16, color: cs.primary),
-      label: Text(label),
-      onPressed: onTap,
+    final tt = Theme.of(context).textTheme;
+
+    Widget stat(String label, int count, Color color) => Expanded(
+          child: Column(
+            children: [
+              Text(
+                '$count',
+                style: tt.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: count > 0 ? color : cs.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: tt.labelSmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  fontSize: 10,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        );
+
+    Widget divider() => Container(
+          width: 1,
+          height: 28,
+          color: cs.outlineVariant,
+        );
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+      padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm + 2),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          stat('Open', openCount,
+              openCount > 0 ? cs.error : PayrollTokens.green),
+          divider(),
+          stat('Critical', criticalCount,
+              criticalCount > 0 ? PayrollTokens.rose : PayrollTokens.green),
+          divider(),
+          stat('Warnings', warningCount,
+              warningCount > 0 ? PayrollTokens.amber : PayrollTokens.green),
+          divider(),
+          stat('Resolved', resolvedCount, PayrollTokens.green),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Compliance module row
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ModuleRow extends StatelessWidget {
+  const _ModuleRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+    this.isFirst = false,
+    this.isLast = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+  final bool isFirst;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final radius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(12) : Radius.zero,
+      bottom: isLast ? const Radius.circular(12) : Radius.zero,
+    );
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: radius,
+      child: InkWell(
+        borderRadius: radius,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, size: 18, color: color),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: tt.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      subtitle,
+                      style: tt.bodySmall
+                          ?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded,
+                  size: 20, color: cs.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -282,7 +432,7 @@ class _AlertsBanner extends StatelessWidget {
         ? Icons.warning_amber_rounded
         : Icons.verified_rounded;
     final label = criticalCount > 0
-        ? '$criticalCount critical · $openCount open alert${openCount == 1 ? '' : 's'}'
+        ? '$criticalCount critical \u00b7 $openCount open alert${openCount == 1 ? '' : 's'}'
         : hasOpen
         ? '$openCount open alert${openCount == 1 ? '' : 's'} require attention'
         : 'All compliance checks passed';
@@ -291,9 +441,7 @@ class _AlertsBanner extends StatelessWidget {
       width: double.infinity,
       color: bg,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: 10,
-      ),
+          horizontal: AppSpacing.md, vertical: 10),
       child: Row(
         children: [
           Icon(icon, color: Colors.white, size: 18),
@@ -331,6 +479,8 @@ class _AlertsBanner extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Alert card
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _AlertCard extends ConsumerWidget {
   const _AlertCard({required this.alert});
@@ -344,15 +494,12 @@ class _AlertCard extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
 
     final (color, icon) = switch (alert.severity) {
-      ComplianceSeverity.critical => (PayrollTokens.rose, Icons.error_rounded),
-      ComplianceSeverity.warning => (
-        PayrollTokens.amber,
-        Icons.warning_amber_rounded,
-      ),
-      ComplianceSeverity.info => (
-        PayrollTokens.sky,
-        Icons.info_outline_rounded,
-      ),
+      ComplianceSeverity.critical =>
+        (PayrollTokens.rose, Icons.error_rounded),
+      ComplianceSeverity.warning =>
+        (PayrollTokens.amber, Icons.warning_amber_rounded),
+      ComplianceSeverity.info =>
+        (PayrollTokens.sky, Icons.info_outline_rounded),
     };
 
     return Material(
@@ -373,155 +520,176 @@ class _AlertCard extends ConsumerWidget {
               width: alert.isResolved ? 1.0 : 1.5,
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header row
-                Row(
-                  children: [
-                    Icon(
-                      icon,
-                      color: alert.isResolved ? cs.onSurfaceVariant : color,
-                      size: 22,
+                // Left accent bar
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: alert.isResolved
+                        ? PayrollTokens.green
+                        : color,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            alert.title,
-                            style: tt.titleSmall?.copyWith(
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header: icon + title + severity chip
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              icon,
                               color: alert.isResolved
                                   ? cs.onSurfaceVariant
-                                  : cs.onSurface,
-                              fontWeight: FontWeight.w600,
+                                  : color,
+                              size: 18,
                             ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    alert.title,
+                                    style: tt.bodyMedium?.copyWith(
+                                      color: alert.isResolved
+                                          ? cs.onSurfaceVariant
+                                          : cs.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    alert.code,
+                                    style: tt.labelSmall?.copyWith(
+                                        color: cs.onSurfaceVariant),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            _severityChip(context, tt, alert, color),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+
+                        // Description
+                        Text(
+                          alert.description,
+                          style: tt.bodySmall
+                              ?.copyWith(color: cs.onSurfaceVariant),
+                        ),
+
+                        if (alert.employeeId != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.person_outline,
+                                  size: 13, color: cs.onSurfaceVariant),
+                              const SizedBox(width: 4),
+                              Text(
+                                empMap[alert.employeeId] ??
+                                    alert.employeeId!,
+                                style: tt.labelSmall?.copyWith(
+                                    color: cs.onSurfaceVariant),
+                              ),
+                            ],
                           ),
-                          Text(
-                            alert.code,
-                            style: tt.labelSmall?.copyWith(
-                              color: cs.onSurfaceVariant,
+                        ],
+
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.schedule,
+                                size: 13, color: cs.onSurfaceVariant),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Raised ${_fmtDate.format(alert.raisedAt)}',
+                              style: tt.labelSmall
+                                  ?.copyWith(color: cs.onSurfaceVariant),
+                            ),
+                            if (alert.isResolved &&
+                                alert.resolvedAt != null) ...[
+                              Text(
+                                '  \u00b7  ',
+                                style: tt.labelSmall?.copyWith(
+                                    color: cs.onSurfaceVariant),
+                              ),
+                              Icon(Icons.check_circle,
+                                  size: 12, color: PayrollTokens.green),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Resolved ${_fmtDate.format(alert.resolvedAt!)}',
+                                style: tt.labelSmall?.copyWith(
+                                    color: PayrollTokens.green),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                        if (alert.isResolved &&
+                            alert.resolution != null) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: PayrollTokens.green
+                                  .withValues(alpha: 0.07),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm, vertical: 6),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.notes,
+                                    size: 13, color: PayrollTokens.green),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    alert.resolution!,
+                                    style: tt.bodySmall?.copyWith(
+                                        color: PayrollTokens.green),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _severityChip(context, tt, alert, color),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
 
-                // Description
-                Text(
-                  alert.description,
-                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-
-                if (alert.employeeId != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 14,
-                        color: cs.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        empMap[alert.employeeId] ?? alert.employeeId!,
-                        style: tt.labelSmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(Icons.schedule, size: 13, color: cs.onSurfaceVariant),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      'Raised ${_fmtDate.format(alert.raisedAt)}',
-                      style: tt.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
-                    ),
-                    if (alert.isResolved && alert.resolvedAt != null) ...[
-                      const Text(' \u00b7 '),
-                      const Icon(
-                        Icons.check_circle,
-                        size: 13,
-                        color: PayrollTokens.green,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        'Resolved ${_fmtDate.format(alert.resolvedAt!)}',
-                        style: tt.labelSmall?.copyWith(
-                          color: PayrollTokens.green,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-
-                if (alert.isResolved && alert.resolution != null) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: PayrollTokens.green.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: 6,
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.notes,
-                          size: 14,
-                          color: PayrollTokens.green,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            alert.resolution!,
-                            style: tt.bodySmall?.copyWith(
-                              color: PayrollTokens.green,
-                            ),
+                        if (alert.isOpen) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  icon: const Icon(
+                                      Icons.check_rounded, size: 15),
+                                  label: const Text('Mark Resolved'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: PayrollTokens.green,
+                                    side: const BorderSide(
+                                        color: PayrollTokens.green),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  onPressed: () =>
+                                      _showResolveSheet(context, ref),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
-                ],
-
-                if (alert.isOpen) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.check_rounded, size: 16),
-                      label: const Text('Resolve'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: PayrollTokens.green,
-                        side: const BorderSide(color: PayrollTokens.green),
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.sm,
-                          vertical: 6,
-                        ),
-                      ),
-                      onPressed: () => _showResolveSheet(context, ref),
-                    ),
-                  ),
-                ],
+                ),
               ],
             ),
           ),
@@ -537,12 +705,17 @@ class _AlertCard extends ConsumerWidget {
     Color color,
   ) {
     if (alert.isResolved) {
-      return Chip(
-        label: const Text('Resolved'),
-        backgroundColor: PayrollTokens.green.withValues(alpha: 0.12),
-        labelStyle: tt.labelSmall?.copyWith(color: PayrollTokens.green),
-        visualDensity: VisualDensity.compact,
-        padding: EdgeInsets.zero,
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: PayrollTokens.green.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          'Resolved',
+          style: tt.labelSmall?.copyWith(
+              fontWeight: FontWeight.w700, color: PayrollTokens.green),
+        ),
       );
     }
     final label = switch (alert.severity) {
@@ -550,12 +723,17 @@ class _AlertCard extends ConsumerWidget {
       ComplianceSeverity.warning => 'Warning',
       ComplianceSeverity.info => 'Info',
     };
-    return Chip(
-      label: Text(label),
-      backgroundColor: color.withValues(alpha: 0.12),
-      labelStyle: tt.labelSmall?.copyWith(color: color),
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: tt.labelSmall?.copyWith(
+            fontWeight: FontWeight.w700, color: color),
+      ),
     );
   }
 
@@ -584,16 +762,16 @@ class _AlertCard extends ConsumerWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.outlineVariant,
+                  color:
+                      Theme.of(ctx).colorScheme.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             Text(
               'Resolve Alert',
-              style: Theme.of(
-                ctx,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
@@ -609,7 +787,8 @@ class _AlertCard extends ConsumerWidget {
               maxLines: 3,
               decoration: const InputDecoration(
                 labelText: 'Resolution notes',
-                hintText: 'Describe what was done to resolve this alert\u2026',
+                hintText:
+                    'Describe what was done to resolve this alert\u2026',
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
@@ -637,7 +816,8 @@ class _AlertCard extends ConsumerWidget {
                           : ctrl.text.trim();
                       ref
                           .read(payrollRepositoryProvider)
-                          .resolveAlert(alert.id, 'usr_manager', resolution);
+                          .resolveAlert(
+                              alert.id, 'usr_manager', resolution);
                       ref.invalidate(allComplianceAlertsProvider);
                       ref.invalidate(complianceAlertsProvider);
                       if (context.mounted) {

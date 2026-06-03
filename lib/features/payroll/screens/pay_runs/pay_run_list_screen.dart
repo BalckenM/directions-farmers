@@ -70,16 +70,42 @@ class _PayRunListScreenState extends ConsumerState<PayRunListScreen> {
       floatingActionButton: _fab(context),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(allPayRunsProvider),
-        child: ListView.separated(
+        child: ListView.builder(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
             AppSpacing.md,
             AppSpacing.md,
             100,
           ),
-          itemCount: payRuns.length,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (_, i) => _PayRunTile(run: payRuns[i]),
+          itemCount: 1,
+          itemBuilder: (context, _) {
+            final cs = Theme.of(context).colorScheme;
+            return Container(
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: cs.outlineVariant),
+              ),
+              child: Column(
+                children: [
+                  for (int i = 0; i < payRuns.length; i++) ...[
+                    if (i > 0)
+                      Divider(
+                        height: 1,
+                        indent: AppSpacing.md,
+                        endIndent: AppSpacing.md,
+                        color: cs.outlineVariant,
+                      ),
+                    _PayRunTile(
+                      run: payRuns[i],
+                      isFirst: i == 0,
+                      isLast: i == payRuns.length - 1,
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -97,8 +123,14 @@ class _PayRunListScreenState extends ConsumerState<PayRunListScreen> {
 // ─── Pay run tile ─────────────────────────────────────────────────────────────
 
 class _PayRunTile extends StatelessWidget {
-  const _PayRunTile({required this.run});
+  const _PayRunTile({
+    required this.run,
+    this.isFirst = false,
+    this.isLast = false,
+  });
   final PayRun run;
+  final bool isFirst;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
@@ -107,29 +139,34 @@ class _PayRunTile extends StatelessWidget {
     final period      = '${_dateFmt.format(run.periodStart)} – ${_dateFmt.format(run.periodEnd)}';
     final statusColor = PayrollTokens.payRunStatusColor(run.status);
 
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(15) : Radius.zero,
+      bottom: isLast ? const Radius.circular(15) : Radius.zero,
+    );
+
     return Material(
-      color:        cs.surface,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
+      borderRadius: borderRadius,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: borderRadius,
         onTap: () => context.push(AppRoutes.payrollPayRunDetail(run.id)),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border:       Border.all(color: cs.outlineVariant),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
           ),
           child: Row(
             children: [
               // Status icon badge
               Container(
-                width:  44,
-                height: 44,
+                width:  42,
+                height: 42,
                 decoration: BoxDecoration(
                   color:        statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.receipt_long_outlined, color: statusColor, size: 22),
+                child: Icon(Icons.receipt_long_outlined, color: statusColor, size: 20),
               ),
               const SizedBox(width: AppSpacing.md),
               // Period & employee count
@@ -162,6 +199,8 @@ class _PayRunTile extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right_rounded, size: 16, color: cs.onSurfaceVariant),
             ],
           ),
         ),

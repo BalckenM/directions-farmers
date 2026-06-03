@@ -374,26 +374,30 @@ class _LeaveApprovalCard extends StatelessWidget {
                     ]),
                     const SizedBox(height: AppSpacing.sm),
 
-                    // Action buttons
+                    // Action buttons — full width for easy tap
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        OutlinedButton.icon(
-                          icon: const Icon(Icons.close_rounded, size: 16),
-                          label: const Text('Reject'),
-                          style: OutlinedButton.styleFrom(
-                              foregroundColor: PayrollTokens.rose,
-                              side: const BorderSide(
-                                  color: PayrollTokens.rose)),
-                          onPressed: onReject,
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.close_rounded, size: 16),
+                            label: const Text('Reject'),
+                            style: OutlinedButton.styleFrom(
+                                foregroundColor: PayrollTokens.rose,
+                                side: const BorderSide(
+                                    color: PayrollTokens.rose)),
+                            onPressed: onReject,
+                          ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
-                        FilledButton.icon(
-                          icon: const Icon(Icons.check_rounded, size: 16),
-                          label: const Text('Approve'),
-                          style: FilledButton.styleFrom(
-                              backgroundColor: PayrollTokens.green),
-                          onPressed: onApprove,
+                        Expanded(
+                          flex: 2,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.check_rounded, size: 16),
+                            label: const Text('Approve'),
+                            style: FilledButton.styleFrom(
+                                backgroundColor: PayrollTokens.green),
+                            onPressed: onApprove,
+                          ),
                         ),
                       ],
                     ),

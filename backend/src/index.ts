@@ -8,7 +8,6 @@ async function start() {
   // Verify DB is reachable before accepting traffic
   const conn = await pool.getConnection();
   conn.release();
-
   const app = buildApp();
   const server = app.listen(env.PORT, () => {
     console.log(`Server listening on port ${env.PORT}`);

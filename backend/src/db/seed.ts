@@ -13,6 +13,13 @@ import { runCattleSeed } from "./seeds/007_cattle.seed";
 import { runGoatSeed } from "./seeds/008_goat.seed";
 import { runPoultrySeed } from "./seeds/009_poultry.seed";
 import { runPayrollSeed } from "./seeds/010_payroll.seed";
+// Seeds 011-016 are applied directly to DB; stubs kept for seed_history tracking
+// import { seed011PayrollExtended } from "./seeds/011_payroll_extended.seed";
+// import { seed012Farm } from "./seeds/012_farm.seed";
+// import { seed013BalckenFarm } from "./seeds/013_balcken_4dfm.seed";
+// import { seed014BalckenLarge } from "./seeds/014_balcken_large.seed";
+// import { seed015BalckenComplete } from "./seeds/015_balcken_complete.seed";
+// import { seed016BalckenMissing } from "./seeds/016_balcken_missing.seed";
 
 const logger = pino({ name: "seed" });
 
@@ -34,6 +41,13 @@ const seeds: Array<{ name: string; fn: () => Promise<void> }> = [
   { name: "008_goat.seed.ts", fn: runGoatSeed },
   { name: "009_poultry.seed.ts", fn: runPoultrySeed },
   { name: "010_payroll.seed.ts", fn: runPayrollSeed },
+  // Seeds 011-016 were applied directly to DB (no runnable function)
+  // { name: "011_payroll_extended.seed.ts", fn: seed011PayrollExtended },
+  // { name: "012_farm.seed.ts", fn: seed012Farm },
+  // { name: "013_balcken_4dfm.seed.ts", fn: seed013BalckenFarm },
+  // { name: "014_balcken_large.seed.ts", fn: seed014BalckenLarge },
+  // { name: "015_balcken_complete.seed.ts", fn: seed015BalckenComplete },
+  // { name: "016_balcken_missing.seed.ts", fn: seed016BalckenMissing },
 ];
 
 async function main() {

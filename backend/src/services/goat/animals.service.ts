@@ -1,30 +1,10 @@
 import { randomUUID } from "crypto";
-import type { z } from "zod";
 import { parsePagination } from "../../lib/pagination";
 import { goatRepo } from "../../repositories/goat/goat.repo";
 import type {
-  CreateGoatInput,
-  UpdateGoatInput,
-  createBcsRecordSchema,
-  createDailyMilkSchema,
-  createFamachaRecordSchema,
-  createFeedRecordSchema,
-  createHealthEventSchema,
-  createKiddingEventSchema,
-  createMatingSchema,
-  createMedicationLogSchema,
-  createPastureRecordSchema,
-  createPregnancyCheckSchema,
-  createSaleRecordSchema,
-  createShearingRecordSchema,
-  createVaccinationSchema,
-  createWeightRecordSchema,
-  exitPastureSchema,
-  markVaccinationGivenSchema,
-  updateHealthEventSchema,
-  updateMatingSchema,
-  updateSaleRecordSchema,
-} from "../../validators/goat.validator";
+    CreateGoatInput,
+    UpdateGoatInput,
+} from "../../validators/goat/goat.validator";
 
 function notFound(): never {
   throw Object.assign(new Error("Not found"), {
@@ -33,11 +13,6 @@ function notFound(): never {
   });
 }
 
-// Post-process kidding event rows
-function mapKidding(raw: Awaited<ReturnType<typeof goatRepo.findKiddingEventById>>) {
-  if (!raw) return null;
-  return { ...raw };
-}
 
 import { goatService } from "./goat.service";
 
@@ -94,7 +69,8 @@ export const goatAnimalsService = {
     if (input.sex !== undefined) patch["sex"] = input.sex;
     if (input.status !== undefined) patch["status"] = input.status;
     if (input.herdId !== undefined) patch["herdId"] = input.herdId;
-    if (input.dateOfBirth !== undefined) patch["dateOfBirth"] = input.dateOfBirth;
+    if (input.dateOfBirth !== undefined)
+      patch["dateOfBirth"] = input.dateOfBirth;
     if (input.notes !== undefined) patch["notes"] = input.notes;
     await goatRepo.updateAnimal(farmOwnerId, id, patch);
     return goatRepo.findAnimalById(farmOwnerId, id);
@@ -105,4 +81,3 @@ export const goatAnimalsService = {
     await goatRepo.deleteAnimal(farmOwnerId, id);
   },
 };
-

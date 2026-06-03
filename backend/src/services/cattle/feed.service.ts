@@ -1,28 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
+import type { createFeedRecordSchema } from "../../validators/cattle/cattle.validator";
 
 export const cattleFeedService = {
   listFeedRecords: (farmOwnerId: string) =>
@@ -36,10 +15,13 @@ export const cattleFeedService = {
     await cattleRepo.createFeedRecord({
       id,
       farmOwnerId,
-      cattleId: input.cattleId,
+      animalId: input.animalId,
       feedType: input.feedType,
       quantityKg: String(input.quantityKg),
-      feedDate: new Date(input.feedDate),
+      date: new Date(input.date),
+      costPerKg: input.costPerKg !== undefined ? String(input.costPerKg) : null,
+      feedlotPenId: input.feedlotPenId,
+      rationName: input.rationName,
       notes: input.notes,
       createdAt: new Date(),
     });
@@ -50,4 +32,3 @@ export const cattleFeedService = {
     await cattleRepo.deleteFeedRecord(farmOwnerId, id);
   },
 };
-

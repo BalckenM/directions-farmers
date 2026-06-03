@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_routes.dart';
+import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_dropdown.dart';
@@ -83,7 +84,8 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
         children: [
           // ── Summary stats ────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
             child: Row(
               children: [
                 Expanded(
@@ -94,7 +96,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                     accentColor: PayrollTokens.green,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: StatCard(
                     label: 'Failed',
@@ -104,7 +106,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                         failedTx.isEmpty ? PayrollTokens.green : PayrollTokens.rose,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: StatCard(
                     label: 'Processing',
@@ -116,30 +118,24 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
 
           // ── Filters row ──────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: FarmDropdown<String>(
-                    label: 'Pay Run',
-                    value: _selectedPayRunId,
-                    prefixIcon: const Icon(Icons.calendar_today_outlined),
-                    items: payRunOptions,
-                    onChanged: (v) => setState(() => _selectedPayRunId = v),
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: FarmDropdown<String>(
+              label: 'Pay Run',
+              value: _selectedPayRunId,
+              prefixIcon: const Icon(Icons.calendar_today_outlined),
+              items: payRunOptions,
+              onChanged: (v) => setState(() => _selectedPayRunId = v),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
 
           // ── Status filter tabs ────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -165,7 +161,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
 
           // ── Transaction list ──────────────────────────────────────────
           Expanded(
@@ -176,10 +172,11 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                     subtitle: 'No disbursements match the selected filters.',
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md, AppSpacing.xs, AppSpacing.md, 32),
                     itemCount: filtered.length + 1,
                     separatorBuilder: (_, i) =>
-                        i < filtered.length ? const SizedBox(height: 8) : const SizedBox.shrink(),
+                        i < filtered.length ? const SizedBox(height: AppSpacing.sm) : const SizedBox.shrink(),
                     itemBuilder: (ctx, i) {
                       if (i == filtered.length) {
                         return _methodBreakdown(ctx, bankTotal, cashTotal);
@@ -200,12 +197,12 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
   Widget _methodBreakdown(
       BuildContext ctx, double bankTotal, double cashTotal) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SectionHeader(title: 'Method Breakdown (Completed)'),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Expanded(
@@ -215,7 +212,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                   icon: Icons.account_balance_outlined,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: StatCard(
                   label: 'Cash',
@@ -282,19 +279,20 @@ class _TxCard extends ConsumerWidget {
       _ => Icons.payment,
     };
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: tx.status == TransactionStatus.failed
-            ? BorderSide(color: PayrollTokens.rose.withValues(alpha: 0.5), width: 1.5)
-            : BorderSide(color: cs.outlineVariant),
-      ),
+    return Material(
+      color: cs.surface,
+      borderRadius: BorderRadius.circular(12),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push(AppRoutes.payrollTransactionDetail(tx.id)),
-        child: Padding(
-        padding: const EdgeInsets.all(14),
+        child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: tx.status == TransactionStatus.failed
+              ? Border.all(color: PayrollTokens.rose.withValues(alpha: 0.5), width: 1.5)
+              : Border.all(color: cs.outlineVariant),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -419,7 +417,7 @@ class _TxCard extends ConsumerWidget {
             ),
           ],
         ),
-      ),
+        ),
       ),
     );
   }

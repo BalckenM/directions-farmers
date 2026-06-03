@@ -1,28 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
+import type { createCalvingEventSchema } from "../../validators/cattle/cattle.validator";
 
 export const cattleCalvingService = {
   listCalvingEvents: (farmOwnerId: string) =>
@@ -36,8 +15,14 @@ export const cattleCalvingService = {
     await cattleRepo.createCalvingEvent({
       id,
       farmOwnerId,
-      cowId: input.cowId,
+      damId: input.damId,
       calvingDate: new Date(input.calvingDate),
+      calvingEase: input.calvingEase,
+      calfAlive: input.calfAlive ? 1 : 0,
+      calfId: input.calfId,
+      calfSex: input.calfSex,
+      calfWeightKg: input.calfWeightKg !== undefined ? String(input.calfWeightKg) : null,
+      complications: input.complications,
       calvesAlive: input.calvesAlive,
       calvesDead: input.calvesDead,
       notes: input.notes,
@@ -46,4 +31,3 @@ export const cattleCalvingService = {
     return cattleRepo.findCalvingEventById(farmOwnerId, id);
   },
 };
-

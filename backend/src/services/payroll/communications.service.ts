@@ -1,30 +1,34 @@
 import { randomUUID } from "crypto";
 import type { z } from "zod";
-import { parsePagination } from "../../lib/pagination";
 import { payrollRepo } from "../../repositories/payroll/payroll.repo";
-import type {
-    createContractSchema,
-    createDeductionRuleSchema,
-    createEmployeeSchema,
-    createGarnisheeOrderSchema,
-    createIncidentSchema,
-    createLeaveRequestSchema,
-    createPayGroupSchema,
-    createPayRunSchema,
-    createPayStructureSchema,
-    createPieceworkLogSchema,
-    sendCommunicationSchema,
-    updateDeductionRuleSchema,
-    updateEmployeeSchema,
-    updateGarnisheeOrderSchema,
-    updateIncidentSchema,
-    updatePayGroupSchema,
-    updatePayStructureSchema,
-} from "../../validators/payroll.validator";
+import type { sendCommunicationSchema } from "../../validators/payroll/payroll.validator";
+
+function mapCommunicationRow(row: Record<string, unknown>): Record<string, unknown> {
+  const toIso = (v: unknown) => v instanceof Date ? v.toISOString() : (v ? String(v) : null);
+  let recipientEmployeeIds: string[] | null = null;
+  if (row.recipientEmployeeIds && typeof row.recipientEmployeeIds === "string") {
+    try { recipientEmployeeIds = JSON.parse(row.recipientEmployeeIds) as string[]; } catch { recipientEmployeeIds = null; }
+  }
+  return {
+    id: row.id,
+    channel: row.channel ?? "",
+    templateCode: row.templateCode ?? null,
+    subject: row.subject ?? null,
+    body: (row.body as string | null) ?? "",
+    recipientEmployeeIds,
+    sentByUserId: row.sentByUserId ?? null,
+    deliveredCount: Number(row.deliveredCount ?? 0),
+    failedCount: Number(row.failedCount ?? 0),
+    sentAt: toIso(row.sentAt) ?? null,
+    createdAt: toIso(row.createdAt),
+  };
+}
 
 export const payrollCommunicationsService = {
   listCommunications: (farmOwnerId: string) =>
-    payrollRepo.listCommunications(farmOwnerId),
+    payrollRepo.listCommunications(farmOwnerId).then((rows) =>
+      (rows as Record<string, unknown>[]).map(mapCommunicationRow),
+    ),
 
   sendCommunication: async (
     farmOwnerId: string,
@@ -35,11 +39,12 @@ export const payrollCommunicationsService = {
     await payrollRepo.createCommunication({
       id,
       farmOwnerId,
-      ...input,
+      channel: "system",
+      body: input.message,
+      subject: input.subject ?? null,
       sentAt: now,
       createdAt: now,
     });
     return id;
   },
 };
-

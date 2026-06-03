@@ -62,15 +62,17 @@ export const payrollContracts = mysqlTable(
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
     employeeId: varchar("employee_id", { length: 36 }).notNull(),
     contractType: varchar("contract_type", { length: 50 }).notNull(),
-    payFrequency: varchar("pay_frequency", { length: 20 }).notNull(),
     baseSalary: decimal("base_salary", { precision: 10, scale: 2 }).notNull(),
     currency: varchar("currency", { length: 3 }).notNull().default("ZAR"),
     startDate: date("start_date").notNull(),
     endDate: date("end_date"),
-    isActive: boolean("is_active").notNull().default(true),
     status: varchar("status", { length: 50 }),
     jobDescription: text("job_description"),
     signedAt: datetime("signed_at"),
+    signedByName: varchar("signed_by_name", { length: 255 }),
+    signatureImageBase64: text("signature_image_base64"),
+    pdfPath: varchar("pdf_path", { length: 500 }),
+    version: int("version").notNull().default(1),
     createdAt: datetime("created_at").notNull(),
     updatedAt: datetime("updated_at").notNull(),
   },
@@ -143,6 +145,26 @@ export const payrollPayRuns = mysqlTable(
       .notNull()
       .default("0"),
     notes: text("notes"),
+    employeeCount: int("employee_count").notNull().default(0),
+    approvedByUserId: varchar("approved_by_user_id", { length: 36 }),
+    approvedAt: datetime("approved_at"),
+    disbursedAt: datetime("disbursed_at"),
+    complianceAlertIds: text("compliance_alert_ids"),
+    lineItems: text("line_items"),
+    sdlContribution: decimal("sdl_contribution", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    etiCredit: decimal("eti_credit", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    totalCoidaContribution: decimal("total_coida_contribution", {
+      precision: 10,
+      scale: 2,
+    })
+      .notNull()
+      .default("0"),
+    approvalChain: text("approval_chain"),
+    requiredApprovers: int("required_approvers").notNull().default(1),
     createdAt: datetime("created_at").notNull(),
     updatedAt: datetime("updated_at").notNull(),
   },
@@ -158,14 +180,38 @@ export const payrollPayslips = mysqlTable(
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
     payRunId: varchar("pay_run_id", { length: 36 }).notNull(),
     employeeId: varchar("employee_id", { length: 36 }).notNull(),
+    periodStart: date("period_start").notNull(),
+    periodEnd: date("period_end").notNull(),
+    payDate: date("pay_date").notNull(),
+    basicWage: decimal("basic_wage", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    overtimePay: decimal("overtime_pay", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    holidayPay: decimal("holiday_pay", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    inKindHousing: decimal("in_kind_housing", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    inKindFood: decimal("in_kind_food", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    otherEarnings: decimal("other_earnings", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
     grossPay: decimal("gross_pay", { precision: 10, scale: 2 }).notNull(),
+    deductions: text("deductions"),
     totalDeductions: decimal("total_deductions", {
       precision: 10,
       scale: 2,
     }).notNull(),
+    leaveBalanceSnapshot: text("leave_balance_snapshot"),
     netPay: decimal("net_pay", { precision: 10, scale: 2 }).notNull(),
+    payslipNumber: varchar("payslip_number", { length: 50 }),
     pdfData: text("pdf_data"),
-    lineItems: text("line_items").notNull(),
+    lineItems: text("line_items"),
     createdAt: datetime("created_at").notNull(),
   },
   (t) => ({
@@ -204,12 +250,18 @@ export const payrollGarnisheeOrders = mysqlTable(
     id: varchar("id", { length: 36 }).primaryKey(),
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
     employeeId: varchar("employee_id", { length: 36 }).notNull(),
-    caseNumber: varchar("case_number", { length: 100 }),
-    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-    creditorName: varchar("creditor_name", { length: 255 }),
-    startDate: date("start_date").notNull(),
-    endDate: date("end_date"),
-    isActive: boolean("is_active").notNull().default(true),
+    courtOrderRef: varchar("court_order_ref", { length: 100 }).notNull(),
+    creditorName: varchar("creditor_name", { length: 255 }).notNull(),
+    status: varchar("status", { length: 20 }).notNull().default("active"),
+    monthlyDeductionAmount: decimal("monthly_deduction_amount", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
+    totalOwed: decimal("total_owed", { precision: 10, scale: 2 }).notNull(),
+    amountDeducted: decimal("amount_deducted", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    satisfiedAt: datetime("satisfied_at"),
     notes: text("notes"),
     createdAt: datetime("created_at").notNull(),
   },
@@ -227,7 +279,7 @@ export const payrollLeaveTypes = mysqlTable(
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
     code: varchar("code", { length: 50 }).notNull().default(""),
     name: varchar("name", { length: 100 }).notNull(),
-    accrualDaysPerYear: decimal("accrual_days_per_year", {
+    annualEntitlementDays: decimal("annual_entitlement_days", {
       precision: 5,
       scale: 2,
     }).notNull(),
@@ -249,9 +301,14 @@ export const payrollLeaveBalances = mysqlTable(
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
     employeeId: varchar("employee_id", { length: 36 }).notNull(),
     leaveTypeId: varchar("leave_type_id", { length: 36 }).notNull(),
-    balance: decimal("balance", { precision: 7, scale: 2 })
+    totalEntitled: decimal("total_entitled", { precision: 7, scale: 2 })
       .notNull()
       .default("0"),
+    taken: decimal("taken", { precision: 7, scale: 2 }).notNull().default("0"),
+    pending: decimal("pending", { precision: 7, scale: 2 })
+      .notNull()
+      .default("0"),
+    asOfDate: date("as_of_date").notNull(),
     updatedAt: datetime("updated_at").notNull(),
   },
   (t) => ({
@@ -276,8 +333,10 @@ export const payrollLeaveRequests = mysqlTable(
     }).notNull(),
     status: varchar("status", { length: 20 }).notNull().default("pending"),
     reason: text("reason"),
-    approvedBy: varchar("approved_by", { length: 36 }),
-    approvedAt: datetime("approved_at"),
+    reviewedByUserId: varchar("reviewed_by_user_id", { length: 36 }),
+    reviewedAt: datetime("reviewed_at"),
+    rejectionReason: text("rejection_reason"),
+    submittedAt: datetime("submitted_at"),
     createdAt: datetime("created_at").notNull(),
     updatedAt: datetime("updated_at").notNull(),
   },
@@ -298,6 +357,15 @@ export const payrollTransactions = mysqlTable(
     type: varchar("type", { length: 50 }).notNull(),
     description: varchar("description", { length: 255 }),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("ZAR"),
+    method: varchar("method", { length: 50 }),
+    status: varchar("status", { length: 20 }).notNull().default("initiated"),
+    reference: varchar("reference", { length: 100 }),
+    bankName: varchar("bank_name", { length: 100 }),
+    accountNumber: varchar("account_number", { length: 50 }),
+    initiatedAt: datetime("initiated_at"),
+    completedAt: datetime("completed_at"),
+    failureReason: text("failure_reason"),
     transactionDate: date("transaction_date").notNull(),
     createdAt: datetime("created_at").notNull(),
   },
@@ -313,11 +381,17 @@ export const payrollComplianceAlerts = mysqlTable(
   {
     id: varchar("id", { length: 36 }).primaryKey(),
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
-    alertType: varchar("alert_type", { length: 50 }).notNull(),
+    code: varchar("code", { length: 50 }).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
     severity: varchar("severity", { length: 20 }).notNull(),
-    message: text("message").notNull(),
+    description: text("description").notNull(),
     isResolved: boolean("is_resolved").notNull().default(false),
+    employeeId: varchar("employee_id", { length: 36 }),
+    payRunId: varchar("pay_run_id", { length: 36 }),
+    resolvedByUserId: varchar("resolved_by_user_id", { length: 36 }),
+    resolution: text("resolution"),
     resolvedAt: datetime("resolved_at"),
+    raisedAt: datetime("raised_at").notNull(),
     createdAt: datetime("created_at").notNull(),
   },
   (t) => ({
@@ -353,8 +427,14 @@ export const payrollIncidents = mysqlTable(
     employeeId: varchar("employee_id", { length: 36 }),
     incidentDate: date("incident_date").notNull(),
     type: varchar("type", { length: 50 }).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
     description: text("description").notNull(),
     status: varchar("status", { length: 20 }).notNull().default("open"),
+    actionTaken: text("action_taken"),
+    resolvedAt: datetime("resolved_at"),
+    resolvedByUserId: varchar("resolved_by_user_id", { length: 36 }),
+    documentPaths: text("document_paths"),
+    reportedByUserId: varchar("reported_by_user_id", { length: 36 }),
     createdAt: datetime("created_at").notNull(),
     updatedAt: datetime("updated_at").notNull(),
   },
@@ -368,9 +448,14 @@ export const payrollCommunications = mysqlTable(
   {
     id: varchar("id", { length: 36 }).primaryKey(),
     farmOwnerId: varchar("farm_owner_id", { length: 36 }).notNull(),
-    employeeId: varchar("employee_id", { length: 36 }),
-    subject: varchar("subject", { length: 255 }).notNull(),
-    message: text("message").notNull(),
+    channel: varchar("channel", { length: 50 }).notNull(),
+    templateCode: varchar("template_code", { length: 50 }),
+    subject: varchar("subject", { length: 255 }),
+    body: text("body").notNull(),
+    recipientEmployeeIds: text("recipient_employee_ids"),
+    sentByUserId: varchar("sent_by_user_id", { length: 36 }),
+    deliveredCount: int("delivered_count").notNull().default(0),
+    failedCount: int("failed_count").notNull().default(0),
     sentAt: datetime("sent_at"),
     createdAt: datetime("created_at").notNull(),
   },

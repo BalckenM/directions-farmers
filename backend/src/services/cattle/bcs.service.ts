@@ -1,29 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
-
+import type { createBcsRecordSchema } from "../../validators/cattle/cattle.validator";
 import { cattleService } from "./cattle.service";
 
 export const cattleBcsService = {
@@ -34,18 +12,18 @@ export const cattleBcsService = {
     farmOwnerId: string,
     input: z.infer<typeof createBcsRecordSchema>,
   ) => {
-    await cattleService.getAnimal(farmOwnerId, input.cattleId);
+    await cattleService.getAnimal(farmOwnerId, input.animalId);
     const id = randomUUID();
     await cattleRepo.createBcsRecord({
       id,
       farmOwnerId,
-      cattleId: input.cattleId,
+      animalId: input.animalId,
       score: String(input.score),
-      recordDate: new Date(input.recordDate),
+      date: new Date(input.date),
+      assessedBy: input.assessedBy,
       notes: input.notes,
       createdAt: new Date(),
     });
     return cattleRepo.findBcsRecordById(farmOwnerId, id);
   },
 };
-

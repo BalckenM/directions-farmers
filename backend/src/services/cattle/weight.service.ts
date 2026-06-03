@@ -1,29 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
-
+import type { createWeightRecordSchema } from "../../validators/cattle/cattle.validator";
 import { cattleService } from "./cattle.service";
 
 export const cattleWeightService = {
@@ -34,14 +12,15 @@ export const cattleWeightService = {
     farmOwnerId: string,
     input: z.infer<typeof createWeightRecordSchema>,
   ) => {
-    await cattleService.getAnimal(farmOwnerId, input.cattleId);
+    await cattleService.getAnimal(farmOwnerId, input.animalId);
     const id = randomUUID();
     await cattleRepo.createWeightRecord({
       id,
       farmOwnerId,
-      cattleId: input.cattleId,
+      animalId: input.animalId,
       weightKg: String(input.weightKg),
-      recordedAt: new Date(input.recordDate),
+      date: new Date(input.date),
+      bodyConditionScore: input.bodyConditionScore !== undefined ? String(input.bodyConditionScore) : null,
       notes: input.notes,
       createdAt: new Date(),
     });
@@ -52,4 +31,3 @@ export const cattleWeightService = {
     await cattleRepo.deleteWeightRecord(farmOwnerId, id);
   },
 };
-

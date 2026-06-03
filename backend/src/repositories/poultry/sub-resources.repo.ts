@@ -94,6 +94,22 @@ export const poultryEnvironmentReadingsRepo = {
   create: (data: any) => db.insert(poultryEnvironmentReadings).values(data),
 };
 
+function mapInventoryRow(row: typeof poultryInventory.$inferSelect) {
+  return {
+    id: row.id,
+    farm_id: row.farmOwnerId,
+    name: row.itemName,
+    category: row.category,
+    unit: row.unit,
+    current_stock: Number(row.quantity),
+    min_threshold: Number(row.minThreshold),
+    price_per_unit: Number(row.pricePerUnit),
+    last_delivery_date: row.lastDeliveryDate ?? null,
+    supplier_id: row.supplierId ?? null,
+    notes: row.notes ?? null,
+  };
+}
+
 export const poultryInventoryRepo = {
   list: async (farmOwnerId: string, offset: number, limit: number) => {
     const [rows, total] = await Promise.all([
@@ -110,7 +126,7 @@ export const poultryInventoryRepo = {
         .where(eq(poultryInventory.farmOwnerId, farmOwnerId))
         .then((r) => r[0]?.count ?? 0),
     ]);
-    return { rows, total };
+    return { rows: rows.map(mapInventoryRow), total };
   },
   create: (data: any) => db.insert(poultryInventory).values(data),
 };

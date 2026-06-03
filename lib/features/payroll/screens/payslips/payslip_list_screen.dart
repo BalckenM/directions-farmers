@@ -84,13 +84,6 @@ class _PayslipCard extends StatelessWidget {
           color: cs.surface,
           borderRadius: AppRadius.card,
           border: Border.all(color: cs.outlineVariant),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: IntrinsicHeight(
           child: Row(

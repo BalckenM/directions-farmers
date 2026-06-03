@@ -7,8 +7,12 @@
       "type": "dart",
       "program": "lib/main.dart",
       "args": [
-        "-d", "chrome",
-        "--web-renderer", "canvaskit"
+        "-d",
+        "chrome",
+        "--web-renderer",
+        "canvaskit",
+        "--web-port",
+        "8080"
       ],
       "flutterMode": "debug"
     },
@@ -17,6 +21,7 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
+      "args": ["--dart-define", "API_BASE_URL=http://10.0.2.2:3000/v1"],
       "flutterMode": "debug"
     },
     {
@@ -32,7 +37,7 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "args": ["-d", "chrome"],
+      "args": ["-d", "chrome", "--web-port", "8080"],
       "flutterMode": "profile"
     },
     {
@@ -40,7 +45,7 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "args": ["-d", "chrome"],
+      "args": ["-d", "chrome", "--web-port", "8080"],
       "flutterMode": "release"
     }
   ],

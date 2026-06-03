@@ -4,7 +4,7 @@ import { cattleRepo } from "../../repositories/cattle/cattle.repo";
 import type {
   createCattleSchema,
   updateCattleSchema,
-} from "../../validators/cattle.validator";
+} from "../../validators/cattle/cattle.validator";
 
 import { cattleService } from "./cattle.service";
 

@@ -16,6 +16,8 @@ export const createEmployeeSchema = z
     bankAccountNumber: z.string().max(50).optional(),
     bankBranchCode: z.string().max(20).optional(),
     startDate: z.string().date(),
+    endDate: z.string().date().optional(),
+    isActive: z.boolean().optional(),
     notes: z.string().max(2000).optional(),
   })
   .strict();
@@ -72,6 +74,7 @@ export const createPayGroupSchema = z
     name: z.string().min(1).max(100),
     payFrequency: z.enum(["weekly", "bi_weekly", "monthly"]),
     payDay: z.number().int().min(1).max(31).optional(),
+    isActive: z.boolean().optional(),
     notes: z.string().max(500).optional(),
   })
   .strict();
@@ -157,7 +160,9 @@ export const createTaskAssignmentSchema = z
     taskName: z.string().min(1).max(255),
     assignedDate: z.string().date(),
     dueDate: z.string().date().optional(),
-    status: z.enum(["assigned", "in_progress", "completed", "cancelled"]).optional(),
+    status: z
+      .enum(["assigned", "in_progress", "completed", "cancelled"])
+      .optional(),
     priority: z.enum(["low", "normal", "high", "urgent"]).optional(),
     notes: z.string().max(2000).optional(),
   })
@@ -178,7 +183,8 @@ export const createAttendanceRecordSchema = z
   })
   .strict();
 
-export const updateAttendanceRecordSchema = createAttendanceRecordSchema.partial();
+export const updateAttendanceRecordSchema =
+  createAttendanceRecordSchema.partial();
 
 // ── Employer Config ───────────────────────────────────────────────────────────
 export const upsertEmployerConfigSchema = z

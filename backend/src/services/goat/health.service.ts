@@ -1,30 +1,10 @@
 import { randomUUID } from "crypto";
 import type { z } from "zod";
-import { parsePagination } from "../../lib/pagination";
 import { goatRepo } from "../../repositories/goat/goat.repo";
 import type {
-  CreateGoatInput,
-  UpdateGoatInput,
-  createBcsRecordSchema,
-  createDailyMilkSchema,
-  createFamachaRecordSchema,
-  createFeedRecordSchema,
-  createHealthEventSchema,
-  createKiddingEventSchema,
-  createMatingSchema,
-  createMedicationLogSchema,
-  createPastureRecordSchema,
-  createPregnancyCheckSchema,
-  createSaleRecordSchema,
-  createShearingRecordSchema,
-  createVaccinationSchema,
-  createWeightRecordSchema,
-  exitPastureSchema,
-  markVaccinationGivenSchema,
-  updateHealthEventSchema,
-  updateMatingSchema,
-  updateSaleRecordSchema,
-} from "../../validators/goat.validator";
+    createHealthEventSchema,
+    updateHealthEventSchema,
+} from "../../validators/goat/goat.validator";
 
 function notFound(): never {
   throw Object.assign(new Error("Not found"), {
@@ -33,11 +13,6 @@ function notFound(): never {
   });
 }
 
-// Post-process kidding event rows
-function mapKidding(raw: Awaited<ReturnType<typeof goatRepo.findKiddingEventById>>) {
-  if (!raw) return null;
-  return { ...raw };
-}
 
 export const goatHealthService = {
   listHealthEvents: (farmOwnerId: string) =>
@@ -51,9 +26,9 @@ export const goatHealthService = {
     await goatRepo.createHealthEvent({
       id,
       farmOwnerId,
-      goatId: input.animalId,           // Flutter: animalId → DB: goatId
-      eventDate: input.date,            // Flutter: date → DB: eventDate
-      eventType: input.condition,       // Flutter: condition → DB: eventType
+      goatId: input.animalId, // Flutter: animalId → DB: goatId
+      eventDate: input.date, // Flutter: date → DB: eventDate
+      eventType: input.condition, // Flutter: condition → DB: eventType
       severity: input.severity ?? null,
       treatment: input.treatment ?? null,
       vet: input.vet ?? null,
@@ -83,4 +58,3 @@ export const goatHealthService = {
     return goatRepo.findHealthEventById(farmOwnerId, id);
   },
 };
-

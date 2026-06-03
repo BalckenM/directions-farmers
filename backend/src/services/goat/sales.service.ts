@@ -1,30 +1,10 @@
 import { randomUUID } from "crypto";
 import type { z } from "zod";
-import { parsePagination } from "../../lib/pagination";
 import { goatRepo } from "../../repositories/goat/goat.repo";
 import type {
-  CreateGoatInput,
-  UpdateGoatInput,
-  createBcsRecordSchema,
-  createDailyMilkSchema,
-  createFamachaRecordSchema,
-  createFeedRecordSchema,
-  createHealthEventSchema,
-  createKiddingEventSchema,
-  createMatingSchema,
-  createMedicationLogSchema,
-  createPastureRecordSchema,
-  createPregnancyCheckSchema,
-  createSaleRecordSchema,
-  createShearingRecordSchema,
-  createVaccinationSchema,
-  createWeightRecordSchema,
-  exitPastureSchema,
-  markVaccinationGivenSchema,
-  updateHealthEventSchema,
-  updateMatingSchema,
-  updateSaleRecordSchema,
-} from "../../validators/goat.validator";
+    createSaleRecordSchema,
+    updateSaleRecordSchema,
+} from "../../validators/goat/goat.validator";
 
 function notFound(): never {
   throw Object.assign(new Error("Not found"), {
@@ -33,11 +13,6 @@ function notFound(): never {
   });
 }
 
-// Post-process kidding event rows
-function mapKidding(raw: Awaited<ReturnType<typeof goatRepo.findKiddingEventById>>) {
-  if (!raw) return null;
-  return { ...raw };
-}
 
 export const goatSalesService = {
   listSaleRecords: (farmOwnerId: string) =>
@@ -51,7 +26,7 @@ export const goatSalesService = {
     await goatRepo.createSaleRecord({
       id,
       farmOwnerId,
-      goatId: input.animalId,              // Flutter: animalId → DB: goatId
+      goatId: input.animalId, // Flutter: animalId → DB: goatId
       saleDate: input.saleDate,
       buyerName: input.buyerName ?? null,
       saleWeightKg: input.saleWeightKg ?? null,
@@ -77,7 +52,8 @@ export const goatSalesService = {
     if (input.saleWeightKg !== undefined)
       patch["saleWeightKg"] = input.saleWeightKg;
     if (input.pricePerKg !== undefined) patch["pricePerKg"] = input.pricePerKg;
-    if (input.totalRevenue !== undefined) patch["salePrice"] = input.totalRevenue;
+    if (input.totalRevenue !== undefined)
+      patch["salePrice"] = input.totalRevenue;
     if (input.invoiceRef !== undefined) patch["invoiceRef"] = input.invoiceRef;
     if (input.notes !== undefined) patch["notes"] = input.notes;
     await goatRepo.updateSaleRecord(farmOwnerId, id, patch);
@@ -88,4 +64,3 @@ export const goatSalesService = {
     await goatRepo.deleteSaleRecord(farmOwnerId, id);
   },
 };
-

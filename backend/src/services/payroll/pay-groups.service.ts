@@ -1,30 +1,30 @@
 import { randomUUID } from "crypto";
 import type { z } from "zod";
-import { parsePagination } from "../../lib/pagination";
 import { payrollRepo } from "../../repositories/payroll/payroll.repo";
 import type {
-    createContractSchema,
-    createDeductionRuleSchema,
-    createEmployeeSchema,
-    createGarnisheeOrderSchema,
-    createIncidentSchema,
-    createLeaveRequestSchema,
-    createPayGroupSchema,
-    createPayRunSchema,
-    createPayStructureSchema,
-    createPieceworkLogSchema,
-    sendCommunicationSchema,
-    updateDeductionRuleSchema,
-    updateEmployeeSchema,
-    updateGarnisheeOrderSchema,
-    updateIncidentSchema,
-    updatePayGroupSchema,
-    updatePayStructureSchema,
-} from "../../validators/payroll.validator";
+  createPayGroupSchema,
+  updatePayGroupSchema,
+} from "../../validators/payroll/payroll.validator";
+
+function mapPayGroupRow(row: Record<string, unknown>): Record<string, unknown> {
+  const toIso = (v: unknown) =>
+    v instanceof Date ? v.toISOString() : v ? String(v) : null;
+  return {
+    id: row.id,
+    name: row.name,
+    frequency: row.payFrequency ?? "monthly",
+    payDayOffset: Number(row.payDay ?? 25),
+    description: row.description ?? null,
+    isActive: Boolean(row.isActive),
+    createdAt: toIso(row.createdAt),
+  };
+}
 
 export const payrollPayGroupsService = {
   listPayGroups: (farmOwnerId: string) =>
-    payrollRepo.listPayGroups(farmOwnerId),
+    payrollRepo
+      .listPayGroups(farmOwnerId)
+      .then((rows) => (rows as Record<string, unknown>[]).map(mapPayGroupRow)),
 
   createPayGroup: async (
     farmOwnerId: string,
@@ -48,4 +48,3 @@ export const payrollPayGroupsService = {
     await payrollRepo.updatePayGroup(farmOwnerId, id, input);
   },
 };
-

@@ -1,29 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
-
+import type { createMedicationLogSchema } from "../../validators/cattle/cattle.validator";
 import { cattleService } from "./cattle.service";
 
 export const cattleMedicationsService = {
@@ -34,15 +12,19 @@ export const cattleMedicationsService = {
     farmOwnerId: string,
     input: z.infer<typeof createMedicationLogSchema>,
   ) => {
-    await cattleService.getAnimal(farmOwnerId, input.cattleId);
+    await cattleService.getAnimal(farmOwnerId, input.animalId);
     const id = randomUUID();
     await cattleRepo.createMedicationLog({
       id,
       farmOwnerId,
-      cattleId: input.cattleId,
+      animalId: input.animalId,
       medicationName: input.medicationName,
-      dosage: input.dosage,
-      administeredAt: new Date(input.administeredAt),
+      doseMg: input.doseMg !== undefined ? String(input.doseMg) : null,
+      date: new Date(input.date),
+      route: input.route,
+      withdrawalDaysMeat: input.withdrawalDaysMeat,
+      withdrawalDaysMilk: input.withdrawalDaysMilk,
+      veterinarianApproved: input.veterinarianApproved ? 1 : 0,
       administeredBy: input.administeredBy,
       notes: input.notes,
       createdAt: new Date(),
@@ -50,4 +32,3 @@ export const cattleMedicationsService = {
     return cattleRepo.findMedicationLogById(farmOwnerId, id);
   },
 };
-

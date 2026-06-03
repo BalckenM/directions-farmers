@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendList, sendNoContent, sendOne } from "../../lib/response";
+import { sendOne } from "../../lib/response";
 import { goatService } from "../../services/goat/goat.service";
 
 export const goatShearingController = {

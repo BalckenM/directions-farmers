@@ -101,79 +101,85 @@ class _AttendanceLogScreenState extends ConsumerState<AttendanceLogScreen> {
               horizontal: AppSpacing.md,
               vertical: AppSpacing.sm,
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 3,
-                  child: FarmDropdown<String?>(
-                    label: 'Employee',
-                    value: _selectedEmployeeId,
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text('All'),
-                      ),
-                      ...employees.map(
-                        (e) => DropdownMenuItem<String?>(
-                          value: e.id,
-                          child: Text(
-                            e.fullName,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                // Row 1 — employee
+                FarmDropdown<String?>(
+                  label: 'Employee',
+                  value: _selectedEmployeeId,
+                  items: [
+                    const DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text('All employees'),
+                    ),
+                    ...employees.map(
+                      (e) => DropdownMenuItem<String?>(
+                        value: e.id,
+                        child: Text(
+                          e.fullName,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedEmployeeId = v),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _DateBtn(
-                  label: _fromDate != null ? _df.format(_fromDate!) : 'From',
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: context,
-                      initialDate: _fromDate ?? DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                    );
-                    if (d != null) setState(() => _fromDate = d);
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                  ),
-                  child: Text(
-                    '�',
-                    style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                  ),
-                ),
-                _DateBtn(
-                  label: _toDate != null ? _df.format(_toDate!) : 'To',
-                  onTap: () async {
-                    final d = await showDatePicker(
-                      context: context,
-                      initialDate: _toDate ?? DateTime.now(),
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                    );
-                    if (d != null) setState(() => _toDate = d);
-                  },
-                ),
-                if (_fromDate != null ||
-                    _toDate != null ||
-                    _selectedEmployeeId != null)
-                  IconButton(
-                    icon: Icon(
-                      Icons.clear_rounded,
-                      size: 18,
-                      color: cs.onSurfaceVariant,
                     ),
-                    tooltip: 'Clear filters',
-                    onPressed: () => setState(() {
-                      _fromDate = _toDate = _selectedEmployeeId = null;
-                    }),
-                  ),
+                  ],
+                  onChanged: (v) => setState(() => _selectedEmployeeId = v),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                // Row 2 — date range
+                Row(
+                  children: [
+                    Expanded(
+                      child: _DateBtn(
+                        label: _fromDate != null
+                            ? 'From  ${_df.format(_fromDate!)}'
+                            : 'From date',
+                        icon: Icons.calendar_today_outlined,
+                        active: _fromDate != null,
+                        onTap: () async {
+                          final d = await showDatePicker(
+                            context: context,
+                            initialDate: _fromDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (d != null) setState(() => _fromDate = d);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: _DateBtn(
+                        label: _toDate != null
+                            ? 'To  ${_df.format(_toDate!)}'
+                            : 'To date',
+                        icon: Icons.event_outlined,
+                        active: _toDate != null,
+                        onTap: () async {
+                          final d = await showDatePicker(
+                            context: context,
+                            initialDate: _toDate ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (d != null) setState(() => _toDate = d);
+                        },
+                      ),
+                    ),
+                    if (_fromDate != null ||
+                        _toDate != null ||
+                        _selectedEmployeeId != null) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18),
+                        tooltip: 'Clear filters',
+                        onPressed: () => setState(() {
+                          _fromDate = _toDate = _selectedEmployeeId = null;
+                        }),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),
@@ -262,7 +268,7 @@ class _RecordTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: 3,
+        vertical: AppSpacing.sm,
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -296,8 +302,8 @@ class _RecordTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${r.clockInTime ?? '�'} ? ${r.clockOutTime ?? '�'}'
-                    '${r.hoursWorked != null ? '  �  ${r.hoursWorked!.toStringAsFixed(1)} hrs' : ''}',
+                    '${r.clockInTime ?? '--'} \u2192 ${r.clockOutTime ?? '--'}'
+                    '${r.hoursWorked != null ? '  \u00b7  ${r.hoursWorked!.toStringAsFixed(1)} hrs' : ''}',
                     style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ],
@@ -446,21 +452,20 @@ class _ExceptionSheetState extends ConsumerState<_ExceptionSheet> {
             label: 'Exception Type',
             value: _status,
             prefixIcon: const Icon(Icons.flag_outlined),
-            items:
-                [
-                      AttendanceStatus.absent,
-                      AttendanceStatus.late,
-                      AttendanceStatus.halfDay,
-                      AttendanceStatus.onLeave,
-                      AttendanceStatus.publicHoliday,
-                    ]
-                    .map(
-                      (s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(_statusLabel(s)),
-                      ),
-                    )
-                    .toList(),
+            items: [
+              AttendanceStatus.absent,
+              AttendanceStatus.late,
+              AttendanceStatus.halfDay,
+              AttendanceStatus.onLeave,
+              AttendanceStatus.publicHoliday,
+            ]
+                .map(
+                  (s) => DropdownMenuItem(
+                    value: s,
+                    child: Text(_statusLabel(s)),
+                  ),
+                )
+                .toList(),
             onChanged: (v) => setState(() => _status = v!),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -499,27 +504,54 @@ class _ExceptionSheetState extends ConsumerState<_ExceptionSheet> {
 // --- Date filter button -------------------------------------------------------
 
 class _DateBtn extends StatelessWidget {
-  const _DateBtn({required this.label, required this.onTap});
+  const _DateBtn({
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.active = false,
+  });
   final String label;
   final VoidCallback onTap;
+  final IconData? icon;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final borderColor = active ? cs.primary : cs.outline;
+    final textColor = active ? cs.primary : cs.onSurfaceVariant;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm,
-          vertical: 6,
+          vertical: 8,
         ),
         decoration: BoxDecoration(
-          border: Border.all(color: cs.outline),
+          color: active ? cs.primary.withValues(alpha: 0.08) : null,
+          border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 14, color: textColor),
+              const SizedBox(width: 4),
+            ],
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: textColor,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );

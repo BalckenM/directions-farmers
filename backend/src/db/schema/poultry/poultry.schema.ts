@@ -208,6 +208,14 @@ export const poultryInventory = mysqlTable(
     category: varchar("category", { length: 50 }).notNull(),
     quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
     unit: varchar("unit", { length: 20 }).notNull(),
+    minThreshold: decimal("min_threshold", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    pricePerUnit: decimal("price_per_unit", { precision: 10, scale: 4 })
+      .notNull()
+      .default("0"),
+    lastDeliveryDate: varchar("last_delivery_date", { length: 20 }),
+    supplierId: varchar("supplier_id", { length: 36 }),
     notes: text("notes"),
     updatedAt: datetime("updated_at").notNull(),
     createdAt: datetime("created_at").notNull(),

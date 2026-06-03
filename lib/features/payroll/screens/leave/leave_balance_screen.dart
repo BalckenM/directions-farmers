@@ -97,13 +97,6 @@ class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
                             color: cs.surface,
                             borderRadius: AppRadius.card,
                             border: Border.all(color: cs.outlineVariant),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,15 +278,25 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             value.toStringAsFixed(1),
-            style: tt.bodyMedium?.copyWith(
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-                color: color),
+            style: tt.labelLarge?.copyWith(
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+              color: color ?? cs.onSurface,
+            ),
           ),
-          Text(label,
-              style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: tt.labelSmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontSize: 10,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

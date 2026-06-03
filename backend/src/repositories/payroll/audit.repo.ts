@@ -1,24 +1,6 @@
-import { and, count, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../config/database";
-import {
-    payrollAuditLog,
-    payrollCommunications,
-    payrollComplianceAlerts,
-    payrollContracts,
-    payrollDeductionRules,
-    payrollEmployees,
-    payrollGarnisheeOrders,
-    payrollIncidents,
-    payrollLeaveBalances,
-    payrollLeaveRequests,
-    payrollLeaveTypes,
-    payrollPayGroups,
-    payrollPayRuns,
-    payrollPayslips,
-    payrollPayStructures,
-    payrollPieceworkLogs,
-    payrollTransactions,
-} from "../../db/schema";
+import { payrollAuditLog, payrollIncidents } from "../../db/schema";
 
 export const payrollAuditRepo = {
   listAuditLog: (farmOwnerId: string) =>

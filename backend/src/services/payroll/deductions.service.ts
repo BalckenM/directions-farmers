@@ -1,30 +1,51 @@
 import { randomUUID } from "crypto";
 import type { z } from "zod";
-import { parsePagination } from "../../lib/pagination";
 import { payrollRepo } from "../../repositories/payroll/payroll.repo";
 import type {
-    createContractSchema,
-    createDeductionRuleSchema,
-    createEmployeeSchema,
-    createGarnisheeOrderSchema,
-    createIncidentSchema,
-    createLeaveRequestSchema,
-    createPayGroupSchema,
-    createPayRunSchema,
-    createPayStructureSchema,
-    createPieceworkLogSchema,
-    sendCommunicationSchema,
-    updateDeductionRuleSchema,
-    updateEmployeeSchema,
-    updateGarnisheeOrderSchema,
-    updateIncidentSchema,
-    updatePayGroupSchema,
-    updatePayStructureSchema,
-} from "../../validators/payroll.validator";
+  createDeductionRuleSchema,
+  updateDeductionRuleSchema,
+} from "../../validators/payroll/payroll.validator";
+
+function mapDeductionRow(
+  row: Record<string, unknown>,
+): Record<string, unknown> {
+  const toIso = (v: unknown) =>
+    v instanceof Date ? v.toISOString() : v ? String(v) : null;
+  let employeeIds: string[] | null = null;
+  if (row.employeeIds && typeof row.employeeIds === "string") {
+    try {
+      employeeIds = JSON.parse(row.employeeIds) as string[];
+    } catch {
+      employeeIds = null;
+    }
+  }
+  const basisMap: Record<string, string> = {
+    percentage: "percentage",
+    fixed: "fixedAmount",
+    fixed_amount: "fixedAmount",
+    fixedAmount: "fixedAmount",
+  };
+  return {
+    id: row.id,
+    code: row.code ?? "",
+    label: row.name,
+    type: row.type,
+    basis: basisMap[row.calculationMethod as string] ?? "fixedAmount",
+    value: parseFloat(String(row.value ?? 0)),
+    cappedAt: row.cappedAt != null ? parseFloat(String(row.cappedAt)) : null,
+    employeeIds,
+    isActive: row.isActive ?? true,
+    createdAt: toIso(row.createdAt),
+  };
+}
 
 export const payrollDeductionsService = {
   listDeductionRules: (farmOwnerId: string) =>
-    payrollRepo.listDeductionRules(farmOwnerId),
+    payrollRepo
+      .listDeductionRules(farmOwnerId)
+      .then((rows) =>
+        rows.map((r) => mapDeductionRow(r as Record<string, unknown>)),
+      ),
 
   createDeductionRule: async (
     farmOwnerId: string,
@@ -35,6 +56,7 @@ export const payrollDeductionsService = {
       id,
       farmOwnerId,
       ...input,
+      value: String(input.value),
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -47,11 +69,13 @@ export const payrollDeductionsService = {
     id: string,
     input: z.infer<typeof updateDeductionRuleSchema>,
   ) => {
-    await payrollRepo.updateDeductionRule(farmOwnerId, id, input);
+    await payrollRepo.updateDeductionRule(farmOwnerId, id, {
+      ...input,
+      value: input.value !== undefined ? String(input.value) : undefined,
+    });
   },
 
   deactivateDeductionRule: async (farmOwnerId: string, id: string) => {
     await payrollRepo.deactivateDeductionRule(farmOwnerId, id);
   },
 };
-

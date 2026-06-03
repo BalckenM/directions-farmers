@@ -1,28 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
+import type { createPregnancyCheckSchema } from "../../validators/cattle/cattle.validator";
 
 export const cattlePregnancyService = {
   listPregnancyChecks: (farmOwnerId: string) =>
@@ -36,9 +15,12 @@ export const cattlePregnancyService = {
     await cattleRepo.createPregnancyCheck({
       id,
       farmOwnerId,
-      cattleId: input.cattleId,
-      checkDate: new Date(input.checkDate),
-      result: input.result,
+      animalId: input.animalId,
+      date: new Date(input.date),
+      status: input.status,
+      method: input.method,
+      dayspregnant: input.dayspregnant,
+      checkedBy: input.checkedBy,
       expectedCalvingDate: input.expectedCalvingDate ? new Date(input.expectedCalvingDate) : null,
       notes: input.notes,
       createdAt: new Date(),
@@ -46,4 +28,3 @@ export const cattlePregnancyService = {
     return cattleRepo.findPregnancyCheckById(farmOwnerId, id);
   },
 };
-

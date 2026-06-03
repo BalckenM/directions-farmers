@@ -90,7 +90,6 @@ class PayrollHubScreen extends ConsumerWidget {
         children: [
           // ── Zone 1: Hero ─────────────────────────────────────────────────────
           _PeriodHeader(payRun: stats.latestPayRun),
-          _FinancialMetrics(payRun: stats.latestPayRun),
 
           // ── Zone 2: Primary workflow actions ─────────────────────────────────
           _PrimaryActions(
@@ -142,9 +141,12 @@ class _PeriodHeader extends StatelessWidget {
     final period = payRun == null
         ? 'No active pay run'
         : '${_mFmt.format(payRun!.periodStart)} – ${_mFmt.format(payRun!.periodEnd)}';
-    final due = payRun == null
-        ? ''
-        : 'Pay date  ${_mFmt.format(payRun!.payDate)}';
+    final due = payRun == null ? '' : _mFmt.format(payRun!.payDate);
+
+    final net        = payRun?.totalNet ?? 0;
+    final gross      = payRun?.totalGross ?? 0;
+    final deductions = payRun?.totalDeductions ?? 0;
+    final empCount   = payRun?.employeeCount ?? 0;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -161,45 +163,20 @@ class _PeriodHeader extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'PAY PERIOD',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white.withAlpha(170),
-              letterSpacing: 1.4,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            period,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 10),
+          // ── Top row: label + status chip ────────────────────────────────
           Row(
             children: [
-              if (due.isNotEmpty)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.event_outlined,
-                      size: 13,
-                      color: Colors.white.withAlpha(160),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      due,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withAlpha(160),
-                      ),
-                    ),
-                  ],
+              Text(
+                'NET PAY',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: Colors.white.withAlpha(170),
+                  letterSpacing: 1.6,
                 ),
+              ),
               const Spacer(),
               if (payRun != null)
                 StatusChip(
@@ -208,119 +185,85 @@ class _PeriodHeader extends StatelessWidget {
                 ),
             ],
           ),
+          const SizedBox(height: 6),
+
+          // ── Hero number ─────────────────────────────────────────────────
+          Text(
+            payRun == null ? '—' : _zar.format(net),
+            style: theme.textTheme.displaySmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              height: 1.1,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // ── Period + pay date ────────────────────────────────────────────
+          Text(
+            period,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.white.withAlpha(175),
+            ),
+          ),
+          if (due.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(Icons.event_outlined, size: 11, color: Colors.white.withAlpha(130)),
+                const SizedBox(width: 4),
+                Text(
+                  'Pay date  $due',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white.withAlpha(130),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          const Divider(color: Colors.white24, height: 22),
+
+          // ── Stats row: Gross · Deductions · Employees ────────────────────
+          Row(
+            children: [
+              _HeroStat(label: 'Gross', value: _zar.format(gross)),
+              _HeroStatDivider(),
+              _HeroStat(label: 'Deductions', value: _zar.format(deductions)),
+              _HeroStatDivider(),
+              _HeroStat(label: 'Employees', value: '$empCount'),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-// ─── 2. Financial Metrics ─────────────────────────────────────────────────────
-
-class _FinancialMetrics extends StatelessWidget {
-  const _FinancialMetrics({this.payRun});
-  final PayRun? payRun;
-
-  @override
-  Widget build(BuildContext context) {
-    final gross = payRun?.totalGross ?? 0;
-    final net = payRun?.totalNet ?? 0;
-    final deductions = payRun?.totalDeductions ?? 0;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: _MetricCard(
-              label: 'Gross Pay',
-              value: _zar.format(gross),
-              icon: Icons.account_balance_wallet_outlined,
-              accentColor: _C.teal,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _MetricCard(
-              label: 'Net Pay',
-              value: _zar.format(net),
-              icon: Icons.payments_outlined,
-              accentColor: _C.indigo,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _MetricCard(
-              label: 'Deductions',
-              value: _zar.format(deductions),
-              icon: Icons.remove_circle_outline,
-              accentColor: _C.rose,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.accentColor,
-  });
-
+class _HeroStat extends StatelessWidget {
+  const _HeroStat({required this.label, required this.value});
   final String label;
   final String value;
-  final IconData icon;
-  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cs.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+    return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: accentColor.withAlpha(22),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 18, color: accentColor),
-          ),
-          const SizedBox(height: 10),
           Text(
             value,
             style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: cs.onSurface,
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
             ),
-            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: cs.onSurfaceVariant,
+              color: Colors.white.withAlpha(140),
             ),
           ),
         ],
@@ -329,7 +272,18 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-// ─── 2.5. Primary Actions Row ─────────────────────────────────────────────────
+class _HeroStatDivider extends StatelessWidget {
+  const _HeroStatDivider();
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 1,
+    height: 28,
+    margin: const EdgeInsets.symmetric(horizontal: 12),
+    color: Colors.white.withAlpha(40),
+  );
+}
+
+// ─── 2. Primary Actions Row ───────────────────────────────────────────────────
 
 class _PrimaryActions extends StatelessWidget {
   const _PrimaryActions({
@@ -484,7 +438,7 @@ class _PrimaryActionBtn extends StatelessWidget {
   }
 }
 
-// ─── 3. Pay Spend Trend Chart ────────────────────────────────────────────────
+// ─── 3. Pay Spend Trend Chart ─────────────────────────────────────────────────
 
 typedef _TrendPoint = ({String label, double gross, double net, bool isReal});
 
@@ -494,22 +448,14 @@ class _PayTrendSection extends StatelessWidget {
 
   List<_TrendPoint> _buildData() {
     final data = <_TrendPoint>[];
-    final base = payRuns.isNotEmpty
-        ? payRuns.first.periodStart
-        : DateTime.now();
-
-    // Three synthetic preceding months for visual context
+    final base = payRuns.isNotEmpty ? payRuns.first.periodStart : DateTime.now();
     const variance = [3100.0, 1800.0, 900.0];
     for (var i = 3; i >= 1; i--) {
       final dt = DateTime(base.year, base.month - i);
       data.add((
         label: DateFormat('MMM').format(dt),
-        gross: payRuns.isNotEmpty
-            ? payRuns.first.totalGross - variance[3 - i]
-            : 28000.0,
-        net: payRuns.isNotEmpty
-            ? payRuns.first.totalNet - variance[3 - i] * 0.85
-            : 24800.0,
+        gross: payRuns.isNotEmpty ? payRuns.first.totalGross - variance[3 - i] : 28000.0,
+        net: payRuns.isNotEmpty ? payRuns.first.totalNet - variance[3 - i] * 0.85 : 24800.0,
         isReal: false,
       ));
     }
@@ -529,7 +475,6 @@ class _PayTrendSection extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final data = _buildData();
-
     final maxRaw = data.fold<double>(0, (m, e) => math.max(m, e.gross));
     final maxY = (maxRaw / 1000 * 1.25).ceilToDouble();
 
@@ -561,12 +506,8 @@ class _PayTrendSection extends StatelessWidget {
                 ),
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -574,9 +515,7 @@ class _PayTrendSection extends StatelessWidget {
                       getTitlesWidget: (v, _) => Text(
                         'R${v.toInt()}k',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
+                          color: cs.onSurfaceVariant, fontSize: 11),
                       ),
                     ),
                   ),
@@ -586,9 +525,7 @@ class _PayTrendSection extends StatelessWidget {
                       reservedSize: 26,
                       getTitlesWidget: (v, _) {
                         final i = v.toInt();
-                        if (i < 0 || i >= data.length) {
-                          return const SizedBox.shrink();
-                        }
+                        if (i < 0 || i >= data.length) return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
@@ -597,9 +534,7 @@ class _PayTrendSection extends StatelessWidget {
                               color: data[i].isReal
                                   ? cs.onSurface
                                   : cs.onSurfaceVariant.withAlpha(100),
-                              fontWeight: data[i].isReal
-                                  ? FontWeight.w700
-                                  : FontWeight.normal,
+                              fontWeight: data[i].isReal ? FontWeight.w700 : FontWeight.normal,
                               fontSize: 10,
                             ),
                           ),
@@ -618,17 +553,13 @@ class _PayTrendSection extends StatelessWidget {
                         toY: e.value.gross / 1000,
                         color: real ? _C.navy : _C.navy.withAlpha(45),
                         width: 11,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(4),
-                        ),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                       ),
                       BarChartRodData(
                         toY: e.value.net / 1000,
                         color: real ? _C.teal : _C.teal.withAlpha(45),
                         width: 11,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(4),
-                        ),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                       ),
                     ],
                   );
@@ -683,10 +614,7 @@ class _Legend extends StatelessWidget {
         Container(
           width: 10,
           height: 10,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(width: 5),
         Text(
@@ -1579,29 +1507,29 @@ class _ModuleNav extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Primary modules — 2-column tiles
           Text(
             'Modules',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 2.8,
+          const SizedBox(height: 10),
+          // Primary modules — vertical menu list
+          Container(
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cs.outlineVariant),
             ),
-            itemCount: _primary.length,
-            itemBuilder: (context, i) => _ModuleTile(module: _primary[i]),
+            child: Column(
+              children: [
+                for (int i = 0; i < _primary.length; i++) ...[
+                  if (i > 0)
+                    Divider(height: 1, indent: 58, endIndent: 0, color: cs.outlineVariant),
+                  _ModuleListTile(module: _primary[i], isFirst: i == 0, isLast: i == _primary.length - 1),
+                ],
+              ],
+            ),
           ),
           const SizedBox(height: 16),
-
-          // Secondary modules — compact 4-column icon buttons
           Text(
             'Admin & Compliance',
             style: theme.textTheme.labelMedium?.copyWith(
@@ -1610,23 +1538,22 @@ class _ModuleNav extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              // 3 tiles per row so all 6 fit neatly in 2 rows
-              final tileW = (constraints.maxWidth - 8) / 3;
-              return Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children: _secondary
-                    .map(
-                      (m) => SizedBox(
-                        width: tileW,
-                        child: _CompactModuleTile(module: m),
-                      ),
-                    )
-                    .toList(),
-              );
-            },
+          // Secondary modules — vertical menu list
+          Container(
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: cs.outlineVariant),
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < _secondary.length; i++) ...[
+                  if (i > 0)
+                    Divider(height: 1, indent: 58, endIndent: 0, color: cs.outlineVariant),
+                  _ModuleListTile(module: _secondary[i], isFirst: i == 0, isLast: i == _secondary.length - 1),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1634,112 +1561,69 @@ class _ModuleNav extends StatelessWidget {
   }
 }
 
-class _ModuleTile extends StatelessWidget {
-  const _ModuleTile({required this.module});
+class _ModuleListTile extends StatelessWidget {
+  const _ModuleListTile({
+    required this.module,
+    required this.isFirst,
+    required this.isLast,
+  });
   final _Module module;
+  final bool isFirst;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
+    final borderRadius = BorderRadius.vertical(
+      top: isFirst ? const Radius.circular(15) : Radius.zero,
+      bottom: isLast ? const Radius.circular(15) : Radius.zero,
+    );
+
     return Material(
-      color: cs.surface,
-      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
+      borderRadius: borderRadius,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push(module.route),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            border: Border.all(color: cs.outlineVariant),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        borderRadius: borderRadius,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           child: Row(
             children: [
               Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: module.color.withAlpha(20),
+                  color: module.color.withAlpha(22),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(module.icon, color: module.color, size: 18),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       module.label,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: cs.onSurface,
                       ),
                     ),
                     Text(
                       module.subtitle,
-                      style: theme.textTheme.labelSmall?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
-                        fontSize: 10,
+                        fontSize: 11,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Compact secondary module tile ────────────────────────────────────────────
-
-class _CompactModuleTile extends StatelessWidget {
-  const _CompactModuleTile({required this.module});
-  final _Module module;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(module.route),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: module.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(module.icon, color: module.color, size: 18),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                module.label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: cs.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant, size: 18),
             ],
           ),
         ),

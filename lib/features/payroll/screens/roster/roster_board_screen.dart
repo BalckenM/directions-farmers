@@ -108,6 +108,8 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
                 // ── Day-header row ─────────────────────────────────────
                 _DayHeaderRow(days: days, isToday: isToday, tt: tt),
                 const Divider(height: 1),
+                const _LegendBar(),
+                const Divider(height: 1),
 
                 // ── Employee rows ──────────────────────────────────────
                 Expanded(
@@ -131,6 +133,53 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+// ── Legend bar ────────────────────────────────────────────────────────────────
+
+class _LegendBar extends StatelessWidget {
+  const _LegendBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final labelStyle = tt.labelSmall?.copyWith(
+        color: cs.onSurfaceVariant, fontSize: 10);
+
+    Widget item(Color color, String label) => Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(label, style: labelStyle),
+          ],
+        );
+
+    return Container(
+      color: cs.surfaceContainerLowest,
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          item(PayrollTokens.green.withValues(alpha: 0.45), 'Shift'),
+          const SizedBox(width: AppSpacing.md),
+          item(PayrollTokens.sky.withValues(alpha: 0.45), 'Today'),
+          const SizedBox(width: AppSpacing.md),
+          item(PayrollTokens.amber.withValues(alpha: 0.4), 'Weekend'),
+          const SizedBox(width: AppSpacing.md),
+          item(cs.surfaceContainerLow, 'No shift'),
+        ],
+      ),
     );
   }
 }
@@ -362,7 +411,7 @@ class _EmployeeRosterRow extends ConsumerWidget {
         shiftsProvider(ShiftFilter(weekStart: weekStart, employeeId: employeeId)));
     final cs = Theme.of(context).colorScheme;
     return SizedBox(
-      height: 56,
+      height: 60,
       child: Row(
         children: [
           // Name
@@ -425,7 +474,7 @@ class _EmployeeRosterRow extends ConsumerWidget {
                                   ? shift.taskCode.substring(0, 6)
                                   : shift.taskCode,
                               style: tt.labelSmall?.copyWith(
-                                fontSize: 9,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: PayrollTokens.green,
                               ),
@@ -434,7 +483,7 @@ class _EmployeeRosterRow extends ConsumerWidget {
                             Text(
                               shift.startTime,
                               style: tt.labelSmall?.copyWith(
-                                fontSize: 9,
+                                fontSize: 10,
                                 color: PayrollTokens.navy,
                               ),
                             ),

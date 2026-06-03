@@ -1,28 +1,7 @@
-import { randomUUID } from "crypto";
+﻿import { randomUUID } from "crypto";
 import type { z } from "zod";
 import { cattleRepo } from "../../repositories/cattle/cattle.repo";
-import type {
-    createBcsRecordSchema,
-    createBreedingRecordSchema,
-    createCalvingEventSchema,
-    createCattleSchema,
-    createDailyMilkSchema,
-    createDippingRecordSchema,
-    createFeedRecordSchema,
-    createHealthEventSchema,
-    createMedicationLogSchema,
-    createPastureRecordSchema,
-    createPregnancyCheckSchema,
-    createSaleRecordSchema,
-    createVaccinationSchema,
-    createWeightRecordSchema,
-    exitPastureSchema,
-    markVaccinationGivenSchema,
-    updateBreedingRecordSchema,
-    updateCattleSchema,
-    updateHealthEventSchema,
-    updateSaleRecordSchema,
-} from "../../validators/cattle.validator";
+import type { createPastureRecordSchema, exitPastureSchema } from "../../validators/cattle/cattle.validator";
 
 export const cattlePastureService = {
   listPastureRecords: (farmOwnerId: string) =>
@@ -36,8 +15,12 @@ export const cattlePastureService = {
     await cattleRepo.createPastureRecord({
       id,
       farmOwnerId,
-      pastureName: input.pastureName,
-      moveDate: new Date(input.moveDate),
+      herdId: input.herdId,
+      campId: input.campId,
+      entryDate: input.entryDate ? new Date(input.entryDate) : null,
+      exitDate: input.exitDate ? new Date(input.exitDate) : null,
+      estimatedHa: input.estimatedHa !== undefined ? String(input.estimatedHa) : null,
+      veldCondition: input.veldCondition,
       notes: input.notes,
       createdAt: new Date(),
     });
@@ -50,10 +33,8 @@ export const cattlePastureService = {
     input: z.infer<typeof exitPastureSchema>,
   ) => {
     const existing = await cattleRepo.findPastureRecordById(farmOwnerId, id);
-    if (!existing)
-      throw Object.assign(new Error("Not found"), { status: 404, code: "NOT_FOUND" });
+    if (!existing) throw Object.assign(new Error("Not found"), { status: 404, code: "NOT_FOUND" });
     await cattleRepo.updatePastureRecord(farmOwnerId, id, input);
     return cattleRepo.findPastureRecordById(farmOwnerId, id);
   },
 };
-

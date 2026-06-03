@@ -1,40 +1,81 @@
+import 'package:flutter/widgets.dart' show WidgetsBinding;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../core/network/api_client.dart';
-import '../data/payroll_data_source.dart';
-import '../data/payroll_remote_data_source.dart';
-import '../data/payroll_repository.dart';
-import '../models/attendance_record.dart';
-import '../models/audit_log_entry.dart';
-import '../models/communication_log.dart';
-import '../models/compliance_alert.dart';
-import '../models/deduction_rule.dart';
-import '../models/employer_config.dart';
-import '../models/employment_contract.dart';
-import '../models/garnishee_order.dart';
-import '../models/incident_record.dart';
-import '../models/leave_balance.dart';
-import '../models/leave_request.dart';
-import '../models/leave_type.dart';
-import '../models/pay_group.dart';
-import '../models/pay_run.dart';
-import '../models/pay_structure.dart';
-import '../models/payment_transaction.dart';
-import '../models/payroll_employee.dart';
-import '../models/payslip.dart';
-import '../models/piecework_log.dart';
-import '../models/shift.dart';
-import '../models/task_assignment.dart';
+import 'package:mobile_app/core/network/api_client.dart';
+import 'package:mobile_app/features/payroll/data/payroll_data_source.dart';
+import 'package:mobile_app/features/payroll/data/payroll_remote_data_source.dart';
+import 'package:mobile_app/features/payroll/data/payroll_repository.dart';
+import 'package:mobile_app/features/payroll/models/attendance_record.dart';
+import 'package:mobile_app/features/payroll/models/audit_log_entry.dart';
+import 'package:mobile_app/features/payroll/models/communication_log.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
+import 'package:mobile_app/features/payroll/models/employer_config.dart';
+import 'package:mobile_app/features/payroll/models/employment_contract.dart';
+import 'package:mobile_app/features/payroll/models/garnishee_order.dart';
+import 'package:mobile_app/features/payroll/models/incident_record.dart';
+import 'package:mobile_app/features/payroll/models/leave_balance.dart';
+import 'package:mobile_app/features/payroll/models/leave_request.dart';
+import 'package:mobile_app/features/payroll/models/leave_type.dart';
+import 'package:mobile_app/features/payroll/models/pay_group.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/models/pay_structure.dart';
+import 'package:mobile_app/features/payroll/models/payment_transaction.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
+import 'package:mobile_app/features/payroll/models/piecework_log.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/models/task_assignment.dart';
 
 // ─── Dependency Injection ────────────────────────────────────────────────────
 
+/// Holds the [PayrollRemoteDataSource] + a flag that flips to `true` once
+/// [preload()] has finished. The flag change triggers a cascade rebuild so
+/// every list provider re-reads the now-populated in-memory caches.
+class _LoadState {
+  const _LoadState({required this.source, required this.ready});
+  final PayrollRemoteDataSource source;
+  final bool ready;
+}
+
+class _PayrollLoaderNotifier extends Notifier<_LoadState> {
+  @override
+  _LoadState build() {
+    final source = PayrollRemoteDataSource(ref.read(apiDioProvider));
+    source.preload().whenComplete(() {
+      // Defer the state update to after the current frame.
+      // Setting state synchronously from a microtask can fire mid-frame on
+      // Flutter Web, re-entering the mouse tracker's _deviceUpdatePhase and
+      // triggering the !_debugDuringDeviceUpdate assertion.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        state = _LoadState(source: source, ready: true);
+      });
+    });
+    return _LoadState(source: source, ready: false);
+  }
+}
+
+final _payrollLoaderProvider =
+    NotifierProvider<_PayrollLoaderNotifier, _LoadState>(
+      _PayrollLoaderNotifier.new,
+    );
+
 final payrollDataSourceProvider = Provider<PayrollDataSource>(
-  (ref) => PayrollRemoteDataSource(ref.read(apiDioProvider)),
+  (ref) => ref.watch(_payrollLoaderProvider).source,
 );
 
-final payrollRepositoryProvider = Provider<PayrollRepository>(
-  (ref) => PayrollRepository(ref.watch(payrollDataSourceProvider)),
-);
+final payrollRepositoryProvider = Provider<PayrollRepository>((ref) {
+  // Watch _payrollLoaderProvider DIRECTLY (not via payrollDataSourceProvider)
+  // so that when preload() finishes and ready flips true, a NEW PayrollRepository
+  // instance is returned. Because PayrollRepository has no == override, the new
+  // instance != the old one, which makes Riverpod notify every downstream list
+  // provider, triggering a rebuild with the now-populated in-memory caches.
+  //
+  // Watching payrollDataSourceProvider alone does NOT work: it returns the same
+  // PayrollRemoteDataSource object reference before and after preload, so Riverpod
+  // sees no change and never rebuilds downstream providers.
+  final state = ref.watch(_payrollLoaderProvider);
+  return PayrollRepository(state.source);
+});
 
 // ─── Employees ────────────────────────────────────────────────────────────────
 

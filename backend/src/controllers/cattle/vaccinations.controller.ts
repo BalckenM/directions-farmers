@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendNoContent, sendOne } from "../../lib/response";
+import { sendOne } from "../../lib/response";
 import { cattleService } from "../../services/cattle/cattle.service";
 
 export const cattleVaccinationsController = {

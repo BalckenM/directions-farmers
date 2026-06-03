@@ -16,12 +16,21 @@ export function getRedis(): Redis | null {
 
   redis = new Redis(env.REDIS_URL, {
     maxRetriesPerRequest: 3,
-    enableReadyCheck: true,
-    lazyConnect: false,
+    enableReadyCheck: false,
+    lazyConnect: true,
   });
 
   redis.on("error", (err) => {
     console.error("[redis] connection error:", err.message);
+  });
+
+  // Connect asynchronously — failures are non-fatal; app falls back to in-memory
+  redis.connect().catch((err) => {
+    console.warn(
+      "[redis] could not connect, falling back to in-memory stores:",
+      err.message,
+    );
+    redis = null;
   });
 
   return redis;

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { sendNoContent, sendOne } from "../../lib/response";
+import { sendNoContent } from "../../lib/response";
 import { payrollService } from "../../services/payroll/payroll.service";
 
 // CRITICAL: Payroll GET lists return raw arrays (no wrapper) for Flutter PayrollRemoteDataSource compat

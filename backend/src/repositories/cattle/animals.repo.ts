@@ -1,23 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../config/database";
-import {
-  cattleAnimals,
-  cattleBcsRecords,
-  cattleBreedingRecords,
-  cattleCalvingEvents,
-  cattleDailyMilk,
-  cattleDippingRecords,
-  cattleFeedRecords,
-  cattleHealthEvents,
-  cattleMedicationLogs,
-  cattlePastureRecords,
-  cattlePregnancyChecks,
-  cattleSaleRecords,
-  cattleVaccinations,
-  cattleWeightRecords,
-} from "../../db/schema";
+import { cattleAnimals } from "../../db/schema";
 
-import { animalSelect, weightSelect, breedingSelect, pregnancyCheckSelect, calvingSelect, milkSelect, healthSelect, medicationSelect, vaccinationSelect, saleSelect, feedSelect, pastureSelect, bcsSelect, dippingSelect } from "./_projections";
+import { animalSelect } from "./_projections";
 
 // ─────────────────────────────────────────────────────────────────────────────
 

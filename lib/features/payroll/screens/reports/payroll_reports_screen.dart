@@ -154,28 +154,34 @@ class PayrollReportsScreen extends ConsumerWidget {
           // ── Payroll totals ────────────────────────────────────────────────────
           const SectionHeader(title: 'Payroll Totals (All Disbursed Runs)'),
           const SizedBox(height: AppSpacing.sm),
-          Row(
+          Column(
             children: [
-              Expanded(child: StatCard(
-                label: 'Total Gross',
-                value: _zarFmt.format(totalGross),
-                icon: Icons.payments_outlined,
-                accentColor: PayrollTokens.green,
-              )),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: StatCard(
-                label: 'Total Net',
-                value: _zarFmt.format(totalNet),
-                icon: Icons.account_balance_wallet_outlined,
-                accentColor: PayrollTokens.teal,
-              )),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: StatCard(
-                label: 'Deductions',
-                value: _zarFmt.format(totalDeductions),
-                icon: Icons.money_off_outlined,
-                accentColor: PayrollTokens.amber,
-              )),
+              Row(children: [
+                Expanded(child: StatCard(
+                  label: 'Total Gross',
+                  value: _zarFmt.format(totalGross),
+                  icon: Icons.payments_outlined,
+                  accentColor: PayrollTokens.green,
+                )),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: StatCard(
+                  label: 'Total Net',
+                  value: _zarFmt.format(totalNet),
+                  icon: Icons.account_balance_wallet_outlined,
+                  accentColor: PayrollTokens.teal,
+                )),
+              ]),
+              const SizedBox(height: AppSpacing.sm),
+              Row(children: [
+                Expanded(child: StatCard(
+                  label: 'Deductions',
+                  value: _zarFmt.format(totalDeductions),
+                  icon: Icons.money_off_outlined,
+                  accentColor: PayrollTokens.amber,
+                )),
+                const SizedBox(width: AppSpacing.sm),
+                const Expanded(child: SizedBox.shrink()),
+              ]),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -183,28 +189,34 @@ class PayrollReportsScreen extends ConsumerWidget {
           // ── Statutory deductions ──────────────────────────────────────────────
           const SectionHeader(title: 'Statutory Deductions Breakdown'),
           const SizedBox(height: AppSpacing.sm),
-          Row(
+          Column(
             children: [
-              Expanded(child: StatCard(
-                label: 'UIF (EE)',
-                value: _zarFmt.format(uifTotal),
-                icon: Icons.shield_outlined,
-                accentColor: PayrollTokens.indigo,
-              )),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: StatCard(
-                label: 'PAYE',
-                value: _zarFmt.format(payeTotal),
-                icon: Icons.account_balance_outlined,
-                accentColor: PayrollTokens.navy,
-              )),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: StatCard(
-                label: 'Voluntary',
-                value: _zarFmt.format(voluntaryTotal),
-                icon: Icons.list_alt_outlined,
-                accentColor: PayrollTokens.purple,
-              )),
+              Row(children: [
+                Expanded(child: StatCard(
+                  label: 'UIF (EE)',
+                  value: _zarFmt.format(uifTotal),
+                  icon: Icons.shield_outlined,
+                  accentColor: PayrollTokens.indigo,
+                )),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(child: StatCard(
+                  label: 'PAYE',
+                  value: _zarFmt.format(payeTotal),
+                  icon: Icons.account_balance_outlined,
+                  accentColor: PayrollTokens.navy,
+                )),
+              ]),
+              const SizedBox(height: AppSpacing.sm),
+              Row(children: [
+                Expanded(child: StatCard(
+                  label: 'Voluntary',
+                  value: _zarFmt.format(voluntaryTotal),
+                  icon: Icons.list_alt_outlined,
+                  accentColor: PayrollTokens.purple,
+                )),
+                const SizedBox(width: AppSpacing.sm),
+                const Expanded(child: SizedBox.shrink()),
+              ]),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -212,8 +224,13 @@ class PayrollReportsScreen extends ConsumerWidget {
           // ── Pay run history ───────────────────────────────────────────────────
           const SectionHeader(title: 'Pay Run History'),
           const SizedBox(height: AppSpacing.sm),
-          Card(
-            elevation: 1,
+          Container(
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: cs.outlineVariant),
+            ),
+            clipBehavior: Clip.antiAlias,
             child: allPayRuns.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.all(24),
@@ -234,24 +251,26 @@ class PayrollReportsScreen extends ConsumerWidget {
           // ── Leave summary ─────────────────────────────────────────────────────
           const SectionHeader(title: 'Leave Summary'),
           const SizedBox(height: AppSpacing.sm),
-          Card(
-            elevation: 1,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: leaveTypes.isEmpty
-                  ? Text('No leave types configured.',
-                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant))
-                  : Column(
-                      children: leaveTypes
-                          .map((lt) => _leaveRow(
-                                context,
-                                lt.name,
-                                leaveTakenByType[lt.name] ?? 0,
-                                leavePendingByType[lt.name] ?? 0,
-                              ))
-                          .toList(),
-                    ),
+          Container(
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: cs.outlineVariant),
             ),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: leaveTypes.isEmpty
+                ? Text('No leave types configured.',
+                    style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant))
+                : Column(
+                    children: leaveTypes
+                        .map((lt) => _leaveRow(
+                              context,
+                              lt.name,
+                              leaveTakenByType[lt.name] ?? 0,
+                              leavePendingByType[lt.name] ?? 0,
+                            ))
+                        .toList(),
+                  ),
           ),
           const SizedBox(height: AppSpacing.xxl),
         ],
