@@ -21,7 +21,8 @@ function mapPayslipRow(row: Record<string, unknown>): Record<string, unknown> {
     employeeId: row.employeeId,
     periodStart: toIso(row.periodStart),
     periodEnd: toIso(row.periodEnd),
-    payDate: toIso(row.payDate),
+    payDate:
+      toIso(row.payDate) ?? toIso(row.periodEnd) ?? new Date().toISOString(),
     basicWage: parseFloat(String(row.basicWage ?? 0)),
     overtimePay: parseFloat(String(row.overtimePay ?? 0)),
     holidayPay: parseFloat(String(row.holidayPay ?? 0)),

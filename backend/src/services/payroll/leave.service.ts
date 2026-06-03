@@ -18,8 +18,8 @@ function mapLeaveTypeRow(
     code: row.code,
     name: row.name,
     annualEntitlementDays: parseFloat(String(row.annualEntitlementDays ?? 0)),
-    isPaid: row.isPaid ?? true,
-    requiresApproval: row.requiresApproval ?? false,
+    isPaid: Boolean(row.isPaid ?? true),
+    requiresApproval: Boolean(row.requiresApproval ?? false),
     colorHex: row.colorHex ?? null,
     description: row.description ?? null,
   };

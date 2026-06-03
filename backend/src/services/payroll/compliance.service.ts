@@ -13,7 +13,7 @@ function mapComplianceRow(
     severity: row.severity,
     employeeId: row.employeeId ?? null,
     payRunId: row.payRunId ?? null,
-    isResolved: row.isResolved ?? false,
+    isResolved: Boolean(row.isResolved ?? false),
     resolvedByUserId: row.resolvedByUserId ?? null,
     resolvedAt: toIso(row.resolvedAt) ?? null,
     resolution: row.resolution ?? null,

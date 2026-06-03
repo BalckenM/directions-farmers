@@ -34,7 +34,7 @@ function mapDeductionRow(
     value: parseFloat(String(row.value ?? 0)),
     cappedAt: row.cappedAt != null ? parseFloat(String(row.cappedAt)) : null,
     employeeIds,
-    isActive: row.isActive ?? true,
+    isActive: Boolean(row.isActive ?? true),
     createdAt: toIso(row.createdAt),
   };
 }

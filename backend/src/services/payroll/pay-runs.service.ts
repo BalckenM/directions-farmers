@@ -37,12 +37,17 @@ function mapPayRunRow(row: Record<string, unknown>): Record<string, unknown> {
     if (v instanceof Date) return isNaN(v.getTime()) ? null : v.toISOString();
     return v ? String(v) : null;
   };
+  // payDate must never be null — Flutter's PayRun.fromJson does DateTime.parse() without null check.
+  // Fallback: use periodEnd (already a valid date) when payDate is null/invalid.
+  const rawPayDate = toIso(row.payDate);
+  const payDate =
+    rawPayDate ?? toIso(row.periodEnd) ?? new Date().toISOString();
   return {
     id: row.id,
     payGroupId: row.payGroupId ?? "",
     periodStart: toIso(row.periodStart),
     periodEnd: toIso(row.periodEnd),
-    payDate: toIso(row.payDate),
+    payDate,
     status: mapPayRunStatus(row.status as string | null),
     totalGross: parseFloat(String(row.totalGross ?? 0)),
     totalDeductions: parseFloat(String(row.totalDeductions ?? 0)),
