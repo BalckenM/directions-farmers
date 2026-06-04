@@ -4,6 +4,9 @@
 *.tar.xz
 serviceprovider.zip
 
+# Backend — has its own repo at github.com/BalckenM/4D-farming-backend
+backend/
+
 # Miscellaneous
 *.class
 *.log
