@@ -79,4 +79,41 @@ class AttendanceRecord {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  factory AttendanceRecord.fromJson(Map<String, dynamic> json) =>
+      AttendanceRecord(
+        id: json['id'] as String,
+        employeeId: json['employeeId'] as String,
+        date: DateTime.parse(json['date'] as String),
+        status: AttendanceStatus.values.byName(json['status'] as String),
+        clockInTime: json['clockInTime'] as String?,
+        clockOutTime: json['clockOutTime'] as String?,
+        recordedByUserId: json['recordedByUserId'] as String,
+        method: AttendanceMethod.values.byName(json['method'] as String),
+        hoursWorked: (json['hoursWorked'] as num?)?.toDouble(),
+        overtimeHours: (json['overtimeHours'] as num?)?.toDouble(),
+        nightShiftHours: (json['nightShiftHours'] as num?)?.toDouble(),
+        shiftId: json['shiftId'] as String?,
+        leaveRequestId: json['leaveRequestId'] as String?,
+        notes: json['notes'] as String?,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'employeeId': employeeId,
+    'date': date.toIso8601String(),
+    'status': status.name,
+    'clockInTime': clockInTime,
+    'clockOutTime': clockOutTime,
+    'recordedByUserId': recordedByUserId,
+    'method': method.name,
+    'hoursWorked': hoursWorked,
+    'overtimeHours': overtimeHours,
+    'nightShiftHours': nightShiftHours,
+    'shiftId': shiftId,
+    'leaveRequestId': leaveRequestId,
+    'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+  };
 }

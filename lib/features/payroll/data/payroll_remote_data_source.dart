@@ -1,27 +1,27 @@
 import 'package:dio/dio.dart';
-
-import '../models/attendance_record.dart';
-import '../models/audit_log_entry.dart';
-import '../models/communication_log.dart';
-import '../models/compliance_alert.dart';
-import '../models/deduction_rule.dart';
-import '../models/employer_config.dart';
-import '../models/employment_contract.dart';
-import '../models/garnishee_order.dart';
-import '../models/incident_record.dart';
-import '../models/leave_balance.dart';
-import '../models/leave_request.dart';
-import '../models/leave_type.dart';
-import '../models/pay_group.dart';
-import '../models/pay_run.dart';
-import '../models/pay_structure.dart';
-import '../models/payment_transaction.dart';
-import '../models/payroll_employee.dart';
-import '../models/payslip.dart';
-import '../models/piecework_log.dart';
-import '../models/shift.dart';
-import '../models/task_assignment.dart';
-import 'payroll_data_source.dart';
+import 'package:mobile_app/features/payroll/data/payroll_data_source.dart';
+import 'package:mobile_app/features/payroll/models/attendance_record.dart';
+import 'package:mobile_app/features/payroll/models/audit_log_entry.dart';
+import 'package:mobile_app/features/payroll/models/communication_log.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
+import 'package:mobile_app/features/payroll/models/employer_config.dart';
+import 'package:mobile_app/features/payroll/models/employment_contract.dart';
+import 'package:mobile_app/features/payroll/models/garnishee_order.dart';
+import 'package:mobile_app/features/payroll/models/incident_record.dart';
+import 'package:mobile_app/features/payroll/models/leave_balance.dart';
+import 'package:mobile_app/features/payroll/models/leave_request.dart';
+import 'package:mobile_app/features/payroll/models/leave_type.dart';
+import 'package:mobile_app/features/payroll/models/pay_group.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/models/pay_structure.dart';
+import 'package:mobile_app/features/payroll/models/payment_transaction.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
+import 'package:mobile_app/features/payroll/models/piecework_log.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/models/task_assignment.dart';
+import 'package:mobile_app/features/payroll/models/worker_dispute.dart';
 
 /// Remote (API) implementation of [PayrollDataSource].
 ///
@@ -56,6 +56,7 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   final List<AuditLogEntry> _auditLog = [];
   final List<IncidentRecord> _incidents = [];
   final List<CommunicationLog> _communications = [];
+  final List<WorkerDispute> _disputes = [];
   EmployerConfig? _employerConfig;
 
   // ── Preload ────────────────────────────────────────────────────────────────
@@ -106,7 +107,30 @@ class PayrollRemoteDataSource implements PayrollDataSource {
         _communications,
         CommunicationLog.fromJson,
       ),
+      _fetchList('/payroll/shifts', _shifts, Shift.fromJson),
+      _fetchList('/payroll/task-assignments', _tasks, TaskAssignment.fromJson),
+      _fetchList('/payroll/attendance', _attendance, AttendanceRecord.fromJson),
+      _fetchList('/payroll/piecework', _piecework, PieceworkLog.fromJson),
+      _fetchList('/payroll/worker-disputes', _disputes, WorkerDispute.fromJson),
+      _fetchEmployerConfig(),
     ]);
+  }
+
+  Future<void> _fetchEmployerConfig() async {
+    try {
+      final resp = await _dio.get<Map<String, dynamic>>(
+        '/payroll/employer-config',
+      );
+      if (resp.data != null) {
+        _employerConfig = EmployerConfig.fromJson(resp.data!);
+      }
+    } on DioException catch (e) {
+      assert(() {
+        // ignore: avoid_print
+        print('[Payroll] GET /payroll/employer-config failed: ${e.message}');
+        return true;
+      }());
+    }
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
@@ -350,18 +374,30 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   Shift addShift(Shift shift) {
-    _shifts.add(shift);
-    return shift;
+    final future = _post('/payroll/shifts', shift.toJson(), Shift.fromJson)
+        .then((s) {
+          _shifts.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   @override
   Shift updateShift(Shift shift) {
-    final i = _shifts.indexWhere((s) => s.id == shift.id);
-    if (i >= 0)
-      _shifts[i] = shift;
-    else
-      _shifts.add(shift);
-    return shift;
+    final future =
+        _put(
+          '/payroll/shifts/${shift.id}',
+          shift.toJson(),
+          Shift.fromJson,
+        ).then((s) {
+          final i = _shifts.indexWhere((e) => e.id == s.id);
+          if (i >= 0)
+            _shifts[i] = s;
+          else
+            _shifts.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   // ── Task assignments (no fromJson — in-memory) ──────────────────────────────
@@ -387,18 +423,34 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   TaskAssignment addTaskAssignment(TaskAssignment task) {
-    _tasks.add(task);
-    return task;
+    final future =
+        _post(
+          '/payroll/task-assignments',
+          task.toJson(),
+          TaskAssignment.fromJson,
+        ).then((s) {
+          _tasks.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   @override
   TaskAssignment updateTaskAssignment(TaskAssignment task) {
-    final i = _tasks.indexWhere((t) => t.id == task.id);
-    if (i >= 0)
-      _tasks[i] = task;
-    else
-      _tasks.add(task);
-    return task;
+    final future =
+        _put(
+          '/payroll/task-assignments/${task.id}',
+          task.toJson(),
+          TaskAssignment.fromJson,
+        ).then((s) {
+          final i = _tasks.indexWhere((t) => t.id == s.id);
+          if (i >= 0)
+            _tasks[i] = s;
+          else
+            _tasks.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   // ── Attendance (no fromJson — in-memory) ────────────────────────────────────
@@ -430,18 +482,34 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   AttendanceRecord addAttendanceRecord(AttendanceRecord record) {
-    _attendance.add(record);
-    return record;
+    final future =
+        _post(
+          '/payroll/attendance',
+          record.toJson(),
+          AttendanceRecord.fromJson,
+        ).then((s) {
+          _attendance.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   @override
   AttendanceRecord updateAttendanceRecord(AttendanceRecord record) {
-    final i = _attendance.indexWhere((a) => a.id == record.id);
-    if (i >= 0)
-      _attendance[i] = record;
-    else
-      _attendance.add(record);
-    return record;
+    final future =
+        _put(
+          '/payroll/attendance/${record.id}',
+          record.toJson(),
+          AttendanceRecord.fromJson,
+        ).then((s) {
+          final i = _attendance.indexWhere((a) => a.id == s.id);
+          if (i >= 0)
+            _attendance[i] = s;
+          else
+            _attendance.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   // ── Piecework (no fromJson — in-memory) ─────────────────────────────────────
@@ -470,8 +538,14 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   PieceworkLog addPieceworkLog(PieceworkLog log) {
-    _piecework.add(log);
-    return log;
+    final future =
+        _post('/payroll/piecework', log.toJson(), PieceworkLog.fromJson).then((
+          s,
+        ) {
+          _piecework.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 
   // ── Pay runs ─────────────────────────────────────────────────────────────────
@@ -883,14 +957,20 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   bool deleteShift(String id) {
-    _shifts.removeWhere((s) => s.id == id);
-    return true;
+    final future = _del('/payroll/shifts/$id').then((_) {
+      _shifts.removeWhere((s) => s.id == id);
+      return true;
+    });
+    return _sync(future);
   }
 
   @override
   bool deleteTaskAssignment(String id) {
-    _tasks.removeWhere((t) => t.id == id);
-    return true;
+    final future = _del('/payroll/task-assignments/$id').then((_) {
+      _tasks.removeWhere((t) => t.id == id);
+      return true;
+    });
+    return _sync(future);
   }
 
   @override
@@ -974,8 +1054,91 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       _employerConfig ?? EmployerConfig.defaultConfig;
   @override
   EmployerConfig updateEmployerConfig(EmployerConfig config) {
-    // EmployerConfig has no fromJson/toJson — store locally only.
-    _employerConfig = config;
-    return config;
+    final future =
+        _put(
+          '/payroll/employer-config',
+          config.toJson(),
+          EmployerConfig.fromJson,
+        ).then((s) {
+          _employerConfig = s;
+          return s;
+        });
+    return _sync(future);
+  }
+
+  // ── Worker disputes ────────────────────────────────────────────────────────
+  @override
+  List<WorkerDispute> getDisputes({String? employeeId}) {
+    if (employeeId == null) return List.unmodifiable(_disputes);
+    return _disputes.where((d) => d.employeeId == employeeId).toList();
+  }
+
+  @override
+  WorkerDispute fileDispute(WorkerDispute dispute) {
+    final future =
+        _post(
+          '/payroll/worker-disputes',
+          dispute.toJson(),
+          WorkerDispute.fromJson,
+        ).then((s) {
+          _disputes.add(s);
+          return s;
+        });
+    return _sync(future);
+  }
+
+  @override
+  WorkerDispute updateDispute(WorkerDispute dispute) {
+    final future =
+        _put(
+          '/payroll/worker-disputes/${dispute.id}',
+          dispute.toJson(),
+          WorkerDispute.fromJson,
+        ).then((s) {
+          final i = _disputes.indexWhere((d) => d.id == s.id);
+          if (i >= 0)
+            _disputes[i] = s;
+          else
+            _disputes.add(s);
+          return s;
+        });
+    return _sync(future);
+  }
+
+  @override
+  WorkerDispute resolveDispute(
+    String id,
+    String resolvedBy,
+    String resolutionNote,
+  ) {
+    final future =
+        _patch('/payroll/worker-disputes/$id/resolve', {
+          'resolvedBy': resolvedBy,
+          'resolutionNote': resolutionNote,
+        }, WorkerDispute.fromJson).then((s) {
+          final i = _disputes.indexWhere((d) => d.id == s.id);
+          if (i >= 0)
+            _disputes[i] = s;
+          else
+            _disputes.add(s);
+          return s;
+        });
+    return _sync(future);
+  }
+
+  @override
+  WorkerDispute dismissDispute(String id, String resolvedBy) {
+    final future =
+        _patch('/payroll/worker-disputes/$id/dismiss', {
+          'resolvedBy': resolvedBy,
+        }, WorkerDispute.fromJson).then((s) {
+          final i = _disputes.indexWhere((d) => d.id == s.id);
+          if (i >= 0)
+            _disputes[i] = s;
+          else
+            _disputes.add(s);
+          return s;
+        });
+    return _sync(future);
   }
 }

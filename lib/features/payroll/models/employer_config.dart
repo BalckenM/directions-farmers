@@ -16,11 +16,26 @@ class EmployerConfig {
   String get statutoryLine =>
       'Reg: $registrationNumber  ·  UIF: $uifReferenceNumber  ·  PAYE: $payeNumber';
 
+  factory EmployerConfig.fromJson(Map<String, dynamic> json) => EmployerConfig(
+    name: (json['name'] ?? json['companyName'] ?? '') as String,
+    registrationNumber: (json['registrationNumber'] ?? '') as String,
+    uifReferenceNumber:
+        (json['uifReferenceNumber'] ?? json['uifNumber'] ?? '') as String,
+    payeNumber: (json['payeNumber'] ?? '') as String,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'registrationNumber': registrationNumber,
+    'uifReferenceNumber': uifReferenceNumber,
+    'payeNumber': payeNumber,
+  };
+
   // Default config — override via a provider in production.
   static const defaultConfig = EmployerConfig(
-    name:                 '4Directions Farm',
-    registrationNumber:   '123/456',
-    uifReferenceNumber:   'U123456',
-    payeNumber:           '7890123456',
+    name: '4Directions Farm',
+    registrationNumber: '123/456',
+    uifReferenceNumber: 'U123456',
+    payeNumber: '7890123456',
   );
 }

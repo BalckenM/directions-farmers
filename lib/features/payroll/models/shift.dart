@@ -54,4 +54,32 @@ class Shift {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  factory Shift.fromJson(Map<String, dynamic> json) => Shift(
+    id: json['id'] as String,
+    date: DateTime.parse(json['date'] as String),
+    startTime: json['startTime'] as String,
+    endTime: json['endTime'] as String,
+    employeeIds: (json['employeeIds'] as List<dynamic>).cast<String>(),
+    taskCode: json['taskCode'] as String,
+    fieldOrArea: json['fieldOrArea'] as String?,
+    status: ShiftStatus.values.byName(json['status'] as String),
+    supervisorId: json['supervisorId'] as String?,
+    notes: json['notes'] as String?,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'date': date.toIso8601String(),
+    'startTime': startTime,
+    'endTime': endTime,
+    'employeeIds': employeeIds,
+    'taskCode': taskCode,
+    'fieldOrArea': fieldOrArea,
+    'status': status.name,
+    'supervisorId': supervisorId,
+    'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+  };
 }

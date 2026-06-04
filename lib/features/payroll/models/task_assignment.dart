@@ -52,4 +52,30 @@ class TaskAssignment {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  factory TaskAssignment.fromJson(Map<String, dynamic> json) => TaskAssignment(
+    id: json['id'] as String,
+    employeeId: json['employeeId'] as String,
+    date: DateTime.parse(json['date'] as String),
+    shiftId: json['shiftId'] as String?,
+    payrollCode: json['payrollCode'] as String,
+    description: json['description'] as String,
+    fieldOrArea: json['fieldOrArea'] as String?,
+    status: TaskAssignmentStatus.values.byName(json['status'] as String),
+    notes: json['notes'] as String?,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'employeeId': employeeId,
+    'date': date.toIso8601String(),
+    'shiftId': shiftId,
+    'payrollCode': payrollCode,
+    'description': description,
+    'fieldOrArea': fieldOrArea,
+    'status': status.name,
+    'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+  };
 }

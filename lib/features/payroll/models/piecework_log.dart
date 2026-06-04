@@ -17,8 +17,8 @@ class PieceworkLog {
   final String employeeId;
   final DateTime date;
   final String? shiftId;
-  final String payrollCode;  // e.g. 'GRAPE_PICK'
-  final String unit;         // e.g. 'kg', 'crates'
+  final String payrollCode; // e.g. 'GRAPE_PICK'
+  final String unit; // e.g. 'kg', 'crates'
   final double quantity;
   final double ratePerUnit;
   final String recordedByUserId;
@@ -54,4 +54,32 @@ class PieceworkLog {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  factory PieceworkLog.fromJson(Map<String, dynamic> json) => PieceworkLog(
+    id: json['id'] as String,
+    employeeId: json['employeeId'] as String,
+    date: DateTime.parse(json['date'] as String),
+    shiftId: json['shiftId'] as String?,
+    payrollCode: json['payrollCode'] as String,
+    unit: json['unit'] as String,
+    quantity: (json['quantity'] as num).toDouble(),
+    ratePerUnit: (json['ratePerUnit'] as num).toDouble(),
+    recordedByUserId: json['recordedByUserId'] as String,
+    notes: json['notes'] as String?,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'employeeId': employeeId,
+    'date': date.toIso8601String(),
+    'shiftId': shiftId,
+    'payrollCode': payrollCode,
+    'unit': unit,
+    'quantity': quantity,
+    'ratePerUnit': ratePerUnit,
+    'recordedByUserId': recordedByUserId,
+    'notes': notes,
+    'createdAt': createdAt.toIso8601String(),
+  };
 }
