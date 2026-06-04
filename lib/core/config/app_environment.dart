@@ -1,5 +1,4 @@
-Invalid apphosting.yaml
-Your apphosting.yaml file at path '/workspace/apphosting.yaml' is not formatted properly. Please see https://firebase.google.com/docs/app-hosting/configure#apphosting-yaml for guidance on how to format your apphosting.yaml file./// Compile-time environment configuration driven by `--dart-define`.
+/// Compile-time environment configuration driven by `--dart-define`.
 ///
 /// Usage (local development — Flutter web on port 8080):
 ///   flutter run -d chrome --web-port=8080 --dart-define=APP_ENV=dev \

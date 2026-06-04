@@ -2,25 +2,25 @@
 // Screens call these via `ref.read(xxxNotifierProvider.notifier).method(...)`.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../data/payroll_repository.dart';
-import 'payroll_providers.dart';
-import '../models/attendance_record.dart';
-import '../models/compliance_alert.dart';
-import '../models/deduction_rule.dart';
-import '../models/employer_config.dart';
-import '../models/employment_contract.dart';
-import '../models/garnishee_order.dart';
-import '../models/incident_record.dart';
-import '../models/leave_request.dart';
-import '../models/pay_group.dart';
-import '../models/pay_run.dart';
-import '../models/pay_structure.dart';
-import '../models/payroll_employee.dart';
-import '../models/piecework_log.dart';
-import '../models/shift.dart';
-import '../models/communication_log.dart';
-import '../models/task_assignment.dart';
+import 'package:mobile_app/features/payroll/data/payroll_repository.dart';
+import 'package:mobile_app/features/payroll/models/attendance_record.dart';
+import 'package:mobile_app/features/payroll/models/benefit_contribution.dart';
+import 'package:mobile_app/features/payroll/models/communication_log.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
+import 'package:mobile_app/features/payroll/models/employer_config.dart';
+import 'package:mobile_app/features/payroll/models/employment_contract.dart';
+import 'package:mobile_app/features/payroll/models/garnishee_order.dart';
+import 'package:mobile_app/features/payroll/models/incident_record.dart';
+import 'package:mobile_app/features/payroll/models/leave_request.dart';
+import 'package:mobile_app/features/payroll/models/pay_group.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/models/pay_structure.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/piecework_log.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/models/task_assignment.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
 // ─── Generic async action result ─────────────────────────────────────────────
 sealed class ActionResult<T> {}
@@ -415,6 +415,21 @@ class EmployeeNotifier extends Notifier<AsyncValue<void>> {
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> bulkImport(
+    List<PayrollEmployee> employees,
+  ) async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await _repo.bulkImportEmployees(employees);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return result;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return null;
@@ -891,4 +906,56 @@ class CommunicationNotifier extends Notifier<AsyncValue<void>> {
 final communicationNotifierProvider =
     NotifierProvider<CommunicationNotifier, AsyncValue<void>>(
       CommunicationNotifier.new,
+    );
+
+// ─── Benefit Contribution notifier ───────────────────────────────────────────
+class BenefitContributionNotifier extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
+
+  PayrollRepository get _repo => ref.read(payrollRepositoryProvider);
+
+  Future<BenefitContribution?> add(BenefitContribution contribution) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repo.addBenefitContribution(contribution);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<BenefitContribution?> update(BenefitContribution contribution) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repo.updateBenefitContribution(contribution);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<bool> delete(String id) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repo.deleteBenefitContribution(id);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
+  }
+}
+
+final benefitContributionNotifierProvider =
+    NotifierProvider<BenefitContributionNotifier, AsyncValue<void>>(
+      BenefitContributionNotifier.new,
     );

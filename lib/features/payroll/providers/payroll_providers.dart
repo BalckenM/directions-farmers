@@ -6,6 +6,7 @@ import 'package:mobile_app/features/payroll/data/payroll_remote_data_source.dart
 import 'package:mobile_app/features/payroll/data/payroll_repository.dart';
 import 'package:mobile_app/features/payroll/models/attendance_record.dart';
 import 'package:mobile_app/features/payroll/models/audit_log_entry.dart';
+import 'package:mobile_app/features/payroll/models/benefit_contribution.dart';
 import 'package:mobile_app/features/payroll/models/communication_log.dart';
 import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
 import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
@@ -465,8 +466,18 @@ final allComplianceAlertsProvider = Provider<List<ComplianceAlert>>((ref) {
 });
 
 // ─── Employer configuration ───────────────────────────────────────────────────
-// Override this provider at app startup or via settings to customise
-// employer name / registration details.
+// Reads the employer config from the remote data source (fetched during preload).
 final employerConfigProvider = Provider<EmployerConfig>((ref) {
-  return EmployerConfig.defaultConfig;
+  return ref.watch(payrollRepositoryProvider).getEmployerConfig();
 });
+// ─── Benefit contributions ────────────────────────────────────────────────
+final benefitContributionsProvider = Provider<List<BenefitContribution>>((ref) {
+  return ref.watch(payrollRepositoryProvider).getBenefitContributions();
+});
+
+final benefitContributionsByEmployeeProvider =
+    Provider.family<List<BenefitContribution>, String>((ref, employeeId) {
+      return ref
+          .watch(payrollRepositoryProvider)
+          .getBenefitContributions(employeeId: employeeId);
+    });

@@ -1,5 +1,6 @@
 import 'package:mobile_app/features/payroll/models/attendance_record.dart';
 import 'package:mobile_app/features/payroll/models/audit_log_entry.dart';
+import 'package:mobile_app/features/payroll/models/benefit_contribution.dart';
 import 'package:mobile_app/features/payroll/models/communication_log.dart';
 import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
 import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
@@ -27,6 +28,9 @@ abstract class PayrollDataSource {
   PayrollEmployee? getEmployee(String id);
   PayrollEmployee addEmployee(PayrollEmployee employee);
   PayrollEmployee updateEmployee(PayrollEmployee employee);
+  Future<Map<String, dynamic>> bulkImportEmployees(
+    List<PayrollEmployee> employees,
+  );
 
   // ── Contracts ─────────────────────────────────────────────────────────────
   List<EmploymentContract> getContracts({String? employeeId});
@@ -118,6 +122,7 @@ abstract class PayrollDataSource {
     String? payRunId,
     String? employeeId,
   });
+  Future<void> createTransaction(Map<String, dynamic> payload);
 
   // ── Compliance alerts ──────────────────────────────────────────────────────
   List<ComplianceAlert> getComplianceAlerts({bool includeResolved = false});
@@ -178,4 +183,14 @@ abstract class PayrollDataSource {
     String resolutionNote,
   );
   WorkerDispute dismissDispute(String id, String resolvedBy);
+
+  // ── Benefit contributions ──────────────────────────────────────────────────
+  List<BenefitContribution> getBenefitContributions({String? employeeId});
+  Future<BenefitContribution> addBenefitContribution(
+    BenefitContribution contribution,
+  );
+  Future<BenefitContribution> updateBenefitContribution(
+    BenefitContribution contribution,
+  );
+  Future<void> deleteBenefitContribution(String id);
 }

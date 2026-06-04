@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/farm_dropdown.dart';
-import '../../../../shared/widgets/farm_text_field.dart';
-import '../../providers/payroll_providers.dart';
-import '../../services/payroll_engine.dart';
-import '../../theme/payroll_tokens.dart';
-import '../../widgets/payroll_widgets.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/services/payroll_engine.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
 
 final _zar = NumberFormat.currency(
   locale: 'en_ZA',
@@ -33,6 +32,7 @@ class RetroactivePayScreen extends ConsumerStatefulWidget {
 class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
   String? _employeeId;
   _BackpayType _type = _BackpayType.monthly;
+  bool _saving = false;
 
   final _oldRateCtrl = TextEditingController();
   final _newRateCtrl = TextEditingController();
@@ -50,6 +50,53 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
     _periodsCtrl.dispose();
     _unitsCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveBackPay() async {
+    if (_grossBackpay == null || _employeeId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Select an employee before saving the back-pay record.',
+          ),
+          backgroundColor: PayrollTokens.amber,
+        ),
+      );
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final repo = ref.read(payrollRepositoryProvider);
+      await repo.createTransaction({
+        'employeeId': _employeeId,
+        'type': 'retroactive',
+        'description': 'Retroactive back-pay (${_typeLabel(_type)})',
+        'amount': _grossBackpay,
+        'currency': 'ZAR',
+        'method': 'bank',
+        'status': 'initiated',
+        'transactionDate': DateTime.now().toIso8601String(),
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Back-pay record saved to transactions.'),
+            backgroundColor: PayrollTokens.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: PayrollTokens.rose,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   String _typeLabel(_BackpayType t) => switch (t) {
@@ -384,18 +431,44 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.print_outlined),
-              label: const Text('Print / Share Summary'),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Back-pay summary sharing will be available in the next update.',
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.print_outlined),
+                    label: const Text('Print / Share'),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Back-pay summary sharing will be available in the next update.',
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: PayrollTokens.green,
+                    ),
+                    icon: _saving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.save_outlined),
+                    label: const Text('Save Record'),
+                    onPressed: _saving ? null : _saveBackPay,
+                  ),
+                ),
+              ],
             ),
           ],
           const SizedBox(height: AppSpacing.xl),

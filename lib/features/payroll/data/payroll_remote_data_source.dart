@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:mobile_app/features/payroll/data/payroll_data_source.dart';
 import 'package:mobile_app/features/payroll/models/attendance_record.dart';
 import 'package:mobile_app/features/payroll/models/audit_log_entry.dart';
+import 'package:mobile_app/features/payroll/models/benefit_contribution.dart';
 import 'package:mobile_app/features/payroll/models/communication_log.dart';
 import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
 import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
@@ -57,6 +58,7 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   final List<IncidentRecord> _incidents = [];
   final List<CommunicationLog> _communications = [];
   final List<WorkerDispute> _disputes = [];
+  final List<BenefitContribution> _benefitContributions = [];
   EmployerConfig? _employerConfig;
 
   // ── Preload ────────────────────────────────────────────────────────────────
@@ -112,6 +114,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       _fetchList('/payroll/attendance', _attendance, AttendanceRecord.fromJson),
       _fetchList('/payroll/piecework', _piecework, PieceworkLog.fromJson),
       _fetchList('/payroll/worker-disputes', _disputes, WorkerDispute.fromJson),
+      _fetchList(
+        '/payroll/benefit-contributions',
+        _benefitContributions,
+        BenefitContribution.fromJson,
+      ),
       _fetchEmployerConfig(),
     ]);
   }
@@ -227,6 +234,23 @@ class PayrollRemoteDataSource implements PayrollDataSource {
           return s;
         });
     return _sync(future);
+  }
+
+  @override
+  Future<Map<String, dynamic>> bulkImportEmployees(
+    List<PayrollEmployee> employees,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/payroll/employees/import',
+      data: {'employees': employees.map((e) => e.toJson()).toList()},
+    );
+    final result = response.data ?? {};
+    // Update local cache with inserted rows
+    final inserted = (result['rows'] as List<dynamic>? ?? [])
+        .map((r) => PayrollEmployee.fromJson(r as Map<String, dynamic>))
+        .toList();
+    _employees.addAll(inserted);
+    return result;
   }
 
   @override
@@ -807,6 +831,17 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     return list;
   }
 
+  @override
+  Future<void> createTransaction(Map<String, dynamic> payload) async {
+    await _dio.post<void>('/payroll/transactions', data: payload);
+    // Refresh transactions cache
+    await _fetchList(
+      '/payroll/transactions',
+      _transactions,
+      PaymentTransaction.fromJson,
+    );
+  }
+
   // ── Compliance alerts ────────────────────────────────────────────────────────
   @override
   List<ComplianceAlert> getComplianceAlerts({bool includeResolved = false}) {
@@ -1140,5 +1175,51 @@ class PayrollRemoteDataSource implements PayrollDataSource {
           return s;
         });
     return _sync(future);
+  }
+
+  // ── Benefit contributions ──────────────────────────────────────────────────
+  @override
+  List<BenefitContribution> getBenefitContributions({String? employeeId}) {
+    if (employeeId != null)
+      return _benefitContributions
+          .where((b) => b.employeeId == employeeId)
+          .toList();
+    return List.unmodifiable(_benefitContributions);
+  }
+
+  @override
+  Future<BenefitContribution> addBenefitContribution(
+    BenefitContribution contribution,
+  ) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/payroll/benefit-contributions',
+      data: contribution.toJson(),
+    );
+    final created = BenefitContribution.fromJson(response.data!);
+    _benefitContributions.add(created);
+    return created;
+  }
+
+  @override
+  Future<BenefitContribution> updateBenefitContribution(
+    BenefitContribution contribution,
+  ) async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      '/payroll/benefit-contributions/${contribution.id}',
+      data: contribution.toJson(),
+    );
+    final updated = BenefitContribution.fromJson(response.data!);
+    final i = _benefitContributions.indexWhere((b) => b.id == updated.id);
+    if (i >= 0)
+      _benefitContributions[i] = updated;
+    else
+      _benefitContributions.add(updated);
+    return updated;
+  }
+
+  @override
+  Future<void> deleteBenefitContribution(String id) async {
+    await _dio.delete<void>('/payroll/benefit-contributions/$id');
+    _benefitContributions.removeWhere((b) => b.id == id);
   }
 }

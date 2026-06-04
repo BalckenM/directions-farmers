@@ -3,11 +3,10 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../models/payroll_employee.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 
 class EmployeeImportScreen extends ConsumerStatefulWidget {
   const EmployeeImportScreen({super.key});
@@ -79,44 +78,56 @@ class _EmployeeImportScreenState extends ConsumerState<EmployeeImportScreen> {
   Future<void> _confirmImport(BuildContext ctx) async {
     setState(() => _importing = true);
     final notifier = ref.read(employeeNotifierProvider.notifier);
-    int success = 0;
-    int failed = 0;
+
+    // Build the employee list from valid rows only
+    final employees = <PayrollEmployee>[];
+    int prevalidFailed = 0;
     for (int i = 0; i < _parsedRows.length; i++) {
       if (!_rowValid[i]) {
-        failed++;
+        prevalidFailed++;
         continue;
       }
       final r = _parsedRows[i];
       final now = DateTime.now();
-      final emp = PayrollEmployee(
-        id: 'emp_import_${now.millisecondsSinceEpoch}_$i',
-        firstName: r[0],
-        lastName: r[1],
-        idOrPassportNumber: r[2],
-        phone: r.length > 3 && r[3].isNotEmpty ? r[3] : null,
-        address: '',
-        nextOfKinName: '',
-        nextOfKinPhone: '',
-        status: EmploymentStatus.active,
-        engagementType: _parseEngagementType(r.length > 4 ? r[4] : ''),
-        occupationTitle: 'General Worker',
-        startDate: now,
-        bankName: r.length > 5 && r[5].isNotEmpty ? r[5] : null,
-        bankAccountNumber: r.length > 6 && r[6].isNotEmpty ? r[6] : null,
-        disbursementMethod: DisbursementMethod.bank,
-        preferredLanguage: 'en',
-        hasHousingBenefit: false,
-        hasFoodBenefit: false,
-        createdAt: now,
-        updatedAt: now,
+      employees.add(
+        PayrollEmployee(
+          id: 'emp_import_${now.millisecondsSinceEpoch}_$i',
+          firstName: r[0],
+          lastName: r[1],
+          idOrPassportNumber: r[2],
+          phone: r.length > 3 && r[3].isNotEmpty ? r[3] : null,
+          address: '',
+          nextOfKinName: '',
+          nextOfKinPhone: '',
+          status: EmploymentStatus.active,
+          engagementType: _parseEngagementType(r.length > 4 ? r[4] : ''),
+          occupationTitle: 'General Worker',
+          startDate: now,
+          bankName: r.length > 5 && r[5].isNotEmpty ? r[5] : null,
+          bankAccountNumber: r.length > 6 && r[6].isNotEmpty ? r[6] : null,
+          disbursementMethod: DisbursementMethod.bank,
+          preferredLanguage: 'en',
+          hasHousingBenefit: false,
+          hasFoodBenefit: false,
+          createdAt: now,
+          updatedAt: now,
+        ),
       );
-      final saved = await notifier.add(emp);
-      if (saved != null) {
-        success++;
+    }
+
+    int success = 0;
+    int failed = prevalidFailed;
+
+    if (employees.isNotEmpty) {
+      final result = await notifier.bulkImport(employees);
+      if (result != null) {
+        success = (result['inserted'] as num?)?.toInt() ?? 0;
+        failed += ((result['failed'] as List?)?.length ?? 0);
       } else {
-        failed++;
+        failed += employees.length;
       }
     }
+
     setState(() => _importing = false);
     if (ctx.mounted) {
       ScaffoldMessenger.of(ctx).showSnackBar(
