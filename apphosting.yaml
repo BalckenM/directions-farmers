@@ -35,7 +35,10 @@ scripts:
     #   --release            production mode (minified + tree-shaken)
     #   --tree-shake-icons   strips unused icon glyphs
     #   -O4                  dart2js maximum optimisation
-    flutter build web --release --tree-shake-icons -O4
+    flutter build web --release --tree-shake-icons -O4 \
+      --dart-define=APP_ENV=production \
+      --dart-define=API_BASE_URL=https://backendfarmers--directions-payroll.us-east4.hosted.app/v1 \
+      --dart-define=FIREBASE_ENABLED=true
 
   # Runs at container startup on Cloud Run.
   # server.js serves the static output from build/web.
