@@ -110,9 +110,9 @@ class EmployeeImagePicker extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Profile Photo',
-                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  ctx,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: AppSpacing.md),
               ListTile(

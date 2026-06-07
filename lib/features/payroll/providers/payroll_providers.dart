@@ -88,13 +88,11 @@ final payrollDataSourceProvider = Provider<PayrollDataSource>(
 );
 
 final payrollRepositoryProvider = Provider<PayrollRepository>((ref) {
-  // Stable: wraps the same PayrollRemoteDataSource object across all preload
-  // phases. payrollDataSourceProvider always returns the same source reference
-  // so this provider never emits a new value, preventing cascade invalidation
-  // of 30+ downstream providers that previously caused setState-during-build
-  // crashes in overlays.
-  // Each data provider that needs to reload after preloadCritical() completes
-  // watches payrollReadyProvider independently (flips false→true once).
+  // Watch the ready flag so this provider rebuilds when preloadCritical()
+  // finishes — causing all 30+ downstream data providers to re-read the
+  // now-populated in-memory caches. Safe because _PayrollLoaderNotifier
+  // always sets ready:true inside addPostFrameCallback (never mid-frame).
+  ref.watch(payrollReadyProvider);
   return PayrollRepository(ref.watch(payrollDataSourceProvider));
 });
 

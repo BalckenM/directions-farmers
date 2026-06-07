@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
 import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:mobile_app/core/theme/app_spacing.dart';
-import 'package:mobile_app/shared/widgets/empty_state.dart';
-import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
-import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:mobile_app/features/payroll/data/payroll_remote_data_source.dart';
 import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 final _fmtDate = DateFormat('d MMM y');
 
@@ -277,7 +276,9 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                                   : 0,
                             ),
                             child: _AlertCard(
-                                alert: filtered[i], empMap: empMap),
+                              alert: filtered[i],
+                              empMap: empMap,
+                            ),
                           ),
                         ),
                       ],
@@ -553,13 +554,20 @@ class _AlertCard extends ConsumerWidget {
 
     final (color, icon) = switch (alert.severity) {
       ComplianceSeverity.critical => (AppColors.error, Icons.error_rounded),
-      ComplianceSeverity.warning => (AppColors.warning, Icons.warning_amber_rounded),
-      ComplianceSeverity.info => (PayrollTokens.sky, Icons.info_outline_rounded),
+      ComplianceSeverity.warning => (
+        AppColors.warning,
+        Icons.warning_amber_rounded,
+      ),
+      ComplianceSeverity.info => (
+        PayrollTokens.sky,
+        Icons.info_outline_rounded,
+      ),
     };
 
     final accentColor = alert.isResolved ? AppColors.success : color;
-    final borderColor =
-        alert.isResolved ? cs.outlineVariant : color.withValues(alpha: 0.5);
+    final borderColor = alert.isResolved
+        ? cs.outlineVariant
+        : color.withValues(alpha: 0.5);
     final borderWidth = alert.isResolved ? 1.0 : 1.5;
 
     return Material(
@@ -612,7 +620,9 @@ class _AlertCard extends ConsumerWidget {
                         children: [
                           Icon(
                             icon,
-                            color: alert.isResolved ? cs.onSurfaceVariant : color,
+                            color: alert.isResolved
+                                ? cs.onSurfaceVariant
+                                : color,
                             size: 18,
                           ),
                           const SizedBox(width: AppSpacing.xs),
@@ -656,13 +666,17 @@ class _AlertCard extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.person_outline,
-                                size: 13, color: cs.onSurfaceVariant),
+                            Icon(
+                              Icons.person_outline,
+                              size: 13,
+                              color: cs.onSurfaceVariant,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               empMap[alert.employeeId] ?? alert.employeeId!,
-                              style: tt.labelSmall
-                                  ?.copyWith(color: cs.onSurfaceVariant),
+                              style: tt.labelSmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -671,27 +685,36 @@ class _AlertCard extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.schedule,
-                              size: 13, color: cs.onSurfaceVariant),
+                          Icon(
+                            Icons.schedule,
+                            size: 13,
+                            color: cs.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Raised ${_fmtDate.format(alert.raisedAt)}',
-                            style: tt.labelSmall
-                                ?.copyWith(color: cs.onSurfaceVariant),
+                            style: tt.labelSmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                           if (alert.isResolved && alert.resolvedAt != null) ...[
                             Text(
                               '  \u00b7  ',
-                              style: tt.labelSmall
-                                  ?.copyWith(color: cs.onSurfaceVariant),
+                              style: tt.labelSmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
                             ),
-                            Icon(Icons.check_circle,
-                                size: 12, color: AppColors.success),
+                            Icon(
+                              Icons.check_circle,
+                              size: 12,
+                              color: AppColors.success,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               'Resolved ${_fmtDate.format(alert.resolvedAt!)}',
-                              style: tt.labelSmall
-                                  ?.copyWith(color: AppColors.success),
+                              style: tt.labelSmall?.copyWith(
+                                color: AppColors.success,
+                              ),
                             ),
                           ],
                         ],
@@ -705,17 +728,23 @@ class _AlertCard extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm, vertical: 6),
+                            horizontal: AppSpacing.sm,
+                            vertical: 6,
+                          ),
                           child: Row(
                             children: [
-                              const Icon(Icons.notes,
-                                  size: 13, color: AppColors.success),
+                              const Icon(
+                                Icons.notes,
+                                size: 13,
+                                color: AppColors.success,
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   alert.resolution!,
-                                  style: tt.bodySmall
-                                      ?.copyWith(color: AppColors.success),
+                                  style: tt.bodySmall?.copyWith(
+                                    color: AppColors.success,
+                                  ),
                                 ),
                               ),
                             ],
@@ -734,7 +763,8 @@ class _AlertCard extends ConsumerWidget {
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.success,
                                   side: const BorderSide(
-                                      color: AppColors.success),
+                                    color: AppColors.success,
+                                  ),
                                   visualDensity: VisualDensity.compact,
                                 ),
                                 onPressed: () =>
@@ -754,7 +784,6 @@ class _AlertCard extends ConsumerWidget {
       ),
     );
   }
-
 
   Widget _severityChip(
     BuildContext context,

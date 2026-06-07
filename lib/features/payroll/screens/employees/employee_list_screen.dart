@@ -147,7 +147,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
           100,
         ),
         itemCount: filtered.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
         itemBuilder: (context, i) {
           return _EmployeeTile(employee: filtered[i]);
         },

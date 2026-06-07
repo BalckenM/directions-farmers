@@ -70,7 +70,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   /// Phase 1 — loads only the data needed to render the hub dashboard.
   /// Call this first; the UI unblocks as soon as it completes (~8 API calls).
   Future<void> preloadCritical() => Future.wait([
-    _fetchAllPaginated('/payroll/employees', _employees, PayrollEmployee.fromJson),
+    _fetchAllPaginated(
+      '/payroll/employees',
+      _employees,
+      PayrollEmployee.fromJson,
+    ),
     _fetchList('/payroll/pay-groups', _payGroups, PayGroup.fromJson),
     _fetchList(
       '/payroll/pay-structures',
@@ -78,7 +82,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       PayStructure.fromJson,
     ),
     _fetchList('/payroll/pay-runs?limit=100', _payRuns, PayRun.fromJson),
-    _fetchList('/payroll/compliance-alerts?limit=200', _alerts, ComplianceAlert.fromJson),
+    _fetchList(
+      '/payroll/compliance-alerts?limit=200',
+      _alerts,
+      ComplianceAlert.fromJson,
+    ),
     _fetchList(
       '/payroll/leave-requests',
       _leaveRequests,
@@ -95,7 +103,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   /// Phase 2 — loads secondary data (contracts, payslips, attendance, etc.)
   /// in the background after the UI is already visible.
   Future<void> preloadBackground() => Future.wait([
-    _fetchAllPaginated('/payroll/contracts', _contracts, EmploymentContract.fromJson),
+    _fetchAllPaginated(
+      '/payroll/contracts',
+      _contracts,
+      EmploymentContract.fromJson,
+    ),
     _fetchList('/payroll/payslips?limit=200', _payslips, Payslip.fromJson),
     _fetchList('/payroll/deductions', _deductions, DeductionRule.fromJson),
     _fetchList(
@@ -118,7 +130,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     ),
     _fetchList('/payroll/shifts', _shifts, Shift.fromJson),
     _fetchList('/payroll/task-assignments', _tasks, TaskAssignment.fromJson),
-    _fetchAllPaginated('/payroll/attendance', _attendance, AttendanceRecord.fromJson),
+    _fetchAllPaginated(
+      '/payroll/attendance',
+      _attendance,
+      AttendanceRecord.fromJson,
+    ),
     _fetchList('/payroll/piecework', _piecework, PieceworkLog.fromJson),
     _fetchList('/payroll/worker-disputes', _disputes, WorkerDispute.fromJson),
     _fetchList(
@@ -367,7 +383,10 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       // We need to read it as bytes via XFile.
       final xfile = XFile(filePath);
       final bytes = await xfile.readAsBytes();
-      file = MultipartFile.fromBytes(bytes, filename: xfile.name.isNotEmpty ? xfile.name : 'profile.jpg');
+      file = MultipartFile.fromBytes(
+        bytes,
+        filename: xfile.name.isNotEmpty ? xfile.name : 'profile.jpg',
+      );
     } else {
       file = await MultipartFile.fromFile(filePath);
     }
@@ -825,18 +844,14 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   Future<LeaveRequest> addLeaveRequest(LeaveRequest request) async {
-    final s = await _post(
-      '/payroll/leave-requests',
-      {
-        'employeeId': request.employeeId,
-        'leaveTypeId': request.leaveTypeId,
-        'startDate': request.startDate.toIso8601String().split('T').first,
-        'endDate': request.endDate.toIso8601String().split('T').first,
-        'daysRequested': request.daysRequested,
-        if (request.reason.isNotEmpty) 'reason': request.reason,
-      },
-      LeaveRequest.fromJson,
-    );
+    final s = await _post('/payroll/leave-requests', {
+      'employeeId': request.employeeId,
+      'leaveTypeId': request.leaveTypeId,
+      'startDate': request.startDate.toIso8601String().split('T').first,
+      'endDate': request.endDate.toIso8601String().split('T').first,
+      'daysRequested': request.daysRequested,
+      if (request.reason.isNotEmpty) 'reason': request.reason,
+    }, LeaveRequest.fromJson);
     _leaveRequests.add(s);
     return s;
   }
@@ -921,12 +936,13 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   /// Re-fetches compliance alerts from the API (used by the compliance screen
   /// to get the full set including resolved, without waiting for preload).
-  Future<void> refreshComplianceAlerts({bool includeResolved = false}) =>
-      _fetchList(
-        '/payroll/compliance-alerts?limit=200${includeResolved ? '&includeResolved=true' : ''}',
-        _alerts,
-        ComplianceAlert.fromJson,
-      );
+  Future<void> refreshComplianceAlerts({
+    bool includeResolved = false,
+  }) => _fetchList(
+    '/payroll/compliance-alerts?limit=200${includeResolved ? '&includeResolved=true' : ''}',
+    _alerts,
+    ComplianceAlert.fromJson,
+  );
 
   @override
   Future<ComplianceAlert> resolveAlert(

@@ -256,9 +256,9 @@ class _EmployeeHeader extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Change Profile Photo',
-                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  ctx,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: AppSpacing.md),
               ListTile(

@@ -1,20 +1,19 @@
 ﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/features/payroll/models/employment_contract.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/services/contract_pdf_service.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:path_provider/path_provider.dart';
-
-import '../../../../core/router/app_routes.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/avatar_widget.dart';
-import '../../models/employment_contract.dart';
-import '../../models/payroll_employee.dart';
-import '../../providers/payroll_providers.dart';
-import '../../services/contract_pdf_service.dart';
 
 const _red = Color.fromARGB(255, 198, 40, 40);
 

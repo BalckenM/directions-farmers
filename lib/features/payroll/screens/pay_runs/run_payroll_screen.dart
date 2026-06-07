@@ -499,8 +499,11 @@ class _StepPreReportState extends State<_StepPreReport> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded,
-                          color: AppColors.warning, size: 20),
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.warning,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Compliance Alerts',
@@ -555,8 +558,11 @@ class _StepPreReportState extends State<_StepPreReport> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_rounded,
-                      color: AppColors.success, size: 20),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.success,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'No compliance alerts',
@@ -594,7 +600,8 @@ class _StepPreReportState extends State<_StepPreReport> {
                     const Spacer(),
                     TextButton.icon(
                       onPressed: () => setState(
-                          () => _showEmployeeList = !_showEmployeeList),
+                        () => _showEmployeeList = !_showEmployeeList,
+                      ),
                       icon: Icon(
                         _showEmployeeList
                             ? Icons.expand_less
@@ -618,7 +625,7 @@ class _StepPreReportState extends State<_StepPreReport> {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: widget.employees.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final e = widget.employees[i];
                         final initials =
@@ -668,8 +675,11 @@ class _StepPreReportState extends State<_StepPreReport> {
                                   ),
                                 )
                               else
-                                Icon(Icons.check_circle_outline,
-                                    size: 14, color: AppColors.success),
+                                Icon(
+                                  Icons.check_circle_outline,
+                                  size: 14,
+                                  color: AppColors.success,
+                                ),
                             ],
                           ),
                         );
@@ -696,8 +706,7 @@ class _StepPreReportState extends State<_StepPreReport> {
               Expanded(
                 flex: 2,
                 child: FilledButton.icon(
-                  onPressed:
-                      widget.isCalculating ? null : widget.onCalculate,
+                  onPressed: widget.isCalculating ? null : widget.onCalculate,
                   icon: widget.isCalculating
                       ? const SizedBox(
                           width: 18,

@@ -35,11 +35,16 @@ class AvatarWidget extends StatelessWidget {
             width: size,
             height: size,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
+            errorBuilder: (_, _, _) =>
                 _Initials(initials: initials, fg: fg, bg: bg, radius: radius),
             loadingBuilder: (_, child, progress) {
               if (progress == null) return child;
-              return _Initials(initials: initials, fg: fg, bg: bg, radius: radius);
+              return _Initials(
+                initials: initials,
+                fg: fg,
+                bg: bg,
+                radius: radius,
+              );
             },
           ),
         ),

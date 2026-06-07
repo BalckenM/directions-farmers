@@ -40,9 +40,7 @@ class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
     final empMap = {
       for (final e in employees) e.id: '${e.firstName} ${e.lastName}',
     };
-    final empImageMap = {
-      for (final e in employees) e.id: e.profileImageUrl,
-    };
+    final empImageMap = {for (final e in employees) e.id: e.profileImageUrl};
 
     // Group by employee when showing all
     final Map<String, List<LeaveBalance>> grouped = {};
@@ -121,11 +119,11 @@ class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 child: Row(
                                   children: [
-                              AvatarWidget(
-                                    imageUrl: empImageMap[empId],
-                                    initials: initials,
-                                    radius: 20,
-                                  ),
+                                    AvatarWidget(
+                                      imageUrl: empImageMap[empId],
+                                      initials: initials,
+                                      radius: 20,
+                                    ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Expanded(
                                       child: Column(

@@ -51,7 +51,12 @@ class PayRunNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final run = await _repo.calculatePayRun(payGroupId, periodStart, periodEnd, payDate: payDate);
+      final run = await _repo.calculatePayRun(
+        payGroupId,
+        periodStart,
+        periodEnd,
+        payDate: payDate,
+      );
       // Invalidate pay-run reads so screens auto-refresh
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);

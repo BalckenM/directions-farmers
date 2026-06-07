@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../models/payslip.dart';
-import '../../providers/payroll_providers.dart';
-import '../../../../shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/status_chip.dart';
 
 final _periodFmt = DateFormat('MMM yyyy');
 final _dateFmt   = DateFormat('d MMM yyyy');
@@ -134,7 +134,7 @@ class _PayslipListState extends ConsumerState<PayslipListScreen> {
                         AppSpacing.md, AppSpacing.md,
                         AppSpacing.md, AppSpacing.xxl),
                     itemCount: visible.length + (hasMore ? 1 : 0),
-                    separatorBuilder: (_, __) =>
+                    separatorBuilder: (_, _) =>
                         const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (_, i) {
                       if (i == visible.length) {

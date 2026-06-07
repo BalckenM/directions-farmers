@@ -1,19 +1,19 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:mobile_app/core/theme/app_radius.dart';
 import 'package:mobile_app/core/theme/app_spacing.dart';
 import 'package:mobile_app/features/payroll/models/employment_contract.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 import 'package:mobile_app/features/payroll/widgets/pr_amount_badge.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
 import 'package:mobile_app/shared/widgets/empty_state.dart';
 import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
 import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:mobile_app/shared/widgets/status_chip.dart';
-import 'package:mobile_app/shared/widgets/avatar_widget.dart';
 
 class ContractListScreen extends ConsumerStatefulWidget {
   const ContractListScreen({super.key});
@@ -54,9 +54,7 @@ class _ContractListScreenState extends ConsumerState<ContractListScreen> {
     final empMap = {
       for (final e in employees) e.id: '${e.firstName} ${e.lastName}',
     };
-    final empImageMap = {
-      for (final e in employees) e.id: e.profileImageUrl,
-    };
+    final empImageMap = {for (final e in employees) e.id: e.profileImageUrl};
 
     final filtered = _filterStatus == null
         ? all
@@ -263,8 +261,9 @@ class _ContractCard extends StatelessWidget {
                                 PrAmountBadge(
                                   amount:
                                       '${zar.format(contract.grossMonthlySalary)}/mo',
-                                  backgroundColor: AppColors.success
-                                      .withValues(alpha: 0.12),
+                                  backgroundColor: AppColors.success.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   textColor: AppColors.success,
                                 ),
                               ],

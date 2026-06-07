@@ -15,7 +15,6 @@ import 'package:mobile_app/features/payroll/providers/payroll_sync_provider.dart
 import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
 import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
-import 'package:mobile_app/shared/widgets/status_chip.dart';
 
 // ─── Alias for brevity inside this file ──────────────────────────────────────
 typedef _C = PayrollTokens;
@@ -241,7 +240,9 @@ class _PeriodHeaderState extends State<_PeriodHeader>
     final period = widget.payRun == null
         ? 'No active pay run'
         : '${_mFmt.format(widget.payRun!.periodStart)} – ${_mFmt.format(widget.payRun!.periodEnd)}';
-    final due = widget.payRun == null ? '' : _mFmt.format(widget.payRun!.payDate);
+    final due = widget.payRun == null
+        ? ''
+        : _mFmt.format(widget.payRun!.payDate);
 
     final net = widget.payRun?.totalNet ?? 0;
     final gross = widget.payRun?.totalGross ?? 0;
@@ -324,9 +325,13 @@ class _PeriodHeaderState extends State<_PeriodHeader>
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    PayrollTokens.payRunStatusLabel(widget.payRun!.status),
+                                    PayrollTokens.payRunStatusLabel(
+                                      widget.payRun!.status,
+                                    ),
                                     style: TextStyle(
-                                      color: PayrollTokens.payRunStatusColor(widget.payRun!.status),
+                                      color: PayrollTokens.payRunStatusColor(
+                                        widget.payRun!.status,
+                                      ),
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -381,7 +386,10 @@ class _PeriodHeaderState extends State<_PeriodHeader>
 
                           // Clean stats row
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
@@ -443,12 +451,16 @@ class _FarmingPatternPainter extends CustomPainter {
         final path = Path()
           ..moveTo(x + spacing / 2, y + spacing / 2 - 10)
           ..quadraticBezierTo(
-            x + spacing / 2 + 8, y + spacing / 2,
-            x + spacing / 2, y + spacing / 2 + 10,
+            x + spacing / 2 + 8,
+            y + spacing / 2,
+            x + spacing / 2,
+            y + spacing / 2 + 10,
           )
           ..quadraticBezierTo(
-            x + spacing / 2 - 8, y + spacing / 2,
-            x + spacing / 2, y + spacing / 2 - 10,
+            x + spacing / 2 - 8,
+            y + spacing / 2,
+            x + spacing / 2,
+            y + spacing / 2 - 10,
           );
         canvas.drawPath(path, paint);
       }
@@ -478,11 +490,7 @@ class _CleanStat extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: Colors.white.withValues(alpha: 0.7),
-          ),
+          Icon(icon, size: 16, color: Colors.white.withValues(alpha: 0.7)),
           const SizedBox(width: 6),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,7 +521,7 @@ class _CleanStat extends StatelessWidget {
 // Stat divider
 class _StatDivider extends StatelessWidget {
   const _StatDivider();
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -523,10 +531,6 @@ class _StatDivider extends StatelessWidget {
     );
   }
 }
-
-
-
-
 
 // ─── 2. Primary Actions Row ───────────────────────────────────────────────────
 
