@@ -1,5 +1,5 @@
-import '../../theme/payroll_tokens.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
@@ -17,9 +17,9 @@ class PayGroupsScreen extends ConsumerWidget {
   const PayGroupsScreen({super.key});
 
   static Color _freqColor(PayFrequency f) => switch (f) {
-        PayFrequency.monthly   => PayrollTokens.teal,
-        PayFrequency.biweekly  => PayrollTokens.navy,
-        PayFrequency.weekly    => PayrollTokens.amber,
+        PayFrequency.monthly   => AppColors.success,
+        PayFrequency.biweekly  => AppColors.primary,
+        PayFrequency.weekly    => AppColors.warning,
         PayFrequency.daily     => const Color.fromARGB(255, 106, 27, 154),
       };
 
@@ -47,7 +47,7 @@ class PayGroupsScreen extends ConsumerWidget {
       appBar: const FarmAppBar(title: 'Pay Groups'),
       floatingActionButton: FloatingActionButton(heroTag: null, 
         onPressed: () => context.push(AppRoutes.payrollAddPayGroup),
-        backgroundColor: PayrollTokens.teal,
+        backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
@@ -148,7 +148,7 @@ class PayGroupsScreen extends ConsumerWidget {
                                           const SizedBox(width: AppSpacing.xs),
                                           StatusChip(
                                             label: g.isActive ? 'Active' : 'Inactive',
-                                            color: g.isActive ? PayrollTokens.green : Colors.grey,
+                                            color: g.isActive ? AppColors.success : Colors.grey,
                                             small: true,
                                           ),
                                         ],

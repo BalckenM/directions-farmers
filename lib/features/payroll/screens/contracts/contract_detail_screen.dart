@@ -1,6 +1,7 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -9,11 +10,11 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
+import '../../../../shared/widgets/avatar_widget.dart';
 import '../../models/employment_contract.dart';
 import '../../models/payroll_employee.dart';
 import '../../providers/payroll_providers.dart';
 import '../../services/contract_pdf_service.dart';
-import '../../theme/payroll_tokens.dart';
 
 const _red = Color.fromARGB(255, 198, 40, 40);
 
@@ -98,7 +99,7 @@ class _EmployeeHeader extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [PayrollTokens.navy, Color(0xFF2B4F8A)],
+          colors: [AppColors.primary, Color(0xFF2B4F8A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -107,17 +108,12 @@ class _EmployeeHeader extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          CircleAvatar(
+          AvatarWidget(
+            imageUrl: employee?.profileImageUrl,
+            initials: name.isNotEmpty ? name[0].toUpperCase() : '?',
             radius: 28,
             backgroundColor: Colors.white24,
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            foregroundColor: Colors.white,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -162,12 +158,12 @@ class _StatusBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final (color, icon, label) = switch (contract.status) {
       ContractStatus.signed => (
-        PayrollTokens.green,
+        AppColors.success,
         Icons.verified_outlined,
         'Active & Signed',
       ),
       ContractStatus.draft => (
-        PayrollTokens.amber,
+        AppColors.warning,
         Icons.edit_note_outlined,
         'Draft — Awaiting Signature',
       ),
@@ -245,7 +241,7 @@ class _SigningHistoryCard extends StatelessWidget {
           date: contract.createdAt,
           label: 'Contract Created',
           icon: Icons.create_outlined,
-          color: PayrollTokens.navy,
+          color: AppColors.primary,
         ),
         if (contract.signedAt != null) ...[
           const _TimelineDivider(),
@@ -253,7 +249,7 @@ class _SigningHistoryCard extends StatelessWidget {
             date: contract.signedAt!,
             label: 'Signed by ${contract.signedByName ?? 'Unknown'}',
             icon: Icons.draw_outlined,
-            color: PayrollTokens.green,
+            color: AppColors.success,
           ),
         ],
         if (contract.status == ContractStatus.expired) ...[
@@ -322,13 +318,13 @@ class _ComplianceCard extends StatelessWidget {
             children: [
               const Icon(
                 Icons.check_circle_outline,
-                color: PayrollTokens.green,
+                color: AppColors.success,
               ),
               const SizedBox(width: 8),
               Text(
                 'No compliance issues detected.',
                 style: TextStyle(
-                  color: PayrollTokens.green,
+                  color: AppColors.success,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -411,7 +407,7 @@ class _ActionButtonsState extends State<_ActionButtons> {
         if (contract.status == ContractStatus.draft)
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: PayrollTokens.green,
+              backgroundColor: AppColors.success,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             onPressed: () =>
@@ -422,7 +418,7 @@ class _ActionButtonsState extends State<_ActionButtons> {
         if (contract.status == ContractStatus.draft) const SizedBox(height: 10),
         FilledButton.icon(
           style: FilledButton.styleFrom(
-            backgroundColor: PayrollTokens.navy,
+            backgroundColor: AppColors.primary,
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: _exporting ? null : _exportPdf,
@@ -446,8 +442,8 @@ class _ActionButtonsState extends State<_ActionButtons> {
         const SizedBox(height: 10),
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
-            foregroundColor: PayrollTokens.navy,
-            side: const BorderSide(color: PayrollTokens.navy),
+            foregroundColor: AppColors.primary,
+            side: const BorderSide(color: AppColors.primary),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () => context.push(AppRoutes.payrollGenerateContract),
@@ -457,8 +453,8 @@ class _ActionButtonsState extends State<_ActionButtons> {
         const SizedBox(height: 10),
         OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
-            foregroundColor: PayrollTokens.teal,
-            side: const BorderSide(color: PayrollTokens.teal),
+            foregroundColor: AppColors.success,
+            side: const BorderSide(color: AppColors.success),
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
           onPressed: () =>
@@ -498,12 +494,12 @@ class _Section extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: PayrollTokens.navy, size: 20),
+                Icon(icon, color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   title,
                   style: tt.titleSmall?.copyWith(
-                    color: PayrollTokens.navy,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -663,7 +659,7 @@ class _ComplianceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCritical = issue.severity == 'critical';
-    final color = isCritical ? _red : PayrollTokens.amber;
+    final color = isCritical ? _red : AppColors.warning;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(

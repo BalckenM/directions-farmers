@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -61,7 +62,7 @@ class _IncidentsScreenState extends ConsumerState<IncidentsScreen> {
           onPressed: () => _showAddIncidentSheet(context),
           icon: const Icon(Icons.add),
           label: const Text('Add Incident'),
-          backgroundColor: PayrollTokens.green,
+          backgroundColor: AppColors.success,
         ),
         body: TabBarView(
           children: _tabs.map((t) {
@@ -250,35 +251,35 @@ class _IncidentCard extends StatelessWidget {
 
   (Color, IconData) _typeStyle(IncidentType t) => switch (t) {
     IncidentType.disciplinary => (
-      PayrollTokens.rose,
+      AppColors.error,
       Icons.warning_amber_rounded,
     ),
     IncidentType.grievance => (
-      PayrollTokens.amber,
+      AppColors.warning,
       Icons.report_problem_outlined,
     ),
     IncidentType.healthAndSafety => (
       PayrollTokens.sky,
       Icons.health_and_safety_outlined,
     ),
-    IncidentType.misconduct => (PayrollTokens.rose, Icons.report_outlined),
+    IncidentType.misconduct => (AppColors.error, Icons.report_outlined),
     IncidentType.other => (const Color(0xFF757575), Icons.help_outline_rounded),
   };
 
   (Color, Color, String) _statusStyle(IncidentStatus s) => switch (s) {
     IncidentStatus.open => (
-      PayrollTokens.rose.withValues(alpha: 0.1),
-      PayrollTokens.rose,
+      AppColors.error.withValues(alpha: 0.1),
+      AppColors.error,
       'Open',
     ),
     IncidentStatus.underInvestigation => (
-      PayrollTokens.amber.withValues(alpha: 0.1),
-      PayrollTokens.amber,
+      AppColors.warning.withValues(alpha: 0.1),
+      AppColors.warning,
       'Investigating',
     ),
     IncidentStatus.resolved => (
-      PayrollTokens.green.withValues(alpha: 0.1),
-      PayrollTokens.green,
+      AppColors.success.withValues(alpha: 0.1),
+      AppColors.success,
       'Resolved',
     ),
     IncidentStatus.closed => (
@@ -465,7 +466,7 @@ class IncidentDetailScreen extends ConsumerWidget {
                       Icons.search_outlined,
                       'Under Investigation',
                       null,
-                      PayrollTokens.amber,
+                      AppColors.warning,
                     ),
                   if (incident.status == IncidentStatus.resolved ||
                       incident.status == IncidentStatus.closed)
@@ -476,7 +477,7 @@ class IncidentDetailScreen extends ConsumerWidget {
                       incident.resolvedAt != null
                           ? _fmtFull(incident.resolvedAt!)
                           : null,
-                      PayrollTokens.green,
+                      AppColors.success,
                     ),
                   if (incident.status == IncidentStatus.closed)
                     _timelineStep(
@@ -621,18 +622,18 @@ class IncidentDetailScreen extends ConsumerWidget {
     final tt = Theme.of(context).textTheme;
     final (bg, fg, lbl) = switch (s) {
       IncidentStatus.open => (
-        PayrollTokens.rose.withValues(alpha: 0.1),
-        PayrollTokens.rose,
+        AppColors.error.withValues(alpha: 0.1),
+        AppColors.error,
         'Open',
       ),
       IncidentStatus.underInvestigation => (
-        PayrollTokens.amber.withValues(alpha: 0.1),
-        PayrollTokens.amber,
+        AppColors.warning.withValues(alpha: 0.1),
+        AppColors.warning,
         'Investigating',
       ),
       IncidentStatus.resolved => (
-        PayrollTokens.green.withValues(alpha: 0.1),
-        PayrollTokens.green,
+        AppColors.success.withValues(alpha: 0.1),
+        AppColors.success,
         'Resolved',
       ),
       IncidentStatus.closed => (
@@ -728,7 +729,7 @@ class IncidentDetailScreen extends ConsumerWidget {
                   flex: 2,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                      backgroundColor: PayrollTokens.green,
+                      backgroundColor: AppColors.success,
                     ),
                     onPressed: () => Navigator.pop(ctx, true),
                     icon: const Icon(Icons.check_circle_outline_rounded),
@@ -767,18 +768,18 @@ class IncidentDetailScreen extends ConsumerWidget {
 
   (Color, IconData) _typeStyle(IncidentType t) => switch (t) {
     IncidentType.disciplinary => (
-      PayrollTokens.rose,
+      AppColors.error,
       Icons.warning_amber_rounded,
     ),
     IncidentType.grievance => (
-      PayrollTokens.amber,
+      AppColors.warning,
       Icons.report_problem_outlined,
     ),
     IncidentType.healthAndSafety => (
       PayrollTokens.sky,
       Icons.health_and_safety_outlined,
     ),
-    IncidentType.misconduct => (PayrollTokens.rose, Icons.report_outlined),
+    IncidentType.misconduct => (AppColors.error, Icons.report_outlined),
     IncidentType.other => (const Color(0xFF757575), Icons.help_outline_rounded),
   };
 

@@ -1,5 +1,6 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
@@ -8,7 +9,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
 import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+
 import '../../services/payslip_pdf_generator.dart';
 import '../../widgets/payroll_widgets.dart';
 
@@ -122,7 +123,7 @@ class PayslipDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [PayrollTokens.navy, Color.fromARGB(255, 46, 89, 132)],
+                  colors: [AppColors.primary, Color.fromARGB(255, 46, 89, 132)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -176,7 +177,7 @@ class PayslipDetailScreen extends ConsumerWidget {
             PrSectionCard(
               title: 'Employee',
               icon: Icons.person_outline,
-              iconColor: PayrollTokens.navy,
+              iconColor: AppColors.primary,
               children: [
                 if (employee != null) ...[
                   PrInfoRow(
@@ -214,7 +215,7 @@ class PayslipDetailScreen extends ConsumerWidget {
             PrSectionCard(
               title: 'Earnings',
               icon: Icons.trending_up_outlined,
-              iconColor: PayrollTokens.green,
+              iconColor: AppColors.success,
               children: [
                 PrInfoRow(label: 'Basic Wage', value: _zarInt.format(payslip.basicWage)),
                 if (payslip.overtimePay > 0)
@@ -241,7 +242,7 @@ class PayslipDetailScreen extends ConsumerWidget {
                 PrInfoRow(
                   label: 'Gross Pay',
                   value: _zarInt.format(payslip.grossPay),
-                  valueColor: PayrollTokens.navy,
+                  valueColor: AppColors.primary,
                   valueStyle: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ],
@@ -252,19 +253,19 @@ class PayslipDetailScreen extends ConsumerWidget {
             PrSectionCard(
               title: 'Deductions',
               icon: Icons.remove_circle_outline,
-              iconColor: PayrollTokens.rose,
+              iconColor: AppColors.error,
               children: [
                 ...payslip.deductions.map((d) => PrInfoRow(
                       label: d.description +
                           (d.isStatutory ? ' (Statutory)' : ''),
                       value: _zarInt.format(d.amount),
-                      valueColor: PayrollTokens.rose,
+                      valueColor: AppColors.error,
                     )),
                 const Divider(height: 12),
                 PrInfoRow(
                   label: 'Total Deductions',
                   value: '- ${_zarInt.format(payslip.totalDeductions)}',
-                  valueColor: PayrollTokens.rose,
+                  valueColor: AppColors.error,
                   valueStyle: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ],
@@ -276,7 +277,7 @@ class PayslipDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.md + 4),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [PayrollTokens.teal, PayrollTokens.navy],
+                  colors: [AppColors.success, AppColors.primary],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -301,7 +302,7 @@ class PayslipDetailScreen extends ConsumerWidget {
             PrSectionCard(
               title: 'UIF Employer Contribution',
               icon: Icons.info_outline,
-              iconColor: PayrollTokens.amber,
+              iconColor: AppColors.warning,
               children: [
                 Text(
                   'Employer contributes ${_zar.format(payslip.grossPay * 0.01)} (1% of gross, paid by employer \u2014 not deducted from employee).',
@@ -316,7 +317,7 @@ class PayslipDetailScreen extends ConsumerWidget {
               PrSectionCard(
                 title: 'Leave Balance Snapshot',
                 icon: Icons.beach_access_outlined,
-                iconColor: PayrollTokens.teal,
+                iconColor: AppColors.success,
                 children: payslip.leaveBalanceSnapshot.entries
                     .map((e) =>
                         PrInfoRow(label: _leaveTypeLabel(e.key), value: '${e.value.toStringAsFixed(1)} days'))

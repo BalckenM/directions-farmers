@@ -1,19 +1,19 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../models/employment_contract.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
-import '../../widgets/pr_amount_badge.dart';
-
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/employment_contract.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/widgets/pr_amount_badge.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/status_chip.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
 
 class ContractListScreen extends ConsumerStatefulWidget {
   const ContractListScreen({super.key});
@@ -26,32 +26,37 @@ class _ContractListScreenState extends ConsumerState<ContractListScreen> {
   ContractStatus? _filterStatus;
 
   static Color _statusColor(ContractStatus s) => switch (s) {
-        ContractStatus.signed      => PayrollTokens.green,
-        ContractStatus.draft       => PayrollTokens.amber,
-        ContractStatus.expired     => PayrollTokens.rose,
-        ContractStatus.terminated  => Colors.grey,
-      };
+    ContractStatus.signed => AppColors.success,
+    ContractStatus.draft => AppColors.warning,
+    ContractStatus.expired => AppColors.error,
+    ContractStatus.terminated => Colors.grey,
+  };
 
   static String _statusLabel(ContractStatus s) => switch (s) {
-        ContractStatus.signed      => 'Signed',
-        ContractStatus.draft       => 'Draft',
-        ContractStatus.expired     => 'Expired',
-        ContractStatus.terminated  => 'Terminated',
-      };
+    ContractStatus.signed => 'Signed',
+    ContractStatus.draft => 'Draft',
+    ContractStatus.expired => 'Expired',
+    ContractStatus.terminated => 'Terminated',
+  };
 
   static String _typeLabel(ContractType t) => switch (t) {
-        ContractType.permanent  => 'Permanent',
-        ContractType.fixedTerm  => 'Fixed Term',
-        ContractType.seasonal   => 'Seasonal',
-        ContractType.casual     => 'Casual',
-      };
+    ContractType.permanent => 'Permanent',
+    ContractType.fixedTerm => 'Fixed Term',
+    ContractType.seasonal => 'Seasonal',
+    ContractType.casual => 'Casual',
+  };
 
   @override
   Widget build(BuildContext context) {
     final ref = this.ref;
     final all = ref.watch(contractsProvider(null));
     final employees = ref.watch(activeEmployeesProvider);
-    final empMap = {for (final e in employees) e.id: '${e.firstName} ${e.lastName}'};
+    final empMap = {
+      for (final e in employees) e.id: '${e.firstName} ${e.lastName}',
+    };
+    final empImageMap = {
+      for (final e in employees) e.id: e.profileImageUrl,
+    };
 
     final filtered = _filterStatus == null
         ? all
@@ -59,17 +64,33 @@ class _ContractListScreenState extends ConsumerState<ContractListScreen> {
 
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final zar = NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 0);
+    final zar = NumberFormat.currency(
+      locale: 'en_ZA',
+      symbol: 'R ',
+      decimalDigits: 0,
+    );
 
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'Contracts'),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'New Contract',
+          style: TextStyle(color: Colors.white),
+        ),
+        onPressed: () => context.push(AppRoutes.payrollGenerateContract),
+      ),
       body: Column(
         children: [
           // â”€â”€ Filter chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Container(
             color: cs.surface,
             padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -80,16 +101,19 @@ class _ContractListScreenState extends ConsumerState<ContractListScreen> {
                     onTap: () => setState(() => _filterStatus = null),
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  ...ContractStatus.values.map((s) => Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.xs),
-                        child: _FilterChip(
-                          label: _statusLabel(s),
-                          color: _statusColor(s),
-                          selected: _filterStatus == s,
-                          onTap: () => setState(
-                              () => _filterStatus = _filterStatus == s ? null : s),
+                  ...ContractStatus.values.map(
+                    (s) => Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.xs),
+                      child: _FilterChip(
+                        label: _statusLabel(s),
+                        color: _statusColor(s),
+                        selected: _filterStatus == s,
+                        onTap: () => setState(
+                          () => _filterStatus = _filterStatus == s ? null : s,
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -115,6 +139,7 @@ class _ContractListScreenState extends ConsumerState<ContractListScreen> {
                       return _ContractCard(
                         contract: c,
                         employeeName: empName,
+                        employeeImageUrl: empImageMap[c.employeeId],
                         statusColor: _statusColor(c.status),
                         statusLabel: _statusLabel(c.status),
                         typeLabel: _typeLabel(c.type),
@@ -135,6 +160,7 @@ class _ContractCard extends StatelessWidget {
   const _ContractCard({
     required this.contract,
     required this.employeeName,
+    this.employeeImageUrl,
     required this.statusColor,
     required this.statusLabel,
     required this.typeLabel,
@@ -145,6 +171,7 @@ class _ContractCard extends StatelessWidget {
 
   final EmploymentContract contract;
   final String employeeName;
+  final String? employeeImageUrl;
   final Color statusColor;
   final String statusLabel;
   final String typeLabel;
@@ -159,7 +186,11 @@ class _ContractCard extends StatelessWidget {
     Color? expiryColor;
     if (contract.endDate != null && contract.isActive) {
       daysLeft = contract.endDate!.difference(now).inDays;
-      expiryColor = daysLeft < 0 ? PayrollTokens.rose : daysLeft < 30 ? PayrollTokens.amber : null;
+      expiryColor = daysLeft < 0
+          ? AppColors.error
+          : daysLeft < 30
+          ? AppColors.warning
+          : null;
     }
 
     final initials = employeeName
@@ -169,7 +200,9 @@ class _ContractCard extends StatelessWidget {
         .join();
 
     return InkWell(
-      onTap: () => GoRouter.of(context).push(AppRoutes.payrollContractDetail(contract.id)),
+      onTap: () => GoRouter.of(
+        context,
+      ).push(AppRoutes.payrollContractDetail(contract.id)),
       borderRadius: AppRadius.card,
       child: Container(
         decoration: BoxDecoration(
@@ -206,19 +239,10 @@ class _ContractCard extends StatelessWidget {
                   child: Row(
                     children: [
                       // Avatar
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: PayrollTokens.navy.withValues(alpha: 0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          initials,
-                          style: tt.titleSmall?.copyWith(
-                              color: PayrollTokens.navy, fontWeight: FontWeight.w700),
-                        ),
+                      AvatarWidget(
+                        imageUrl: employeeImageUrl,
+                        initials: initials,
+                        radius: 22,
                       ),
                       const SizedBox(width: AppSpacing.md),
                       // Details
@@ -231,14 +255,17 @@ class _ContractCard extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     employeeName,
-                                    style: tt.titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w700),
+                                    style: tt.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
                                 PrAmountBadge(
-                                  amount: '${zar.format(contract.grossMonthlySalary)}/mo',
-                                  backgroundColor: PayrollTokens.teal.withValues(alpha: 0.12),
-                                  textColor: PayrollTokens.teal,
+                                  amount:
+                                      '${zar.format(contract.grossMonthlySalary)}/mo',
+                                  backgroundColor: AppColors.success
+                                      .withValues(alpha: 0.12),
+                                  textColor: AppColors.success,
                                 ),
                               ],
                             ),
@@ -246,7 +273,8 @@ class _ContractCard extends StatelessWidget {
                             Text(
                               contract.jobDescription,
                               style: tt.bodySmall?.copyWith(
-                                  color: cs.onSurfaceVariant),
+                                color: cs.onSurfaceVariant,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -261,7 +289,7 @@ class _ContractCard extends StatelessWidget {
                                 const SizedBox(width: AppSpacing.xs),
                                 StatusChip(
                                   label: typeLabel,
-                                  color: PayrollTokens.navy,
+                                  color: AppColors.primary,
                                   small: true,
                                 ),
                                 if (daysLeft != null) ...[
@@ -270,7 +298,7 @@ class _ContractCard extends StatelessWidget {
                                     label: daysLeft < 0
                                         ? 'Expired'
                                         : '$daysLeft days left',
-                                    color: expiryColor ?? PayrollTokens.green,
+                                    color: expiryColor ?? AppColors.success,
                                     icon: Icons.schedule_outlined,
                                     small: true,
                                   ),
@@ -281,7 +309,10 @@ class _ContractCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: cs.onSurfaceVariant,
+                      ),
                     ],
                   ),
                 ),
@@ -309,13 +340,15 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final activeColor = color ?? PayrollTokens.navy;
+    final activeColor = color ?? AppColors.primary;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
         decoration: BoxDecoration(
           color: selected
               ? activeColor.withValues(alpha: 0.12)

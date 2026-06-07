@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
-import '../../models/communication_log.dart';
-import '../../models/pay_group.dart';
-import '../../models/payroll_employee.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/models/communication_log.dart';
+import 'package:mobile_app/features/payroll/models/pay_group.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
 enum _RecipientScope { allEmployees, payGroup, selectedEmployees }
 
@@ -164,7 +166,7 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Message sent to ${log.deliveredCount} recipients.'),
-          backgroundColor: PayrollTokens.green,
+          backgroundColor: AppColors.success,
         ),
       );
       Navigator.of(context).pop();
@@ -178,17 +180,8 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
     final payGroupRecipients = _payGroupRecipients(employees);
     final recipientCount = _resolveRecipientIds(employees).length;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Compose Message',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-      ),
+    return FarmScaffold(
+      appBar: const FarmAppBar(title: 'Compose Message'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -236,7 +229,7 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
-                          color: PayrollTokens.navy,
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -252,15 +245,15 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                               size: 16,
                               color: selected
                                   ? Colors.white
-                                  : PayrollTokens.navy,
+                                  : AppColors.primary,
                             ),
                             label: Text(label),
                             selected: selected,
-                            selectedColor: PayrollTokens.navy,
+                            selectedColor: AppColors.primary,
                             labelStyle: TextStyle(
                               color: selected
                                   ? Colors.white
-                                  : PayrollTokens.navy,
+                                  : AppColors.primary,
                               fontWeight: FontWeight.w600,
                             ),
                             onSelected: (_) => setState(() => _channel = ch),
@@ -337,7 +330,7 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
-                          color: PayrollTokens.navy,
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -359,11 +352,11 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                               return ChoiceChip(
                                 label: Text(label),
                                 selected: _recipientScope == scope,
-                                selectedColor: PayrollTokens.teal,
+                                selectedColor: AppColors.success,
                                 labelStyle: TextStyle(
                                   color: _recipientScope == scope
                                       ? Colors.white
-                                      : PayrollTokens.navy,
+                                      : AppColors.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 onSelected: (_) =>
@@ -375,7 +368,7 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                       if (_recipientScope == _RecipientScope.allEmployees)
                         Text(
                           '${employees.length} active employees will receive this message.',
-                          style: const TextStyle(color: PayrollTokens.navy),
+                          style: TextStyle(color: AppColors.primary),
                         ),
                       if (_recipientScope == _RecipientScope.payGroup) ...[
                         _LabeledDropdown<String>(
@@ -400,7 +393,7 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                         const SizedBox(height: 8),
                         Text(
                           '${payGroupRecipients.length} employee${payGroupRecipients.length == 1 ? '' : 's'} in the selected pay group.',
-                          style: const TextStyle(color: PayrollTokens.navy),
+                          style: TextStyle(color: AppColors.primary),
                         ),
                       ],
                       if (_recipientScope ==
@@ -421,12 +414,12 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                                   .firstOrNull;
                               return CheckboxListTile(
                                 dense: true,
-                                activeColor: PayrollTokens.teal,
+                                activeColor: AppColors.success,
                                 title: Text(
                                   employee.fullName,
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    color: PayrollTokens.navy,
+                                    color: AppColors.primary,
                                   ),
                                 ),
                                 subtitle: Text(
@@ -458,7 +451,7 @@ class _ComposeMessageScreenState extends ConsumerState<ComposeMessageScreen> {
                 width: double.infinity,
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: PayrollTokens.navy,
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   icon: _sending

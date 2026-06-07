@@ -1,5 +1,5 @@
-import '../../theme/payroll_tokens.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -19,9 +19,9 @@ class PayStructuresScreen extends ConsumerWidget {
   const PayStructuresScreen({super.key});
 
   static Color _wageColor(WageType w) => switch (w) {
-        WageType.monthlySalary => PayrollTokens.teal,
-        WageType.hourlyRate    => PayrollTokens.navy,
-        WageType.dailyRate     => PayrollTokens.amber,
+        WageType.monthlySalary => AppColors.success,
+        WageType.hourlyRate    => AppColors.primary,
+        WageType.dailyRate     => AppColors.warning,
         WageType.piecework     => const Color.fromARGB(255, 106, 27, 154),
       };
 
@@ -43,7 +43,7 @@ class PayStructuresScreen extends ConsumerWidget {
       appBar: const FarmAppBar(title: 'Pay Structures'),
       floatingActionButton: FloatingActionButton(heroTag: null, 
         onPressed: () => context.push(AppRoutes.payrollAddPayStructure),
-        backgroundColor: PayrollTokens.teal,
+        backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
@@ -150,7 +150,7 @@ class PayStructuresScreen extends ConsumerWidget {
                                             label: s.nmwaEnforced
                                                 ? 'NMWA ✓'
                                                 : 'Custom Rate',
-                                            color: s.nmwaEnforced ? PayrollTokens.green : PayrollTokens.amber,
+                                            color: s.nmwaEnforced ? AppColors.success : AppColors.warning,
                                             small: true,
                                           ),
                                         ],

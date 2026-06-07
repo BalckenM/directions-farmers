@@ -1,20 +1,22 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/progress_bar.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../models/payroll_employee.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
-import '../../widgets/payroll_widgets.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/payroll/payroll_widgets.dart' as prw;
+import 'package:mobile_app/shared/widgets/progress_bar.dart';
 
 final _dateFmt = DateFormat('d MMM y');
 final _zarFmt = NumberFormat.currency(
@@ -73,7 +75,7 @@ class EmployeeDetailScreen extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.person_remove_outlined),
               tooltip: 'Terminate employee',
-              color: PayrollTokens.rose,
+              color: AppColors.error,
               onPressed: () =>
                   context.push(AppRoutes.payrollEmployeeTerminate(employee.id)),
             ),
@@ -88,8 +90,8 @@ class EmployeeDetailScreen extends ConsumerWidget {
 
             // ── Tabs ─────────────────────────────────────────────────────────
             TabBar(
-              labelColor: PayrollTokens.navy,
-              indicatorColor: PayrollTokens.navy,
+              labelColor: AppColors.primary,
+              indicatorColor: AppColors.primary,
               dividerColor: Theme.of(context).colorScheme.outlineVariant,
               tabs: const [
                 Tab(text: 'Profile'),
@@ -117,38 +119,70 @@ class EmployeeDetailScreen extends ConsumerWidget {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-class _EmployeeHeader extends StatelessWidget {
+class _EmployeeHeader extends ConsumerWidget {
   const _EmployeeHeader({required this.employee});
   final PayrollEmployee employee;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    // Two initials: first letter of first name + first letter of last name
     final initials =
         '${employee.firstName.isNotEmpty ? employee.firstName[0] : ''}'
                 '${employee.lastName.isNotEmpty ? employee.lastName[0] : ''}'
             .toUpperCase();
 
+    // Engagement accent drives the header palette
+    final accent = _engagementAccent(employee.engagementType);
+    final accentLight = accent.withValues(alpha: 0.10);
+
     return Container(
-      color: cs.surface,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [accent.withValues(alpha: 0.08), cs.surface],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+      ),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: PayrollTokens.navy.withValues(alpha: 0.12),
-            child: Text(
-              initials.isNotEmpty ? initials : '?',
-              style: const TextStyle(
-                color: PayrollTokens.navy,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+          // Avatar with profile image – tappable to change
+          GestureDetector(
+            onTap: () => _pickAndUploadImage(context, ref),
+            child: Stack(
+              children: [
+                AvatarWidget(
+                  imageUrl: employee.profileImageUrl,
+                  initials: initials.isNotEmpty ? initials : '?',
+                  radius: 28,
+                  backgroundColor: accentLight,
+                  foregroundColor: accent,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: cs.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: cs.surface, width: 1.5),
+                    ),
+                    child: Icon(
+                      Icons.camera_alt_rounded,
+                      size: 12,
+                      color: cs.onPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -165,18 +199,123 @@ class _EmployeeHeader extends StatelessWidget {
                   employee.occupationTitle,
                   style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
+                const SizedBox(height: 4),
+                // Engagement type chip
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accentLight,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: accent.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    PayrollTokens.engagementLabel(employee.engagementType),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: accent,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          StatusChip(
+          prw.PrStatusPill(
             label: _empStatusLabel(employee.status),
-            color: _statusColor(employee.status),
+            foreground: _statusColor(employee.status),
+            background: _statusColor(employee.status).withAlpha(20),
           ),
         ],
       ),
     );
   }
+
+  Future<void> _pickAndUploadImage(BuildContext context, WidgetRef ref) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Change Profile Photo',
+                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE3F2FD),
+                  child: Icon(Icons.camera_alt, color: AppColors.primary),
+                ),
+                title: const Text('Take Photo'),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE8F5E9),
+                  child: Icon(Icons.photo_library, color: AppColors.success),
+                ),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 512,
+      maxHeight: 512,
+    );
+    if (picked == null) return;
+
+    if (!context.mounted) return;
+    // Upload the image
+    final notifier = ref.read(employeeNotifierProvider.notifier);
+    final url = await notifier.uploadProfileImage(employee.id, picked.path);
+    if (!context.mounted) return;
+    if (url != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile photo updated'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 }
+
+Color _engagementAccent(EngagementType t) => switch (t) {
+  EngagementType.permanent => const Color(0xFF1E3A5F), // navy
+  EngagementType.seasonal => const Color(0xFF0288D1), // sky
+  EngagementType.casual => const Color(0xFFF57F17), // amber
+  EngagementType.contractor => const Color(0xFF6A1B9A), // purple
+};
 
 // ─── Profile tab ──────────────────────────────────────────────────────────────
 
@@ -192,7 +331,7 @@ class _ProfileTab extends StatelessWidget {
         PrSectionCard(
           title: 'Personal Information',
           icon: Icons.person_outline_rounded,
-          iconColor: PayrollTokens.navy,
+          iconColor: AppColors.primary,
           children: [
             PrInfoRow(
               label: 'ID / Passport',
@@ -207,7 +346,7 @@ class _ProfileTab extends StatelessWidget {
         PrSectionCard(
           title: 'Employment',
           icon: Icons.work_outline_rounded,
-          iconColor: PayrollTokens.teal,
+          iconColor: AppColors.success,
           children: [
             PrInfoRow(label: 'Occupation', value: employee.occupationTitle),
             PrInfoRow(
@@ -226,7 +365,7 @@ class _ProfileTab extends StatelessWidget {
         PrSectionCard(
           title: 'Next of Kin',
           icon: Icons.family_restroom_rounded,
-          iconColor: PayrollTokens.purple,
+          iconColor: AppColors.secondary,
           children: [
             PrInfoRow(label: 'Name', value: employee.nextOfKinName),
             PrInfoRow(label: 'Phone', value: employee.nextOfKinPhone),
@@ -236,7 +375,7 @@ class _ProfileTab extends StatelessWidget {
         PrSectionCard(
           title: 'Pay & Benefits',
           icon: Icons.payments_outlined,
-          iconColor: PayrollTokens.amber,
+          iconColor: AppColors.warning,
           children: [
             PrInfoRow(
               label: 'Payment Method',
@@ -260,6 +399,14 @@ class _ProfileTab extends StatelessWidget {
               label: 'Food Benefit',
               value: employee.hasFoodBenefit ? 'Yes' : 'No',
               valueColor: employee.hasFoodBenefit ? AppColors.success : null,
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.account_balance_outlined, size: 18),
+              label: const Text('Manage Benefit Contributions'),
+              onPressed: () => context.push(
+                AppRoutes.payrollBenefitContributionsByEmployee(employee.id),
+              ),
             ),
           ],
         ),
@@ -309,12 +456,12 @@ class _ContractTab extends ConsumerWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: PayrollTokens.navy.withValues(alpha: 0.08),
+                  color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.description_outlined,
-                  color: PayrollTokens.navy,
+                  color: AppColors.primary,
                   size: 20,
                 ),
               ),
@@ -337,10 +484,10 @@ class _ContractTab extends ConsumerWidget {
                   ],
                 ),
               ),
-              StatusChip(
+              prw.PrStatusPill(
                 label: PayrollTokens.contractStatusLabel(c.status),
-                color: statusColor,
-                small: true,
+                foreground: statusColor,
+                background: statusColor.withAlpha(20),
               ),
             ],
           ),
@@ -360,22 +507,22 @@ class _LeaveTab extends ConsumerWidget {
   static Color _leaveTypeColor(String typeName) {
     final lower = typeName.toLowerCase();
     if (lower.contains('annual')) {
-      return PayrollTokens.teal;
+      return AppColors.success;
     }
     if (lower.contains('sick')) {
-      return PayrollTokens.rose;
+      return AppColors.error;
     }
     if (lower.contains('maternity') || lower.contains('paternity')) {
-      return PayrollTokens.purple;
+      return AppColors.secondary;
     }
     if (lower.contains('family')) {
-      return PayrollTokens.amber;
+      return AppColors.warning;
     }
     if (lower.contains('unpaid')) {
       return const Color(0xFF757575);
     }
     if (lower.contains('study')) {
-      return PayrollTokens.indigo;
+      return AppColors.primary;
     }
     return PayrollTokens.sky;
   }
@@ -514,12 +661,12 @@ class _PayslipsTab extends ConsumerWidget {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: PayrollTokens.teal.withValues(alpha: 0.1),
+                      color: AppColors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.receipt_outlined,
-                      color: PayrollTokens.teal,
+                      color: AppColors.success,
                       size: 20,
                     ),
                   ),

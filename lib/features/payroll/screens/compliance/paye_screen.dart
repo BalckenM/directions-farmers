@@ -1,13 +1,15 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:printing/printing.dart';
 
-import '../../models/pay_run.dart';
-import '../../providers/payroll_providers.dart';
-import '../../services/irp5_generator.dart';
-import '../../services/payroll_engine.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/services/irp5_generator.dart';
+import 'package:mobile_app/features/payroll/services/payroll_engine.dart';
 
 final _zarD = NumberFormat.currency(
   locale: 'en_ZA',
@@ -88,16 +90,9 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
       return '${months[d.month]} ${d.year}';
     }
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'PAYE / EMP201',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        elevation: 0,
+    return FarmScaffold(
+      appBar: FarmAppBar(
+        title: 'PAYE / EMP201',
         actions: [
           IconButton(
             icon: const Icon(Icons.receipt_long_outlined),
@@ -154,7 +149,7 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
                   child: _StatCard(
                     'Employees',
                     '${rows.length}',
-                    PayrollTokens.navy,
+                    AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -162,7 +157,7 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
                   child: _StatCard(
                     'Total Gross',
                     _zarD.format(rows.fold(0.0, (s, r) => s + r.$2)),
-                    PayrollTokens.teal,
+                    AppColors.success,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -170,7 +165,7 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
                   child: _StatCard(
                     'Total PAYE',
                     _zarD.format(totalPaye),
-                    PayrollTokens.rose,
+                    AppColors.error,
                     large: true,
                   ),
                 ),
@@ -267,7 +262,7 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: PayrollTokens.navy,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ],
@@ -287,7 +282,7 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
                                 _zarD.format(paye),
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: PayrollTokens.rose,
+                                  color: AppColors.error,
                                   fontWeight: FontWeight.w700,
                                 ),
                                 textAlign: TextAlign.right,
@@ -316,7 +311,7 @@ class _PayeScreenState extends ConsumerState<PayeScreen> {
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.teal,
+                  backgroundColor: AppColors.success,
                 ),
                 icon: const Icon(Icons.receipt_long_outlined),
                 label: const Text(

@@ -1,71 +1,37 @@
+// coverage:ignore-file
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'payment_transaction.freezed.dart';
+part 'payment_transaction.g.dart';
+
 enum TransactionStatus { initiated, processing, completed, failed, reversed }
 
-class PaymentTransaction {
-  const PaymentTransaction({
-    required this.id,
-    required this.payRunId,
-    required this.employeeId,
-    required this.amount,
-    required this.currency,
-    required this.method,
-    required this.status,
-    this.reference,
-    this.bankName,
-    this.accountNumber,
-    this.initiatedAt,
-    this.completedAt,
-    this.failureReason,
-    required this.createdAt,
-  });
+@freezed
+abstract class PaymentTransaction with _$PaymentTransaction {
+  const PaymentTransaction._();
 
-  final String id;
-  final String payRunId;
-  final String employeeId;
-  final double amount;
-  final String currency;
-  final String method;  // 'bank', 'cash', 'ewallet'
-  final TransactionStatus status;
-  final String? reference;
-  final String? bankName;
-  final String? accountNumber;
-  final DateTime? initiatedAt;
-  final DateTime? completedAt;
-  final String? failureReason;
-  final DateTime createdAt;
+  const factory PaymentTransaction({
+    required String id,
+    required String payRunId,
+    required String employeeId,
+    required String type,
+    required String description,
+    required double amount,
+    required String currency,
+    required String method,
+    required TransactionStatus status,
+    String? reference,
+    String? bankName,
+    String? accountNumber,
+    DateTime? initiatedAt,
+    DateTime? completedAt,
+    String? failureReason,
+    required DateTime transactionDate,
+    required DateTime createdAt,
+  }) = _PaymentTransaction;
 
-  factory PaymentTransaction.fromJson(Map<String, dynamic> json) => PaymentTransaction(
-        id: json['id'] as String,
-        payRunId: json['payRunId'] as String,
-        employeeId: json['employeeId'] as String,
-        amount: (json['amount'] as num).toDouble(),
-        currency: json['currency'] as String,
-        method: json['method'] as String,
-        status: TransactionStatus.values.byName(json['status'] as String),
-        reference: json['reference'] as String?,
-        bankName: json['bankName'] as String?,
-        accountNumber: json['accountNumber'] as String?,
-        initiatedAt: json['initiatedAt'] != null ? DateTime.parse(json['initiatedAt'] as String) : null,
-        completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt'] as String) : null,
-        failureReason: json['failureReason'] as String?,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-      );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'payRunId': payRunId,
-        'employeeId': employeeId,
-        'amount': amount,
-        'currency': currency,
-        'method': method,
-        'status': status.name,
-        'reference': reference,
-        'bankName': bankName,
-        'accountNumber': accountNumber,
-        'initiatedAt': initiatedAt?.toIso8601String(),
-        'completedAt': completedAt?.toIso8601String(),
-        'failureReason': failureReason,
-        'createdAt': createdAt.toIso8601String(),
-      };
+  factory PaymentTransaction.fromJson(Map<String, dynamic> json) =>
+      _$PaymentTransactionFromJson(json);
 
   bool get isCompleted => status == TransactionStatus.completed;
 }

@@ -47,8 +47,8 @@ final apiDioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: AppEnvironment.apiBaseUrl,
-      connectTimeout: AppConstants.apiTimeout,
-      receiveTimeout: AppConstants.apiTimeout,
+      connectTimeout: AppConstants.apiConnectTimeout,
+      receiveTimeout: AppConstants.apiReceiveTimeout,
       headers: {'Accept': 'application/json'},
     ),
   );
@@ -145,12 +145,14 @@ class _AuthInterceptor extends Interceptor {
       }
 
       // Use a separate Dio instance to avoid interceptor loops
-      final refreshDio = Dio(BaseOptions(
-        baseUrl: AppEnvironment.apiBaseUrl,
-        connectTimeout: AppConstants.apiTimeout,
-        receiveTimeout: AppConstants.apiTimeout,
-        headers: {'Accept': 'application/json'},
-      ));
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: AppEnvironment.apiBaseUrl,
+          connectTimeout: AppConstants.apiTimeout,
+          receiveTimeout: AppConstants.apiTimeout,
+          headers: {'Accept': 'application/json'},
+        ),
+      );
 
       final response = await refreshDio.post<Map<String, dynamic>>(
         '/auth/refresh',

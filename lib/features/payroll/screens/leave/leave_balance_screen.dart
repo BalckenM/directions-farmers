@@ -1,17 +1,18 @@
-import '../../theme/payroll_tokens.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_dropdown.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../models/leave_balance.dart';
-import '../../providers/payroll_providers.dart';
-
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/leave_balance.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
 
 class LeaveBalanceScreen extends ConsumerStatefulWidget {
   const LeaveBalanceScreen({super.key});
@@ -23,18 +24,24 @@ class LeaveBalanceScreen extends ConsumerStatefulWidget {
 class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
   String? _employeeId;
 
-  Color _barColor(double pct) =>
-      pct > 0.5 ? PayrollTokens.green : pct > 0.25 ? PayrollTokens.amber : PayrollTokens.rose;
+  Color _barColor(double pct) => pct > 0.5
+      ? AppColors.success
+      : pct > 0.25
+      ? AppColors.warning
+      : AppColors.error;
 
   @override
   Widget build(BuildContext context) {
     final employees = ref.watch(activeEmployeesProvider);
-    final balances  = ref.watch(leaveBalancesProvider(_employeeId));
+    final balances = ref.watch(leaveBalancesProvider(_employeeId));
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
     final empMap = {
-      for (final e in employees) e.id: '${e.firstName} ${e.lastName}'
+      for (final e in employees) e.id: '${e.firstName} ${e.lastName}',
+    };
+    final empImageMap = {
+      for (final e in employees) e.id: e.profileImageUrl,
     };
 
     // Group by employee when showing all
@@ -51,18 +58,26 @@ class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
           Container(
             color: cs.surface,
             padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
             child: FarmDropdown<String?>(
               label: 'Filter by employee',
               value: _employeeId,
               prefixIcon: const Icon(Icons.person_search_outlined),
               items: [
                 const DropdownMenuItem(
-                    value: null, child: Text('All employees')),
-                ...employees.map((e) => DropdownMenuItem(
-                      value: e.id,
-                      child: Text('${e.firstName} ${e.lastName}'),
-                    )),
+                  value: null,
+                  child: Text('All employees'),
+                ),
+                ...employees.map(
+                  (e) => DropdownMenuItem(
+                    value: e.id,
+                    child: Text('${e.firstName} ${e.lastName}'),
+                  ),
+                ),
               ],
               onChanged: (v) => setState(() => _employeeId = v),
             ),
@@ -106,48 +121,45 @@ class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
                                 padding: const EdgeInsets.all(AppSpacing.md),
                                 child: Row(
                                   children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: PayrollTokens.navy.withValues(alpha: 0.08),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        initials,
-                                        style: tt.titleSmall?.copyWith(
-                                            color: PayrollTokens.navy,
-                                            fontWeight: FontWeight.w700),
-                                      ),
-                                    ),
+                              AvatarWidget(
+                                    imageUrl: empImageMap[empId],
+                                    initials: initials,
+                                    radius: 20,
+                                  ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(empName,
-                                              style: tt.titleSmall?.copyWith(
-                                                  fontWeight: FontWeight.w700)),
+                                          Text(
+                                            empName,
+                                            style: tt.titleSmall?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
                                           Text(
                                             '${empBalances.length} leave type${empBalances.length == 1 ? '' : 's'}',
                                             style: tt.bodySmall?.copyWith(
-                                                color: cs.onSurfaceVariant),
+                                              color: cs.onSurfaceVariant,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
                                     TextButton.icon(
-                                      onPressed: () => GoRouter.of(context)
-                                          .push(AppRoutes.payrollLeaveRequest),
+                                      onPressed: () => GoRouter.of(
+                                        context,
+                                      ).push(AppRoutes.payrollLeaveRequest),
                                       icon: const Icon(Icons.add, size: 16),
                                       label: const Text('Request'),
                                       style: TextButton.styleFrom(
-                                          foregroundColor: PayrollTokens.teal,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: AppSpacing.sm,
-                                              vertical: 4)),
+                                        foregroundColor: AppColors.success,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: AppSpacing.sm,
+                                          vertical: 4,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -157,13 +169,18 @@ class _LeaveBalanceScreenState extends ConsumerState<LeaveBalanceScreen> {
                               // -- Leave type rows -------------------
                               ...empBalances.map((b) {
                                 final pct = b.totalEntitled > 0
-                                    ? (b.remaining / b.totalEntitled)
-                                        .clamp(0.0, 1.0)
+                                    ? (b.remaining / b.totalEntitled).clamp(
+                                        0.0,
+                                        1.0,
+                                      )
                                     : 0.0;
                                 final barColor = _barColor(pct);
 
                                 return _LeaveTypeRow(
-                                    balance: b, barColor: barColor, pct: pct);
+                                  balance: b,
+                                  barColor: barColor,
+                                  pct: pct,
+                                );
                               }),
                             ],
                           ),
@@ -196,7 +213,11 @@ class _LeaveTypeRow extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.sm,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -207,17 +228,22 @@ class _LeaveTypeRow extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                    color: barColor, shape: BoxShape.circle),
+                  color: barColor,
+                  shape: BoxShape.circle,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: Text(balance.leaveTypeName,
-                    style:
-                        tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                child: Text(
+                  balance.leaveTypeName,
+                  style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm, vertical: 2),
+                  horizontal: AppSpacing.sm,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
                   color: barColor.withValues(alpha: 0.12),
                   borderRadius: AppRadius.chip,
@@ -225,9 +251,10 @@ class _LeaveTypeRow extends StatelessWidget {
                 child: Text(
                   '${balance.remaining.toStringAsFixed(1)} days left',
                   style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: barColor),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: barColor,
+                  ),
                 ),
               ),
             ],
@@ -252,8 +279,14 @@ class _LeaveTypeRow extends StatelessWidget {
               _Stat('Entitled', balance.totalEntitled, cs, tt),
               _Stat('Taken', balance.taken, cs, tt),
               _Stat('Pending', balance.pending, cs, tt),
-              _Stat('Remaining', balance.remaining, cs, tt,
-                  color: barColor, bold: true),
+              _Stat(
+                'Remaining',
+                balance.remaining,
+                cs,
+                tt,
+                color: barColor,
+                bold: true,
+              ),
             ],
           ),
           Divider(height: AppSpacing.md, color: cs.outlineVariant),
@@ -264,8 +297,14 @@ class _LeaveTypeRow extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value, this.cs, this.tt,
-      {this.color, this.bold = false});
+  const _Stat(
+    this.label,
+    this.value,
+    this.cs,
+    this.tt, {
+    this.color,
+    this.bold = false,
+  });
 
   final String label;
   final double value;

@@ -1,45 +1,22 @@
-class LeaveType {
-  const LeaveType({
-    required this.id,
-    required this.code,
-    required this.name,
-    required this.annualEntitlementDays,
-    required this.isPaid,
-    required this.requiresApproval,
-    this.colorHex,
-    this.description,
-  });
+// coverage:ignore-file
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
+part 'leave_type.freezed.dart';
+part 'leave_type.g.dart';
 
-  /// Machine code, e.g. 'ANNUAL', 'SICK', 'MATERNITY'.
-  final String code;
-  final String name;
-  final double annualEntitlementDays;
-  final bool isPaid;
-  final bool requiresApproval;
-  final String? colorHex;
-  final String? description;
+@freezed
+abstract class LeaveType with _$LeaveType {
+  const factory LeaveType({
+    required String id,
+    required String code,
+    required String name,
+    required double annualEntitlementDays,
+    required bool isPaid,
+    required bool requiresApproval,
+    String? colorHex,
+    String? description,
+  }) = _LeaveType;
 
-  factory LeaveType.fromJson(Map<String, dynamic> json) => LeaveType(
-        id: json['id'] as String,
-        code: json['code'] as String,
-        name: json['name'] as String,
-        annualEntitlementDays: (json['annualEntitlementDays'] as num).toDouble(),
-        isPaid: json['isPaid'] as bool,
-        requiresApproval: json['requiresApproval'] as bool,
-        colorHex: json['colorHex'] as String?,
-        description: json['description'] as String?,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'code': code,
-        'name': name,
-        'annualEntitlementDays': annualEntitlementDays,
-        'isPaid': isPaid,
-        'requiresApproval': requiresApproval,
-        'colorHex': colorHex,
-        'description': description,
-      };
+  factory LeaveType.fromJson(Map<String, dynamic> json) =>
+      _$LeaveTypeFromJson(json);
 }

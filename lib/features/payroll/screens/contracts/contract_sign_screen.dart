@@ -1,7 +1,8 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -53,7 +54,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
 
     // Replay strokes
     final paint = Paint()
-      ..color = PayrollTokens.navy
+      ..color = AppColors.primary
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -110,7 +111,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Icon(Icons.verified_outlined, size: 44, color: PayrollTokens.green),
+              Icon(Icons.verified_outlined, size: 44, color: AppColors.success),
               const SizedBox(height: AppSpacing.sm),
               Text('Sign & Lock Contract?',
                   style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
@@ -134,7 +135,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
                   flex: 2,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                        backgroundColor: PayrollTokens.green),
+                        backgroundColor: AppColors.success),
                     onPressed: () => Navigator.pop(ctx, true),
                     icon: const Icon(Icons.lock_outline_rounded),
                     label: const Text('Sign & Lock'),
@@ -162,7 +163,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Contract signed successfully.'),
-          backgroundColor: PayrollTokens.green,
+          backgroundColor: AppColors.success,
         ),
       );
     }
@@ -246,7 +247,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
             if (!isSigned) ...[
               Text('Signatory',
                   style: tt.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700, color: PayrollTokens.navy)),
+                      fontWeight: FontWeight.w700, color: AppColors.primary)),
               const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _nameCtrl,
@@ -281,7 +282,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: _hasSignature
-                              ? PayrollTokens.navy.withValues(alpha: 0.4)
+                              ? AppColors.primary.withValues(alpha: 0.4)
                               : cs.outlineVariant,
                           width: 1.5,
                         ),
@@ -332,7 +333,7 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
                 width: double.infinity,
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: PayrollTokens.green,
+                    backgroundColor: AppColors.success,
                     padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                   ),
                   icon: _saving
@@ -352,21 +353,21 @@ class _ContractSignScreenState extends ConsumerState<ContractSignScreen> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: PayrollTokens.green.withValues(alpha: 0.08),
+                  color: AppColors.success.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: PayrollTokens.green.withValues(alpha: 0.3)),
+                      color: AppColors.success.withValues(alpha: 0.3)),
                 ),
                 child: Row(children: [
                   const Icon(Icons.check_circle_rounded,
-                      color: PayrollTokens.green, size: 28),
+                      color: AppColors.success, size: 28),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       'Contract has been signed and locked.',
                       style: tt.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: PayrollTokens.green),
+                          color: AppColors.success),
                     ),
                   ),
                 ]),
@@ -398,7 +399,7 @@ class _Row extends StatelessWidget {
         Expanded(
           child: Text(value,
               style: tt.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600, color: PayrollTokens.navy)),
+                  fontWeight: FontWeight.w600, color: AppColors.primary)),
         ),
       ]),
     );
@@ -412,7 +413,7 @@ class _SignaturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color       = PayrollTokens.navy
+      ..color       = AppColors.primary
       ..strokeWidth = 2.0
       ..strokeCap   = StrokeCap.round
       ..strokeJoin  = StrokeJoin.round

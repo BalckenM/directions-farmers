@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -151,7 +152,7 @@ class _TaxYearHeader extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [PayrollTokens.navy, Color.fromARGB(255, 46, 89, 132)],
+          colors: [AppColors.primary, Color.fromARGB(255, 46, 89, 132)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -281,7 +282,7 @@ class _SummaryMetrics extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             icon: Icons.people_outline_rounded,
-            accentColor: PayrollTokens.teal,
+            accentColor: AppColors.success,
             label: 'Employees',
             value: '${report.irp5Count + report.it3aCount}',
           ),
@@ -290,7 +291,7 @@ class _SummaryMetrics extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             icon: Icons.account_balance_wallet_outlined,
-            accentColor: PayrollTokens.indigo,
+            accentColor: AppColors.primary,
             label: 'Total PAYE',
             value: _zarD.format(report.totalCertificatePaye),
           ),
@@ -299,7 +300,7 @@ class _SummaryMetrics extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             icon: Icons.bar_chart_rounded,
-            accentColor: PayrollTokens.purple,
+            accentColor: AppColors.secondary,
             label: 'Total Gross',
             value: _zarD.format(report.totalCertificateGross),
           ),
@@ -390,8 +391,8 @@ class _ReconciliationStatus extends StatelessWidget {
     final balanced = report.shortfall.abs() < 0.01;
     final shortfall = report.shortfall >= 0;
     final statusColor = balanced
-        ? PayrollTokens.green
-        : (shortfall ? PayrollTokens.rose : PayrollTokens.amber);
+        ? AppColors.success
+        : (shortfall ? AppColors.error : AppColors.warning);
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -463,7 +464,7 @@ class _ReconciliationStatus extends StatelessWidget {
                 Text(
                   _zarD.format(report.totalEtiCredit),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: PayrollTokens.green,
+                    color: AppColors.success,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -511,13 +512,13 @@ class _CertificateList extends StatelessWidget {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: PayrollTokens.navy.withAlpha(18),
+                    color: AppColors.primary.withAlpha(18),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.description_outlined,
                     size: 18,
-                    color: PayrollTokens.navy,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -600,13 +601,13 @@ class _CertificateRow extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isIrp5
                       ? PayrollTokens.sky.withAlpha(22)
-                      : PayrollTokens.amber.withAlpha(22),
+                      : AppColors.warning.withAlpha(22),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   line.certificateType,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: isIrp5 ? PayrollTokens.sky : PayrollTokens.amber,
+                    color: isIrp5 ? PayrollTokens.sky : AppColors.warning,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -624,7 +625,7 @@ class _CertificateRow extends StatelessWidget {
               _LineDetail(
                 label: 'PAYE',
                 value: _zarD.format(line.annualPaye),
-                valueColor: PayrollTokens.rose,
+                valueColor: AppColors.error,
               ),
               const SizedBox(width: 16),
               _LineDetail(label: 'UIF', value: _zarD.format(line.annualUif)),
@@ -637,7 +638,7 @@ class _CertificateRow extends StatelessWidget {
             Text(
               'ETI Credit: ${_zarD.format(line.employerEtiCredit)}',
               style: theme.textTheme.labelSmall?.copyWith(
-                color: PayrollTokens.green,
+                color: AppColors.success,
               ),
             ),
           ],

@@ -1,10 +1,12 @@
-import '../../theme/payroll_tokens.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../models/compliance_alert.dart';
-import '../../providers/payroll_providers.dart';
-import '../../services/payroll_engine.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/services/payroll_engine.dart';
 
 final _zar = NumberFormat.currency(
   locale: 'en_ZA',
@@ -41,16 +43,9 @@ class CoidaScreen extends ConsumerWidget {
     final totalAnnual = rows.fold(0.0, (s, r) => s + r.$3);
     final totalAssessment = rows.fold(0.0, (s, r) => s + r.$4);
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'COIDA Returns',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        elevation: 0,
+    return FarmScaffold(
+      appBar: FarmAppBar(
+        title: 'COIDA Returns',
         actions: [
           IconButton(
             icon: const Icon(Icons.upload_outlined),
@@ -63,13 +58,13 @@ class CoidaScreen extends ConsumerWidget {
         children: [
           // Info banner
           Container(
-            color: PayrollTokens.indigo.withValues(alpha: 0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 const Icon(
                   Icons.info_outline,
-                  color: PayrollTokens.indigo,
+                  color: AppColors.primary,
                   size: 20,
                 ),
                 const SizedBox(width: 10),
@@ -80,7 +75,7 @@ class CoidaScreen extends ConsumerWidget {
                       const Text(
                         'COIDA Assessment Rate: 1.25% of payroll',
                         style: TextStyle(
-                          color: PayrollTokens.indigo,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
                         ),
@@ -88,7 +83,7 @@ class CoidaScreen extends ConsumerWidget {
                       Text(
                         'Annual earnings ceiling: ${_zar.format(_annualCeiling)}',
                         style: TextStyle(
-                          color: PayrollTokens.indigo.withValues(alpha: 0.7),
+                          color: AppColors.primary.withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),
@@ -108,7 +103,7 @@ class CoidaScreen extends ConsumerWidget {
                   child: _StatCard(
                     'Employees',
                     '${rows.length}',
-                    PayrollTokens.navy,
+                    AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -116,7 +111,7 @@ class CoidaScreen extends ConsumerWidget {
                   child: _StatCard(
                     'Total Earnings',
                     _zar.format(totalAnnual),
-                    PayrollTokens.teal,
+                    AppColors.success,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -124,7 +119,7 @@ class CoidaScreen extends ConsumerWidget {
                   child: _StatCard(
                     'Assessment',
                     _zar.format(totalAssessment),
-                    PayrollTokens.rose,
+                    AppColors.error,
                     large: true,
                   ),
                 ),
@@ -222,7 +217,7 @@ class CoidaScreen extends ConsumerWidget {
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: PayrollTokens.navy,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                   if (capped)
@@ -230,7 +225,7 @@ class CoidaScreen extends ConsumerWidget {
                                       'Earnings capped',
                                       style: TextStyle(
                                         fontSize: 10,
-                                        color: PayrollTokens.amber,
+                                        color: AppColors.warning,
                                       ),
                                     ),
                                 ],
@@ -251,7 +246,7 @@ class CoidaScreen extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: capped
-                                      ? PayrollTokens.amber
+                                      ? AppColors.warning
                                       : Colors.black87,
                                 ),
                                 textAlign: TextAlign.right,
@@ -263,7 +258,7 @@ class CoidaScreen extends ConsumerWidget {
                                 _zar.format(assessment),
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: PayrollTokens.rose,
+                                  color: AppColors.error,
                                   fontWeight: FontWeight.w700,
                                 ),
                                 textAlign: TextAlign.right,
@@ -281,7 +276,7 @@ class CoidaScreen extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.teal,
+                  backgroundColor: AppColors.success,
                 ),
                 icon: const Icon(Icons.upload_file_outlined),
                 label: const Text(
@@ -301,7 +296,7 @@ class CoidaScreen extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Annual COIDA return submitted successfully'),
-        backgroundColor: PayrollTokens.green,
+        backgroundColor: AppColors.success,
       ),
     );
   }
@@ -317,19 +312,19 @@ class _AlertsBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: PayrollTokens.amber.withValues(alpha: 0.1),
+        color: AppColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: PayrollTokens.amber.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_outlined, color: PayrollTokens.amber),
+          const Icon(Icons.warning_amber_outlined, color: AppColors.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               '${alerts.length} COIDA alert(s) require attention',
               style: const TextStyle(
-                color: PayrollTokens.amber,
+                color: AppColors.warning,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),

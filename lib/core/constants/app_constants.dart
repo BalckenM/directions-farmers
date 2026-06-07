@@ -7,7 +7,16 @@ abstract final class AppConstants {
 
   // ── API config ────────────────────────────────────────────────────────────────
   /// Timeout for HTTP requests. Base URL lives ONLY in AppEnvironment.
-  static const Duration apiTimeout = Duration(seconds: 30);
+  /// Split into connect (TCP handshake) and receive (waiting for response body)
+  /// so a slow server fails fast instead of blocking the UI for a full minute.
+  static const Duration apiConnectTimeout = Duration(seconds: 30);
+  static const Duration apiReceiveTimeout = Duration(seconds: 15);
+
+  /// Legacy alias — kept for any code still referencing apiTimeout.
+  static const Duration apiTimeout = apiReceiveTimeout;
+
+  /// Timeout for heavy server-side operations (payroll calculation, report generation).
+  static const Duration apiLongTimeout = Duration(minutes: 5);
   static const int apiMaxRetries = 3;
 
   // ── Pagination ────────────────────────────────────────────────────────────────

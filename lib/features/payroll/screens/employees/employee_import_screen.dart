@@ -3,10 +3,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
-import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 class EmployeeImportScreen extends ConsumerStatefulWidget {
   const EmployeeImportScreen({super.key});
@@ -133,9 +135,7 @@ class _EmployeeImportScreenState extends ConsumerState<EmployeeImportScreen> {
       ScaffoldMessenger.of(ctx).showSnackBar(
         SnackBar(
           content: Text('Import complete: $success added, $failed skipped.'),
-          backgroundColor: success > 0
-              ? PayrollTokens.green
-              : PayrollTokens.rose,
+          backgroundColor: success > 0 ? AppColors.success : AppColors.error,
         ),
       );
       if (success > 0) Navigator.of(ctx).pop();
@@ -149,20 +149,10 @@ class _EmployeeImportScreenState extends ConsumerState<EmployeeImportScreen> {
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-        appBar: AppBar(
-          backgroundColor: PayrollTokens.navy,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          title: const Text(
-            'Import Employees',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
+      child: FarmScaffold(
+        appBar: const FarmAppBar(
+          title: 'Import Employees',
+          bottom: TabBar(
             tabs: [
               Tab(text: 'Upload File'),
               Tab(text: 'Preview'),
@@ -209,7 +199,7 @@ class _UploadTab extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: fileSelected ? PayrollTokens.green : Colors.grey[400]!,
+                  color: fileSelected ? AppColors.success : Colors.grey[400]!,
                   width: 2,
                 ),
               ),
@@ -220,9 +210,7 @@ class _UploadTab extends StatelessWidget {
                         ? Icons.check_circle_outline
                         : Icons.cloud_upload_outlined,
                     size: 52,
-                    color: fileSelected
-                        ? PayrollTokens.green
-                        : Colors.grey[400],
+                    color: fileSelected ? AppColors.success : Colors.grey[400],
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -231,7 +219,7 @@ class _UploadTab extends StatelessWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: fileSelected
-                          ? PayrollTokens.green
+                          ? AppColors.success
                           : Colors.grey[600],
                     ),
                   ),
@@ -263,7 +251,7 @@ class _UploadTab extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 15,
-              color: PayrollTokens.navy,
+              color: AppColors.primary,
             ),
           ),
           const SizedBox(height: 12),
@@ -305,7 +293,7 @@ class _FormatCard extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: PayrollTokens.navy,
+                    color: AppColors.primary,
                   ),
                 ),
                 subtitle: Text(
@@ -316,7 +304,7 @@ class _FormatCard extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: PayrollTokens.teal,
+                    color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -366,17 +354,17 @@ class _PreviewTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: PayrollTokens.teal.withValues(alpha: 0.08),
+              color: AppColors.success.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: PayrollTokens.teal.withValues(alpha: 0.3),
+                color: AppColors.success.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
               children: [
                 const Icon(
                   Icons.info_outline,
-                  color: PayrollTokens.teal,
+                  color: AppColors.success,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -385,7 +373,7 @@ class _PreviewTab extends StatelessWidget {
                     '$validCount valid · $invalidCount invalid (red rows will be skipped). Existing: $employeeCount.',
                     style: const TextStyle(
                       fontSize: 13,
-                      color: PayrollTokens.teal,
+                      color: AppColors.success,
                     ),
                   ),
                 ),
@@ -402,7 +390,7 @@ class _PreviewTab extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: DataTable(
                 headingRowColor: WidgetStateProperty.all(
-                  PayrollTokens.navy.withValues(alpha: 0.06),
+                  AppColors.primary.withValues(alpha: 0.06),
                 ),
                 columns: const [
                   DataColumn(label: Text('First Name')),
@@ -417,9 +405,7 @@ class _PreviewTab extends StatelessWidget {
                   final isValid = i < rowValid.length ? rowValid[i] : false;
                   return DataRow(
                     color: WidgetStateProperty.all(
-                      isValid
-                          ? null
-                          : PayrollTokens.rose.withValues(alpha: 0.08),
+                      isValid ? null : AppColors.error.withValues(alpha: 0.08),
                     ),
                     cells: [
                       DataCell(
@@ -427,7 +413,7 @@ class _PreviewTab extends StatelessWidget {
                           r.isNotEmpty ? r[0] : '',
                           style: isValid
                               ? null
-                              : const TextStyle(color: PayrollTokens.rose),
+                              : const TextStyle(color: AppColors.error),
                         ),
                       ),
                       DataCell(Text(r.length > 1 ? r[1] : '')),
@@ -438,7 +424,7 @@ class _PreviewTab extends StatelessWidget {
                           r.length > 4 ? r[4] : '',
                           style: isValid
                               ? null
-                              : const TextStyle(color: PayrollTokens.rose),
+                              : const TextStyle(color: AppColors.error),
                         ),
                       ),
                       DataCell(Text(r.length > 5 ? r[5] : '')),
@@ -453,7 +439,7 @@ class _PreviewTab extends StatelessWidget {
             width: double.infinity,
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
-                backgroundColor: PayrollTokens.green,
+                backgroundColor: AppColors.success,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               icon: importing

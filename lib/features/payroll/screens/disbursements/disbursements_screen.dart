@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,7 +13,6 @@ import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/stat_card.dart';
 import '../../models/payment_transaction.dart';
 import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
 
 
 enum _StatusFilter { all, completed, failed, processing }
@@ -93,7 +93,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                     label: 'Total Disbursed',
                     value: _zar(totalDisbursed),
                     icon: Icons.payments_outlined,
-                    accentColor: PayrollTokens.green,
+                    accentColor: AppColors.success,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -103,7 +103,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                     value: failedTx.length.toString(),
                     icon: Icons.error_outline,
                     accentColor:
-                        failedTx.isEmpty ? PayrollTokens.green : PayrollTokens.rose,
+                        failedTx.isEmpty ? AppColors.success : AppColors.error,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -112,7 +112,7 @@ class _DisbursementsScreenState extends ConsumerState<DisbursementsScreen> {
                     label: 'Processing',
                     value: processingTx.length.toString(),
                     icon: Icons.pending_outlined,
-                    accentColor: PayrollTokens.amber,
+                    accentColor: AppColors.warning,
                   ),
                 ),
               ],
@@ -246,17 +246,17 @@ class _TxCard extends ConsumerWidget {
 
     final (statusColor, statusLabel, statusIcon) = switch (tx.status) {
       TransactionStatus.completed => (
-          PayrollTokens.green,
+          AppColors.success,
           'Completed',
           Icons.check_circle_outline
         ),
       TransactionStatus.failed => (
-          PayrollTokens.rose,
+          AppColors.error,
           'Failed',
           Icons.cancel_outlined
         ),
       TransactionStatus.processing => (
-          PayrollTokens.amber,
+          AppColors.warning,
           'Processing',
           Icons.pending_outlined
         ),
@@ -290,7 +290,7 @@ class _TxCard extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: tx.status == TransactionStatus.failed
-              ? Border.all(color: PayrollTokens.rose.withValues(alpha: 0.5), width: 1.5)
+              ? Border.all(color: AppColors.error.withValues(alpha: 0.5), width: 1.5)
               : Border.all(color: cs.outlineVariant),
         ),
         child: Column(
@@ -350,7 +350,7 @@ class _TxCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: PayrollTokens.rose.withValues(alpha: 0.07),
+                  color: AppColors.error.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(

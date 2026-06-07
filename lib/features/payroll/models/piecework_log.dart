@@ -1,85 +1,29 @@
-class PieceworkLog {
-  const PieceworkLog({
-    required this.id,
-    required this.employeeId,
-    required this.date,
-    this.shiftId,
-    required this.payrollCode,
-    required this.unit,
-    required this.quantity,
-    required this.ratePerUnit,
-    required this.recordedByUserId,
-    this.notes,
-    required this.createdAt,
-  });
+// coverage:ignore-file
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
-  final String employeeId;
-  final DateTime date;
-  final String? shiftId;
-  final String payrollCode; // e.g. 'GRAPE_PICK'
-  final String unit; // e.g. 'kg', 'crates'
-  final double quantity;
-  final double ratePerUnit;
-  final String recordedByUserId;
-  final String? notes;
-  final DateTime createdAt;
+part 'piecework_log.freezed.dart';
+part 'piecework_log.g.dart';
+
+@freezed
+abstract class PieceworkLog with _$PieceworkLog {
+  const PieceworkLog._();
+
+  const factory PieceworkLog({
+    required String id,
+    required String employeeId,
+    required DateTime date,
+    String? shiftId,
+    required String payrollCode,
+    required String unit,
+    required double quantity,
+    required double ratePerUnit,
+    required String recordedByUserId,
+    String? notes,
+    required DateTime createdAt,
+  }) = _PieceworkLog;
+
+  factory PieceworkLog.fromJson(Map<String, dynamic> json) =>
+      _$PieceworkLogFromJson(json);
 
   double get totalEarnings => quantity * ratePerUnit;
-
-  PieceworkLog copyWith({
-    String? id,
-    String? employeeId,
-    DateTime? date,
-    String? shiftId,
-    String? payrollCode,
-    String? unit,
-    double? quantity,
-    double? ratePerUnit,
-    String? recordedByUserId,
-    String? notes,
-    DateTime? createdAt,
-  }) {
-    return PieceworkLog(
-      id: id ?? this.id,
-      employeeId: employeeId ?? this.employeeId,
-      date: date ?? this.date,
-      shiftId: shiftId ?? this.shiftId,
-      payrollCode: payrollCode ?? this.payrollCode,
-      unit: unit ?? this.unit,
-      quantity: quantity ?? this.quantity,
-      ratePerUnit: ratePerUnit ?? this.ratePerUnit,
-      recordedByUserId: recordedByUserId ?? this.recordedByUserId,
-      notes: notes ?? this.notes,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  factory PieceworkLog.fromJson(Map<String, dynamic> json) => PieceworkLog(
-    id: json['id'] as String,
-    employeeId: json['employeeId'] as String,
-    date: DateTime.parse(json['date'] as String),
-    shiftId: json['shiftId'] as String?,
-    payrollCode: json['payrollCode'] as String,
-    unit: json['unit'] as String,
-    quantity: (json['quantity'] as num).toDouble(),
-    ratePerUnit: (json['ratePerUnit'] as num).toDouble(),
-    recordedByUserId: json['recordedByUserId'] as String,
-    notes: json['notes'] as String?,
-    createdAt: DateTime.parse(json['createdAt'] as String),
-  );
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'employeeId': employeeId,
-    'date': date.toIso8601String(),
-    'shiftId': shiftId,
-    'payrollCode': payrollCode,
-    'unit': unit,
-    'quantity': quantity,
-    'ratePerUnit': ratePerUnit,
-    'recordedByUserId': recordedByUserId,
-    'notes': notes,
-    'createdAt': createdAt.toIso8601String(),
-  };
 }

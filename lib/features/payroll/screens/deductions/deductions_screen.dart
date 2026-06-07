@@ -1,15 +1,14 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../core/router/app_routes.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/deduction_rule.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 class DeductionsScreen extends ConsumerWidget {
   const DeductionsScreen({super.key});
@@ -23,17 +22,24 @@ class DeductionsScreen extends ConsumerWidget {
         title: 'Deduction Rules',
         actions: [
           TextButton.icon(
+            icon: const Icon(Icons.account_balance_outlined, size: 18),
+            label: const Text('Benefit Contributions'),
+            onPressed: () =>
+                context.push(AppRoutes.payrollBenefitContributions),
+          ),
+          TextButton.icon(
             icon: const Icon(Icons.gavel_outlined, size: 18),
             label: const Text('Garnishee Orders'),
             onPressed: () => context.push(AppRoutes.payrollGarnisheeOrders),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _openSheet(context, ref, null),
         icon: const Icon(Icons.add),
         label: const Text('Add Rule'),
-        backgroundColor: PayrollTokens.navy,
+        backgroundColor: AppColors.primary,
       ),
       body: rules.isEmpty
           ? const Center(
@@ -137,14 +143,14 @@ class DeductionsScreen extends ConsumerWidget {
                                               // Value chip
                                               _SmallChip(
                                                 label: valueText,
-                                                color: PayrollTokens.navy,
+                                                color: AppColors.primary,
                                               ),
                                               // Cap chip
                                               if (r.cappedAt != null)
                                                 _SmallChip(
                                                   label:
                                                       'cap R${r.cappedAt!.toStringAsFixed(0)}',
-                                                  color: PayrollTokens.amber,
+                                                  color: AppColors.warning,
                                                 ),
                                               // Inactive chip
                                               if (!r.isActive)
@@ -167,6 +173,45 @@ class DeductionsScreen extends ConsumerWidget {
                                         if (v == 'edit') {
                                           _openSheet(context, ref, r);
                                         } else if (v == 'toggle') {
+                                          if (r.isActive) {
+                                            final ok = await showDialog<bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                title: const Text(
+                                                  'Deactivate deduction?',
+                                                ),
+                                                content: Text(
+                                                  'Deactivating "${r.label}" will stop it from applying to future pay runs.',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          ctx,
+                                                          false,
+                                                        ),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  FilledButton(
+                                                    style:
+                                                        FilledButton.styleFrom(
+                                                          backgroundColor:
+                                                              AppColors.error,
+                                                        ),
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          ctx,
+                                                          true,
+                                                        ),
+                                                    child: const Text(
+                                                      'Deactivate',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (ok != true) return;
+                                          }
                                           await ref
                                               .read(
                                                 deductionNotifierProvider
@@ -406,7 +451,7 @@ class _DeductionSheetState extends ConsumerState<_DeductionSheet> {
               width: double.infinity,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.navy,
+                  backgroundColor: AppColors.primary,
                   minimumSize: const Size(double.infinity, 48),
                 ),
                 onPressed: _submit,

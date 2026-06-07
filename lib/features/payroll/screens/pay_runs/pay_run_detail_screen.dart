@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +8,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/farm_app_bar.dart';
 import '../../../../shared/widgets/farm_scaffold.dart';
+import '../../../../shared/widgets/avatar_widget.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../models/pay_run.dart';
 import '../../providers/payroll_action_providers.dart';
@@ -62,7 +64,7 @@ class PayRunDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [PayrollTokens.navy, Color.fromARGB(255, 46, 89, 132)],
+                colors: [AppColors.primary, Color.fromARGB(255, 46, 89, 132)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -131,7 +133,7 @@ class PayRunDetailScreen extends ConsumerWidget {
           PrSectionCard(
             title: 'Financial Summary',
             icon: Icons.summarize_outlined,
-            iconColor: PayrollTokens.teal,
+            iconColor: AppColors.success,
             children: [
               PrInfoRow(
                 label: 'Total Gross',
@@ -140,13 +142,13 @@ class PayRunDetailScreen extends ConsumerWidget {
               PrInfoRow(
                 label: 'Total Deductions',
                 value: '- ${_zar.format(payRun.totalDeductions)}',
-                valueColor: PayrollTokens.rose,
+                valueColor: AppColors.error,
               ),
               const Divider(height: 16),
               PrInfoRow(
                 label: 'Net Pay',
                 value: _zar.format(payRun.totalNet),
-                valueColor: PayrollTokens.green,
+                valueColor: AppColors.success,
                 valueStyle: const TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 16,
@@ -162,7 +164,7 @@ class PayRunDetailScreen extends ConsumerWidget {
               title:
                   '${alerts.length} Compliance Alert${alerts.length == 1 ? '' : 's'}',
               icon: Icons.warning_amber_rounded,
-              iconColor: PayrollTokens.rose,
+              iconColor: AppColors.error,
               children: alerts.map((a) {
                 final isCrit = a.severity.name == 'critical';
                 return Padding(
@@ -175,8 +177,8 @@ class PayRunDetailScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: isCrit
-                              ? PayrollTokens.rose
-                              : PayrollTokens.amber,
+                              ? AppColors.error
+                              : AppColors.warning,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -198,7 +200,7 @@ class PayRunDetailScreen extends ConsumerWidget {
           PrSectionCard(
             title: '${payslips.length} Employees',
             icon: Icons.receipt_long_outlined,
-            iconColor: PayrollTokens.navy,
+            iconColor: AppColors.primary,
             children: payslips.map((ps) {
               final emp = employees.firstWhere(
                 (e) => e.id == ps.employeeId,
@@ -222,7 +224,7 @@ class PayRunDetailScreen extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.green,
+                  backgroundColor: AppColors.success,
                 ),
                 onPressed: isLoading
                     ? null
@@ -245,7 +247,7 @@ class PayRunDetailScreen extends ConsumerWidget {
               width: double.infinity,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.teal,
+                  backgroundColor: AppColors.success,
                 ),
                 onPressed: isLoading
                     ? null
@@ -267,21 +269,21 @@ class PayRunDetailScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: PayrollTokens.green.withValues(alpha: 0.08),
+                color: AppColors.success.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: PayrollTokens.green.withValues(alpha: 0.3),
+                  color: AppColors.success.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: PayrollTokens.green),
+                  const Icon(Icons.check_circle, color: AppColors.success),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       'Disbursed${payRun.disbursedAt != null ? ' on ${_df.format(payRun.disbursedAt!)}' : ''}',
                       style: tt.bodyMedium?.copyWith(
-                        color: PayrollTokens.green,
+                        color: AppColors.success,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -302,7 +304,7 @@ class PayRunDetailScreen extends ConsumerWidget {
   ) async {
     final ok = await _showPayRunConfirmSheet(
       context: ctx,
-      accentColor: PayrollTokens.green,
+      accentColor: AppColors.success,
       headerIcon: Icons.check_circle_outline_rounded,
       title: 'Approve Pay Run',
       periodLabel: _mf.format(payRun.periodStart),
@@ -318,7 +320,7 @@ class PayRunDetailScreen extends ConsumerWidget {
     ScaffoldMessenger.of(ctx).showSnackBar(
       const SnackBar(
         content: Text('Pay run approved.'),
-        backgroundColor: PayrollTokens.green,
+        backgroundColor: AppColors.success,
       ),
     );
   }
@@ -330,7 +332,7 @@ class PayRunDetailScreen extends ConsumerWidget {
   ) async {
     final ok = await _showPayRunConfirmSheet(
       context: ctx,
-      accentColor: PayrollTokens.teal,
+      accentColor: AppColors.success,
       headerIcon: Icons.payments_outlined,
       title: 'Disburse Payments',
       periodLabel: _mf.format(payRun.periodStart),
@@ -346,7 +348,7 @@ class PayRunDetailScreen extends ConsumerWidget {
     ScaffoldMessenger.of(ctx).showSnackBar(
       const SnackBar(
         content: Text('Payments disbursed successfully.'),
-        backgroundColor: PayrollTokens.teal,
+        backgroundColor: AppColors.success,
       ),
     );
   }
@@ -565,16 +567,12 @@ class _PayslipTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: ExpansionTile(
         tilePadding: EdgeInsets.zero,
-        leading: CircleAvatar(
+        leading: AvatarWidget(
+          imageUrl: emp.profileImageUrl,
+          initials: '${emp.firstName[0]}${emp.lastName[0]}',
           radius: 20,
-          backgroundColor: PayrollTokens.navy.withValues(alpha: 0.1),
-          child: Text(
-            '${emp.firstName[0]}${emp.lastName[0]}',
-            style: const TextStyle(
-              color: PayrollTokens.navy,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+          foregroundColor: AppColors.primary,
         ),
         title: Text(
           '${emp.firstName} ${emp.lastName}',
@@ -597,7 +595,7 @@ class _PayslipTile extends StatelessWidget {
 
               style: tt.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: PayrollTokens.green,
+                color: AppColors.success,
               ),
             ),
           ],
@@ -618,8 +616,8 @@ class _PayslipTile extends StatelessWidget {
                   icon: const Icon(Icons.description_outlined, size: 16),
                   label: const Text('View Payslip'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: PayrollTokens.navy,
-                    side: const BorderSide(color: PayrollTokens.navy),
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
                       vertical: AppSpacing.xs,

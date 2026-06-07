@@ -1,5 +1,5 @@
-import '../../theme/payroll_tokens.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -70,7 +70,7 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
           PrSectionCard(
             title: 'Who',
             icon: Icons.person_outline,
-            iconColor: PayrollTokens.navy,
+            iconColor: AppColors.primary,
             children: [
               FarmDropdown<String?>(
                 label: 'Employee *',
@@ -109,23 +109,23 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: PayrollTokens.green.withValues(alpha: 0.08),
+                    color: AppColors.success.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: PayrollTokens.green.withValues(alpha: 0.35)),
+                    border: Border.all(color: AppColors.success.withValues(alpha: 0.35)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(children: [
                         const Icon(Icons.account_balance_wallet_outlined,
-                            size: 16, color: PayrollTokens.green),
+                            size: 16, color: AppColors.success),
                         const SizedBox(width: 6),
                         Text('Balance available', style: tt.bodySmall),
                       ]),
                       Text(
                         '${selBalance.first.remaining.toStringAsFixed(1)} days',
                         style: tt.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold, color: PayrollTokens.green),
+                            fontWeight: FontWeight.bold, color: AppColors.success),
                       ),
                     ],
                   ),
@@ -139,7 +139,7 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
           PrSectionCard(
             title: 'When',
             icon: Icons.calendar_today_outlined,
-            iconColor: PayrollTokens.teal,
+            iconColor: AppColors.success,
             children: [
               Row(children: [
                 Expanded(
@@ -240,7 +240,7 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
           PrSectionCard(
             title: 'Reason',
             icon: Icons.notes_outlined,
-            iconColor: PayrollTokens.navy,
+            iconColor: AppColors.primary,
             children: [
               FarmTextField(
                 controller: _reasonCtrl,
@@ -255,7 +255,7 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: PayrollTokens.navy),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: (_employeeId == null || _leaveTypeId == null || isLoading)
                   ? null
                   : _submit,
@@ -293,7 +293,7 @@ class _LeaveRequestScreenState extends ConsumerState<LeaveRequestScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Leave request submitted.'),
-          backgroundColor: PayrollTokens.green,
+          backgroundColor: AppColors.success,
         ),
       );
       if (context.canPop()) context.pop();

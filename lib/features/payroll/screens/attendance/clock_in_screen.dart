@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -12,7 +13,6 @@ import '../../../../shared/widgets/farm_text_field.dart';
 import '../../models/attendance_record.dart';
 import '../../providers/payroll_action_providers.dart';
 import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
 import '../../widgets/payroll_widgets.dart';
 
 final _dfClock = DateFormat('d MMMM y');
@@ -68,14 +68,14 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                   label: 'Clock In',
                   icon: Icons.login_rounded,
                   selected: _isClockIn,
-                  color: PayrollTokens.green,
+                  color: AppColors.success,
                   onTap: () => setState(() => _isClockIn = true),
                 ),
                 _ModeTab(
                   label: 'Clock Out',
                   icon: Icons.logout_rounded,
                   selected: !_isClockIn,
-                  color: PayrollTokens.rose,
+                  color: AppColors.error,
                   onTap: () => setState(() => _isClockIn = false),
                 ),
               ],
@@ -87,7 +87,7 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
           PrSectionCard(
             title: 'Who & When',
             icon: Icons.person_pin_outlined,
-            iconColor: PayrollTokens.navy,
+            iconColor: AppColors.primary,
             children: [
               FarmDropdown<String?>(
                 label: 'Employee',
@@ -170,7 +170,7 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
             icon: _isClockIn
                 ? Icons.timelapse_rounded
                 : Icons.timer_off_outlined,
-            iconColor: _isClockIn ? PayrollTokens.green : PayrollTokens.rose,
+            iconColor: _isClockIn ? AppColors.success : AppColors.error,
             children: [
               FarmTextField(
                 controller: _timeCtrl,
@@ -193,15 +193,15 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
                     return ChoiceChip(
                       label: Text(_methodLabel(m)),
                       selected: selected,
-                      selectedColor: PayrollTokens.navy.withValues(alpha: 0.15),
+                      selectedColor: AppColors.primary.withValues(alpha: 0.15),
                       side: BorderSide(
                         color: selected
-                            ? PayrollTokens.navy
+                            ? AppColors.primary
                             : cs.outlineVariant,
                       ),
                       labelStyle: TextStyle(
                         color: selected
-                            ? PayrollTokens.navy
+                            ? AppColors.primary
                             : cs.onSurfaceVariant,
                         fontWeight: selected
                             ? FontWeight.w600
@@ -268,8 +268,8 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
             child: FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: _isClockIn
-                    ? PayrollTokens.green
-                    : PayrollTokens.rose,
+                    ? AppColors.success
+                    : AppColors.error,
               ),
               onPressed: (_employeeId == null || isLoading) ? null : _submit,
               child: isLoading
@@ -351,7 +351,7 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
             content: Text(
               'Could not obtain GPS location. Please enable location services or use a different method.',
             ),
-            backgroundColor: PayrollTokens.amber,
+            backgroundColor: AppColors.warning,
           ),
         );
         return;
@@ -377,7 +377,7 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Clocked in successfully.'),
-            backgroundColor: PayrollTokens.green,
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.of(context).pop();
@@ -417,7 +417,7 @@ class _ClockInScreenState extends ConsumerState<ClockInScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Clocked out successfully.'),
-            backgroundColor: PayrollTokens.green,
+            backgroundColor: AppColors.success,
           ),
         );
         if (mounted) Navigator.of(context).pop();

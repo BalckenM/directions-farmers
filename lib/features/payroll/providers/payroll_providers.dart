@@ -33,24 +33,42 @@ import 'package:mobile_app/features/payroll/models/task_assignment.dart';
 /// [preload()] has finished. The flag change triggers a cascade rebuild so
 /// every list provider re-reads the now-populated in-memory caches.
 class _LoadState {
-  const _LoadState({required this.source, required this.ready});
+  const _LoadState({required this.source, required this.ready, this.error});
   final PayrollRemoteDataSource source;
   final bool ready;
+
+  /// Non-null when preload completed but encountered errors (partial data).
+  final String? error;
 }
 
 class _PayrollLoaderNotifier extends Notifier<_LoadState> {
   @override
   _LoadState build() {
     final source = PayrollRemoteDataSource(ref.read(apiDioProvider));
-    source.preload().whenComplete(() {
-      // Defer the state update to after the current frame.
-      // Setting state synchronously from a microtask can fire mid-frame on
-      // Flutter Web, re-entering the mouse tracker's _deviceUpdatePhase and
-      // triggering the !_debugDuringDeviceUpdate assertion.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        state = _LoadState(source: source, ready: true);
-      });
-    });
+    // Phase 1: load only hub-critical data → unblock the UI as soon as possible.
+    source
+        .preloadCritical()
+        .then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            state = _LoadState(source: source, ready: true);
+            // Phase 2: load secondary data silently in the background.
+            source.preloadBackground().catchError((_) {
+              /* non-fatal */
+            });
+          });
+        })
+        .catchError((Object err) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            state = _LoadState(
+              source: source,
+              ready: true,
+              error: err.toString(),
+            );
+            source.preloadBackground().catchError((_) {
+              /* non-fatal */
+            });
+          });
+        });
     return _LoadState(source: source, ready: false);
   }
 }
@@ -61,21 +79,34 @@ final _payrollLoaderProvider =
     );
 
 final payrollDataSourceProvider = Provider<PayrollDataSource>(
-  (ref) => ref.watch(_payrollLoaderProvider).source,
+  // Use select() so this provider only rebuilds when `source` itself changes
+  // (it never does — same instance for the lifetime of the app). Without select,
+  // the ready:false→true flip on preload completion rebuilds payrollDataSourceProvider
+  // which cascades to payrollRepositoryProvider and all 30+ downstream providers
+  // mid-frame, causing the "setState during build" Riverpod error.
+  (ref) => ref.watch(_payrollLoaderProvider.select((s) => s.source)),
 );
 
 final payrollRepositoryProvider = Provider<PayrollRepository>((ref) {
-  // Watch _payrollLoaderProvider DIRECTLY (not via payrollDataSourceProvider)
-  // so that when preload() finishes and ready flips true, a NEW PayrollRepository
-  // instance is returned. Because PayrollRepository has no == override, the new
-  // instance != the old one, which makes Riverpod notify every downstream list
-  // provider, triggering a rebuild with the now-populated in-memory caches.
-  //
-  // Watching payrollDataSourceProvider alone does NOT work: it returns the same
-  // PayrollRemoteDataSource object reference before and after preload, so Riverpod
-  // sees no change and never rebuilds downstream providers.
-  final state = ref.watch(_payrollLoaderProvider);
-  return PayrollRepository(state.source);
+  // Stable: wraps the same PayrollRemoteDataSource object across all preload
+  // phases. payrollDataSourceProvider always returns the same source reference
+  // so this provider never emits a new value, preventing cascade invalidation
+  // of 30+ downstream providers that previously caused setState-during-build
+  // crashes in overlays.
+  // Each data provider that needs to reload after preloadCritical() completes
+  // watches payrollReadyProvider independently (flips false→true once).
+  return PayrollRepository(ref.watch(payrollDataSourceProvider));
+});
+
+/// `true` once the initial API preload has finished (success or partial).
+/// Use this to gate loading spinners: show shimmer while false, content when true.
+final payrollReadyProvider = Provider<bool>((ref) {
+  return ref.watch(_payrollLoaderProvider).ready;
+});
+
+/// Non-null when preload completed with a fatal error (e.g. network down).
+final payrollLoadErrorProvider = Provider<String?>((ref) {
+  return ref.watch(_payrollLoaderProvider).error;
 });
 
 // ─── Employees ────────────────────────────────────────────────────────────────
@@ -459,7 +490,7 @@ final incidentByIdProvider = Provider.family<IncidentRecord?, String>((
 // ─── All compliance alerts (including resolved) ───────────────────────────────
 
 final allComplianceAlertsProvider = Provider<List<ComplianceAlert>>((ref) {
-  // complianceAlertsProvider only returns open ones; this returns all
+  // no extra watch needed — inherits from complianceAlertsProvider
   return ref
       .watch(payrollRepositoryProvider)
       .getComplianceAlerts(includeResolved: true);

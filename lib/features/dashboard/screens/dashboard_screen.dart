@@ -656,7 +656,7 @@ class _QuickActionsSection extends StatelessWidget {
                   icon: Icons.payments_rounded,
                   label: 'Payroll',
                   sublabel: 'Employees & wages',
-                  color: AppColors.payrollPurple,
+                  color: AppColors.secondary,
                   onTap: () => context.push(AppRoutes.payrollHub),
                 ),
               ),

@@ -1,19 +1,19 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/shift.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
-
-final _dfDay   = DateFormat('E');       // Mon, Tue …
-final _dfDate  = DateFormat('d');       // 1, 2 …
+final _dfDay = DateFormat('E'); // Mon, Tue …
+final _dfDate = DateFormat('d'); // 1, 2 …
 final _dfMonth = DateFormat('MMM yyyy');
 final _dfShift = DateFormat('EEE d MMM');
 
@@ -45,9 +45,9 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
   @override
   Widget build(BuildContext context) {
     final employees = ref.watch(activeEmployeesProvider);
-    final days      = _days;
-    final today     = DateTime.now();
-    final tt        = Theme.of(context).textTheme;
+    final days = _days;
+    final today = DateTime.now();
+    final tt = Theme.of(context).textTheme;
     bool isToday(DateTime d) =>
         d.year == today.year && d.month == today.month && d.day == today.day;
 
@@ -65,8 +65,7 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
               final now2 = DateTime.now();
               _weekStart = now2.subtract(Duration(days: now2.weekday - 1));
             }),
-            child: const Text('Today',
-                style: TextStyle(color: Colors.white)),
+            child: const Text('Today', style: TextStyle(color: Colors.white)),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
@@ -79,6 +78,8 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
             onSelected: (v) {
               if (v == 'piecework') {
                 context.push(AppRoutes.payrollAddPieceworkLog);
+              } else if (v == 'piecework_logs') {
+                context.push(AppRoutes.payrollPieceworkLogs);
               }
             },
             itemBuilder: (_) => const [
@@ -90,15 +91,23 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              PopupMenuItem(
+                value: 'piecework_logs',
+                child: ListTile(
+                  leading: Icon(Icons.list_alt_outlined),
+                  title: Text('View Piecework Logs'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
             ],
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
-        backgroundColor: PayrollTokens.navy,
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Add Shift',
-            style: TextStyle(color: Colors.white)),
+        label: const Text('Add Shift', style: TextStyle(color: Colors.white)),
         onPressed: () => context.push(AppRoutes.payrollAddShift),
       ),
       body: employees.isEmpty
@@ -121,8 +130,7 @@ class _RosterBoardScreenState extends ConsumerState<RosterBoardScreen> {
                       final emp = employees[idx];
                       return _EmployeeRosterRow(
                         employeeId: emp.id,
-                        employeeName:
-                            '${emp.firstName} ${emp.lastName}',
+                        employeeName: '${emp.firstName} ${emp.lastName}',
                         weekStart: _weekStart,
                         days: days,
                         isToday: isToday,
@@ -147,35 +155,39 @@ class _LegendBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final labelStyle = tt.labelSmall?.copyWith(
-        color: cs.onSurfaceVariant, fontSize: 10);
+      color: cs.onSurfaceVariant,
+      fontSize: 10,
+    );
 
     Widget item(Color color, String label) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(label, style: labelStyle),
-          ],
-        );
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(label, style: labelStyle),
+      ],
+    );
 
     return Container(
       color: cs.surfaceContainerLowest,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       child: Row(
         children: [
-          item(PayrollTokens.green.withValues(alpha: 0.45), 'Shift'),
+          item(AppColors.success.withValues(alpha: 0.45), 'Shift'),
           const SizedBox(width: AppSpacing.md),
           item(PayrollTokens.sky.withValues(alpha: 0.45), 'Today'),
           const SizedBox(width: AppSpacing.md),
-          item(PayrollTokens.amber.withValues(alpha: 0.4), 'Weekend'),
+          item(AppColors.warning.withValues(alpha: 0.4), 'Weekend'),
           const SizedBox(width: AppSpacing.md),
           item(cs.surfaceContainerLow, 'No shift'),
         ],
@@ -208,9 +220,10 @@ class _DayHeaderRow extends StatelessWidget {
             width: 100,
             child: Padding(
               padding: const EdgeInsets.only(left: AppSpacing.sm),
-              child: Text('Employee',
-                  style: tt.labelSmall
-                      ?.copyWith(fontWeight: FontWeight.w700)),
+              child: Text(
+                'Employee',
+                style: tt.labelSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
           ...days.map((d) {
@@ -284,7 +297,11 @@ class _EmployeeRosterRow extends ConsumerWidget {
   }
 
   void _onCellTap(
-      BuildContext context, WidgetRef ref, DateTime day, Shift? shift) {
+    BuildContext context,
+    WidgetRef ref,
+    DateTime day,
+    Shift? shift,
+  ) {
     if (shift == null) {
       context.push(AppRoutes.payrollAddShift, extra: day);
       return;
@@ -293,14 +310,18 @@ class _EmployeeRosterRow extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) {
         final btt = Theme.of(ctx).textTheme;
         final bcs = Theme.of(ctx).colorScheme;
         return Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg, AppSpacing.md,
-              AppSpacing.lg, AppSpacing.xl),
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.xl,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -322,25 +343,32 @@ class _EmployeeRosterRow extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: PayrollTokens.navy.withValues(alpha: 0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.calendar_month_outlined,
-                        size: 24, color: PayrollTokens.navy),
+                    child: Icon(
+                      Icons.calendar_month_outlined,
+                      size: 24,
+                      color: AppColors.primary,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(shift.taskCode,
-                            style: btt.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(
+                          shift.taskCode,
+                          style: btt.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                         Text(
                           '${_dfShift.format(day)}  •  '
                           '${shift.startTime}–${shift.endTime}',
-                          style: btt.bodySmall
-                              ?.copyWith(color: bcs.onSurfaceVariant),
+                          style: btt.bodySmall?.copyWith(
+                            color: bcs.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -353,12 +381,18 @@ class _EmployeeRosterRow extends ConsumerWidget {
                   padding: const EdgeInsets.only(left: 48),
                   child: Row(
                     children: [
-                      Icon(Icons.place_outlined,
-                          size: 14, color: bcs.onSurfaceVariant),
+                      Icon(
+                        Icons.place_outlined,
+                        size: 14,
+                        color: bcs.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
-                      Text(shift.fieldOrArea!,
-                          style: btt.bodySmall
-                              ?.copyWith(color: bcs.onSurfaceVariant)),
+                      Text(
+                        shift.fieldOrArea!,
+                        style: btt.bodySmall?.copyWith(
+                          color: bcs.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -374,8 +408,9 @@ class _EmployeeRosterRow extends ConsumerWidget {
                       onPressed: () {
                         Navigator.pop(ctx);
                         context.push(
-                            AppRoutes.payrollEditShift(shift.id),
-                            extra: shift);
+                          AppRoutes.payrollEditShift(shift.id),
+                          extra: shift,
+                        );
                       },
                     ),
                   ),
@@ -383,11 +418,16 @@ class _EmployeeRosterRow extends ConsumerWidget {
                   Expanded(
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(
-                          backgroundColor: PayrollTokens.rose),
-                      icon: const Icon(Icons.delete_outline,
-                          color: Colors.white),
-                      label: const Text('Delete',
-                          style: TextStyle(color: Colors.white)),
+                        backgroundColor: AppColors.error,
+                      ),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       onPressed: () {
                         Navigator.pop(ctx);
                         ref
@@ -408,7 +448,8 @@ class _EmployeeRosterRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shifts = ref.watch(
-        shiftsProvider(ShiftFilter(weekStart: weekStart, employeeId: employeeId)));
+      shiftsProvider(ShiftFilter(weekStart: weekStart, employeeId: employeeId)),
+    );
     final cs = Theme.of(context).colorScheme;
     return SizedBox(
       height: 60,
@@ -430,10 +471,10 @@ class _EmployeeRosterRow extends ConsumerWidget {
 
           // Day cells
           ...days.map((d) {
-            final isWknd    = d.weekday >= 6;
+            final isWknd = d.weekday >= 6;
             final todayMark = isToday(d);
-            final shift     = _shiftForDay(shifts, d);
-            final hasShift  = shift != null;
+            final shift = _shiftForDay(shifts, d);
+            final hasShift = shift != null;
 
             // Determine cell color
             Color bgColor;
@@ -442,9 +483,9 @@ class _EmployeeRosterRow extends ConsumerWidget {
             } else if (todayMark) {
               bgColor = PayrollTokens.sky.withValues(alpha: 0.12);
             } else if (hasShift) {
-              bgColor = PayrollTokens.green.withValues(alpha: 0.14);
+              bgColor = AppColors.success.withValues(alpha: 0.14);
             } else if (isWknd) {
-              bgColor = PayrollTokens.amber.withValues(alpha: 0.10);
+              bgColor = AppColors.warning.withValues(alpha: 0.10);
             } else {
               bgColor = cs.surfaceContainerLow.withValues(alpha: 0.5);
             }
@@ -460,9 +501,11 @@ class _EmployeeRosterRow extends ConsumerWidget {
                     border: todayMark
                         ? Border.all(
                             color: PayrollTokens.navy.withValues(alpha: 0.5),
-                            width: 1.5)
+                            width: 1.5,
+                          )
                         : Border.all(
-                            color: cs.outlineVariant.withValues(alpha: 0.4)),
+                            color: cs.outlineVariant.withValues(alpha: 0.4),
+                          ),
                   ),
                   alignment: Alignment.center,
                   child: hasShift
@@ -476,7 +519,7 @@ class _EmployeeRosterRow extends ConsumerWidget {
                               style: tt.labelSmall?.copyWith(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
-                                color: PayrollTokens.green,
+                                color: AppColors.success,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -494,7 +537,7 @@ class _EmployeeRosterRow extends ConsumerWidget {
                           style: tt.labelSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: isWknd
-                                ? PayrollTokens.amber
+                                ? AppColors.warning
                                 : cs.onSurfaceVariant.withValues(alpha: 0.5),
                           ),
                         ),

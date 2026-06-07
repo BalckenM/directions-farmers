@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
-import '../../models/payment_transaction.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/models/payment_transaction.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 
 final _zar = NumberFormat.currency(
   locale: 'en_ZA',
@@ -25,17 +28,17 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
   TransactionStatus? _filterStatus;
 
   (Color, IconData) _methodStyle(String method) => switch (method) {
-    'bank' => (PayrollTokens.indigo, Icons.account_balance_outlined),
-    'cash' => (PayrollTokens.amber, Icons.payments_outlined),
-    'ewallet' => (PayrollTokens.teal, Icons.phone_android_outlined),
+    'bank' => (AppColors.primary, Icons.account_balance_outlined),
+    'cash' => (AppColors.warning, Icons.payments_outlined),
+    'ewallet' => (AppColors.success, Icons.phone_android_outlined),
     _ => (PayrollTokens.sky, Icons.help_outline),
   };
 
   (Color, String) _statusStyle(TransactionStatus s) => switch (s) {
-    TransactionStatus.initiated => (PayrollTokens.amber, 'Initiated'),
+    TransactionStatus.initiated => (AppColors.warning, 'Initiated'),
     TransactionStatus.processing => (PayrollTokens.sky, 'Processing'),
-    TransactionStatus.completed => (PayrollTokens.green, 'Completed'),
-    TransactionStatus.failed => (PayrollTokens.rose, 'Failed'),
+    TransactionStatus.completed => (AppColors.success, 'Completed'),
+    TransactionStatus.failed => (AppColors.error, 'Failed'),
     TransactionStatus.reversed => (Colors.grey, 'Reversed'),
   };
 
@@ -58,22 +61,13 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
         .where((t) => t.status == TransactionStatus.failed)
         .length;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'Payment History',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        elevation: 0,
-      ),
+    return FarmScaffold(
+      appBar: const FarmAppBar(title: 'Payment History'),
       body: Column(
         children: [
           // Summary row
           Container(
-            color: PayrollTokens.navy,
+            color: AppColors.primary,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
               children: [
@@ -89,12 +83,12 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                   child: _SummaryChip(
                     'Completed',
                     '$completed',
-                    PayrollTokens.green,
+                    AppColors.success,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _SummaryChip('Failed', '$failed', PayrollTokens.rose),
+                  child: _SummaryChip('Failed', '$failed', AppColors.error),
                 ),
               ],
             ),
@@ -140,7 +134,7 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                           child: FilterChip(
                             label: Text(c.label),
                             selected: c.current == c.value,
-                            selectedColor: PayrollTokens.navy.withValues(
+                            selectedColor: AppColors.primary.withValues(
                               alpha: 0.15,
                             ),
                             onSelected: (_) =>
@@ -295,7 +289,7 @@ class _TransactionCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: PayrollTokens.navy,
+                    color: AppColors.primary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -351,7 +345,7 @@ class _TransactionCard extends StatelessWidget {
                     transaction.failureReason!,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: PayrollTokens.rose,
+                      color: AppColors.error,
                     ),
                   ),
                 ),
@@ -362,7 +356,7 @@ class _TransactionCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
-              color: PayrollTokens.navy,
+              color: AppColors.primary,
             ),
           ),
         ),

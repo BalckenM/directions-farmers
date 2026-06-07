@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/garnishee_order.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/models/garnishee_order.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 typedef _C = PayrollTokens;
 final _mFmt = DateFormat('d MMM y');
@@ -60,8 +59,7 @@ class _AddEditGarnisheeScreenState
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isEditMode && _courtOrderRefCtrl.text.isEmpty) {
-      final order =
-          ref.read(garnisheeByIdProvider(widget.orderId!));
+      final order = ref.read(garnisheeByIdProvider(widget.orderId!));
       if (order != null) _populateFromOrder(order);
     }
   }
@@ -91,7 +89,8 @@ class _AddEditGarnisheeScreenState
     if (!_formKey.currentState!.validate()) return;
     if (_selectedEmployeeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select an employee')));
+        const SnackBar(content: Text('Please select an employee')),
+      );
       return;
     }
     setState(() => _submitting = true);
@@ -106,7 +105,7 @@ class _AddEditGarnisheeScreenState
         return;
       }
       final updated = existing.copyWith(
-        employeeId: _selectedEmployeeId,
+        employeeId: _selectedEmployeeId!,
         courtOrderRef: _courtOrderRefCtrl.text.trim(),
         creditorName: _creditorNameCtrl.text.trim(),
         monthlyDeductionAmount:
@@ -136,10 +135,15 @@ class _AddEditGarnisheeScreenState
 
     setState(() => _submitting = false);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(_isEditMode
-              ? 'Garnishee order updated'
-              : 'Garnishee order registered')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEditMode
+                ? 'Garnishee order updated'
+                : 'Garnishee order registered',
+          ),
+        ),
+      );
       context.pop();
     }
   }
@@ -152,7 +156,9 @@ class _AddEditGarnisheeScreenState
 
     return FarmScaffold(
       appBar: FarmAppBar(
-        title: _isEditMode ? 'Edit Garnishee Order' : 'Register Garnishee Order',
+        title: _isEditMode
+            ? 'Edit Garnishee Order'
+            : 'Register Garnishee Order',
       ),
       body: Form(
         key: _formKey,
@@ -188,20 +194,23 @@ class _AddEditGarnisheeScreenState
               initialValue: _selectedEmployeeId,
               decoration: _fieldDecoration('Select employee', context),
               items: employees
-                  .map((e) => DropdownMenuItem(
-                      value: e.id, child: Text(e.fullName)))
+                  .map(
+                    (e) =>
+                        DropdownMenuItem(value: e.id, child: Text(e.fullName)),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedEmployeeId = v),
-              validator: (v) =>
-                  v == null ? 'Please select an employee' : null,
+              validator: (v) => v == null ? 'Please select an employee' : null,
             ),
             const SizedBox(height: 12),
 
             _sectionLabel(context, 'Court Order Details'),
             TextFormField(
               controller: _courtOrderRefCtrl,
-              decoration:
-                  _fieldDecoration('Court order reference number', context),
+              decoration: _fieldDecoration(
+                'Court order reference number',
+                context,
+              ),
               textCapitalization: TextCapitalization.characters,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Court order reference is required'
@@ -210,7 +219,10 @@ class _AddEditGarnisheeScreenState
             const SizedBox(height: 10),
             TextFormField(
               controller: _creditorNameCtrl,
-              decoration: _fieldDecoration('Creditor / applicant name', context),
+              decoration: _fieldDecoration(
+                'Creditor / applicant name',
+                context,
+              ),
               textCapitalization: TextCapitalization.words,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Creditor name is required'
@@ -224,13 +236,19 @@ class _AddEditGarnisheeScreenState
                 Expanded(
                   child: TextFormField(
                     controller: _monthlyAmtCtrl,
-                    decoration: _fieldDecoration('Monthly deduction (R)', context),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: _fieldDecoration(
+                      'Monthly deduction (R)',
+                      context,
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Required';
-                      if (double.tryParse(v.trim()) == null) return 'Invalid amount';
-                      if ((double.tryParse(v.trim()) ?? 0) <= 0) return 'Must be > 0';
+                      if (double.tryParse(v.trim()) == null)
+                        return 'Invalid amount';
+                      if ((double.tryParse(v.trim()) ?? 0) <= 0)
+                        return 'Must be > 0';
                       return null;
                     },
                   ),
@@ -240,12 +258,15 @@ class _AddEditGarnisheeScreenState
                   child: TextFormField(
                     controller: _totalOwedCtrl,
                     decoration: _fieldDecoration('Total owed (R)', context),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Required';
-                      if (double.tryParse(v.trim()) == null) return 'Invalid amount';
-                      if ((double.tryParse(v.trim()) ?? 0) <= 0) return 'Must be > 0';
+                      if (double.tryParse(v.trim()) == null)
+                        return 'Invalid amount';
+                      if ((double.tryParse(v.trim()) ?? 0) <= 0)
+                        return 'Must be > 0';
                       return null;
                     },
                   ),
@@ -268,21 +289,29 @@ class _AddEditGarnisheeScreenState
               },
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: cs.outline),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today_outlined,
-                        size: 18, color: cs.onSurfaceVariant),
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 18,
+                      color: cs.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 10),
-                    Text(_mFmt.format(_startDate),
-                        style: tt.bodyMedium),
+                    Text(_mFmt.format(_startDate), style: tt.bodyMedium),
                     const Spacer(),
-                    Icon(Icons.edit_outlined,
-                        size: 16, color: cs.onSurfaceVariant),
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 16,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ],
                 ),
               ),
@@ -296,8 +325,12 @@ class _AddEditGarnisheeScreenState
                 initialValue: _status,
                 decoration: _fieldDecoration('Status', context),
                 items: GarnisheeStatus.values
-                    .map((s) => DropdownMenuItem(
-                        value: s, child: Text(_statusLabel(s))))
+                    .map(
+                      (s) => DropdownMenuItem(
+                        value: s,
+                        child: Text(_statusLabel(s)),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) =>
                     v != null ? setState(() => _status = v) : null,
@@ -309,7 +342,9 @@ class _AddEditGarnisheeScreenState
             TextFormField(
               controller: _notesCtrl,
               decoration: _fieldDecoration(
-                  'Additional notes about this order…', context),
+                'Additional notes about this order…',
+                context,
+              ),
               maxLines: 3,
               maxLength: 500,
             ),
@@ -324,18 +359,24 @@ class _AddEditGarnisheeScreenState
                   backgroundColor: _C.navy,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: _submitting
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : Text(
                         _isEditMode ? 'Save Changes' : 'Register Order',
                         style: const TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 16),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
                       ),
               ),
             ),
@@ -351,8 +392,7 @@ class _AddEditGarnisheeScreenState
       hintText: hint,
       isDense: true,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     );
   }
 
@@ -363,16 +403,18 @@ class _AddEditGarnisheeScreenState
       padding: const EdgeInsets.only(bottom: 6),
       child: Text(
         text,
-        style: tt.labelMedium
-            ?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface),
+        style: tt.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: cs.onSurface,
+        ),
       ),
     );
   }
 
   String _statusLabel(GarnisheeStatus s) => switch (s) {
-        GarnisheeStatus.active    => 'Active',
-        GarnisheeStatus.satisfied => 'Satisfied (paid in full)',
-        GarnisheeStatus.suspended => 'Suspended',
-        GarnisheeStatus.cancelled => 'Cancelled',
-      };
+    GarnisheeStatus.active => 'Active',
+    GarnisheeStatus.satisfied => 'Satisfied (paid in full)',
+    GarnisheeStatus.suspended => 'Suspended',
+    GarnisheeStatus.cancelled => 'Cancelled',
+  };
 }

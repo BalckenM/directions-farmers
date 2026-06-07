@@ -20,6 +20,7 @@ import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
 import 'package:mobile_app/features/payroll/models/piecework_log.dart';
 import 'package:mobile_app/features/payroll/models/shift.dart';
 import 'package:mobile_app/features/payroll/models/task_assignment.dart';
+import 'package:mobile_app/features/payroll/models/worker_dispute.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
 // ─── Generic async action result ─────────────────────────────────────────────
@@ -46,10 +47,11 @@ class PayRunNotifier extends Notifier<AsyncValue<void>> {
     required String payGroupId,
     required DateTime periodStart,
     required DateTime periodEnd,
+    DateTime? payDate,
   }) async {
     state = const AsyncValue.loading();
     try {
-      final run = _repo.calculatePayRun(payGroupId, periodStart, periodEnd);
+      final run = await _repo.calculatePayRun(payGroupId, periodStart, periodEnd, payDate: payDate);
       // Invalidate pay-run reads so screens auto-refresh
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
@@ -66,7 +68,7 @@ class PayRunNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final run = _repo.approvePayRun(payRunId, approverId);
+      final run = await _repo.approvePayRun(payRunId, approverId);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return run;
@@ -79,7 +81,7 @@ class PayRunNotifier extends Notifier<AsyncValue<void>> {
   Future<PayRun?> disbursePayRun(String payRunId) async {
     state = const AsyncValue.loading();
     try {
-      final run = _repo.disbursePayRun(payRunId);
+      final run = await _repo.disbursePayRun(payRunId);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return run;
@@ -110,7 +112,7 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final rec = _repo.addAttendanceRecord(
+      final rec = await _repo.addAttendanceRecord(
         AttendanceRecord(
           id: 'att_${employeeId}_${date.millisecondsSinceEpoch}',
           employeeId: employeeId,
@@ -150,7 +152,7 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
         overtimeHours: overtimeHours,
         notes: notes ?? rec.notes,
       );
-      final saved = _repo.updateAttendanceRecord(updated);
+      final saved = await _repo.updateAttendanceRecord(updated);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -169,7 +171,7 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final rec = _repo.addAttendanceRecord(
+      final rec = await _repo.addAttendanceRecord(
         AttendanceRecord(
           id: 'att_${employeeId}_${date.millisecondsSinceEpoch}',
           employeeId: employeeId,
@@ -202,7 +204,7 @@ class AttendanceNotifier extends Notifier<AsyncValue<void>> {
         recordedByUserId: 'usr_manager',
         notes: note.isNotEmpty ? note : record.notes,
       );
-      _repo.updateAttendanceRecord(updated);
+      await _repo.updateAttendanceRecord(updated);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
@@ -233,7 +235,7 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final req = _repo.addLeaveRequest(
+      final req = await _repo.addLeaveRequest(
         LeaveRequest(
           id: 'lr_${employeeId}_${DateTime.now().millisecondsSinceEpoch}',
           employeeId: employeeId,
@@ -261,7 +263,7 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final req = _repo.approveLeaveRequest(requestId, approverId);
+      final req = await _repo.approveLeaveRequest(requestId, approverId);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return req;
@@ -278,7 +280,7 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final req = _repo.rejectLeaveRequest(requestId, approverId, reason);
+      final req = await _repo.rejectLeaveRequest(requestId, approverId, reason);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return req;
@@ -291,7 +293,7 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   Future<LeaveRequest?> cancel(String requestId) async {
     state = const AsyncValue.loading();
     try {
-      final req = _repo.cancelLeaveRequest(requestId);
+      final req = await _repo.cancelLeaveRequest(requestId);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return req;
@@ -304,7 +306,7 @@ class LeaveNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> deleteRequest(String id) async {
     state = const AsyncValue.loading();
     try {
-      final ok = _repo.deleteLeaveRequest(id);
+      final ok = await _repo.deleteLeaveRequest(id);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return ok;
@@ -329,7 +331,7 @@ class DeductionNotifier extends Notifier<AsyncValue<void>> {
   Future<DeductionRule?> addRule(DeductionRule rule) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addDeductionRule(rule);
+      final saved = await _repo.addDeductionRule(rule);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -342,7 +344,7 @@ class DeductionNotifier extends Notifier<AsyncValue<void>> {
   Future<DeductionRule?> updateRule(DeductionRule rule) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateDeductionRule(rule);
+      final saved = await _repo.updateDeductionRule(rule);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -355,7 +357,7 @@ class DeductionNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> deactivate(String id) async {
     state = const AsyncValue.loading();
     try {
-      _repo.deactivateDeductionRule(id);
+      await _repo.deactivateDeductionRule(id);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return true;
@@ -381,7 +383,7 @@ class EmployeeNotifier extends Notifier<AsyncValue<void>> {
   Future<PayrollEmployee?> add(PayrollEmployee employee) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addEmployee(employee);
+      final saved = await _repo.addEmployee(employee);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -394,10 +396,23 @@ class EmployeeNotifier extends Notifier<AsyncValue<void>> {
   Future<PayrollEmployee?> update(PayrollEmployee employee) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateEmployee(employee);
+      final saved = await _repo.updateEmployee(employee);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<String?> uploadProfileImage(String employeeId, String filePath) async {
+    state = const AsyncValue.loading();
+    try {
+      final url = await _repo.uploadProfileImage(employeeId, filePath);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return url;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return null;
@@ -411,7 +426,7 @@ class EmployeeNotifier extends Notifier<AsyncValue<void>> {
   ) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.terminateEmployee(id, terminationDate, reason);
+      final saved = await _repo.terminateEmployee(id, terminationDate, reason);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -450,7 +465,7 @@ class ContractNotifier extends Notifier<AsyncValue<void>> {
   Future<EmploymentContract?> add(EmploymentContract contract) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addContract(contract);
+      final saved = await _repo.addContract(contract);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -463,7 +478,7 @@ class ContractNotifier extends Notifier<AsyncValue<void>> {
   Future<EmploymentContract?> update(EmploymentContract contract) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateContract(contract);
+      final saved = await _repo.updateContract(contract);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -476,7 +491,7 @@ class ContractNotifier extends Notifier<AsyncValue<void>> {
   Future<EmploymentContract?> voidContract(String id, String reason) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.voidContract(id, reason);
+      final saved = await _repo.voidContract(id, reason);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -500,7 +515,7 @@ class PayGroupNotifier extends Notifier<AsyncValue<void>> {
   Future<PayGroup?> add(PayGroup group) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addPayGroup(group);
+      final saved = await _repo.addPayGroup(group);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -513,7 +528,7 @@ class PayGroupNotifier extends Notifier<AsyncValue<void>> {
   Future<PayGroup?> update(PayGroup group) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updatePayGroup(group);
+      final saved = await _repo.updatePayGroup(group);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -526,7 +541,7 @@ class PayGroupNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> deactivate(String id) async {
     state = const AsyncValue.loading();
     try {
-      _repo.deactivatePayGroup(id);
+      await _repo.deactivatePayGroup(id);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return true;
@@ -550,7 +565,7 @@ class TaskAssignmentNotifier extends Notifier<AsyncValue<void>> {
   Future<TaskAssignment?> add(TaskAssignment task) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addTaskAssignment(task);
+      final saved = await _repo.addTaskAssignment(task);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -563,7 +578,7 @@ class TaskAssignmentNotifier extends Notifier<AsyncValue<void>> {
   Future<TaskAssignment?> update(TaskAssignment task) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateTaskAssignment(task);
+      final saved = await _repo.updateTaskAssignment(task);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -576,7 +591,7 @@ class TaskAssignmentNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> delete(String id) async {
     state = const AsyncValue.loading();
     try {
-      final ok = _repo.deleteTaskAssignment(id);
+      final ok = await _repo.deleteTaskAssignment(id);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return ok;
@@ -602,7 +617,7 @@ class PayStructureNotifier extends Notifier<AsyncValue<void>> {
   Future<PayStructure?> add(PayStructure structure) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addPayStructure(structure);
+      final saved = await _repo.addPayStructure(structure);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -615,7 +630,7 @@ class PayStructureNotifier extends Notifier<AsyncValue<void>> {
   Future<PayStructure?> update(PayStructure structure) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updatePayStructure(structure);
+      final saved = await _repo.updatePayStructure(structure);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -641,7 +656,7 @@ class ShiftNotifier extends Notifier<AsyncValue<void>> {
   Future<Shift?> add(Shift shift) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addShift(shift);
+      final saved = await _repo.addShift(shift);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -654,7 +669,7 @@ class ShiftNotifier extends Notifier<AsyncValue<void>> {
   Future<Shift?> update(Shift shift) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateShift(shift);
+      final saved = await _repo.updateShift(shift);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -667,7 +682,7 @@ class ShiftNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> delete(String id) async {
     state = const AsyncValue.loading();
     try {
-      final ok = _repo.deleteShift(id);
+      final ok = await _repo.deleteShift(id);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return ok;
@@ -692,7 +707,7 @@ class PieceworkNotifier extends Notifier<AsyncValue<void>> {
   Future<PieceworkLog?> addLog(PieceworkLog log) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addPieceworkLog(log);
+      final saved = await _repo.addPieceworkLog(log);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -705,7 +720,7 @@ class PieceworkNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> deleteLog(String id, String correctionReason) async {
     state = const AsyncValue.loading();
     try {
-      final ok = _repo.deletePieceworkLog(id, correctionReason);
+      final ok = await _repo.deletePieceworkLog(id, correctionReason);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return ok;
@@ -733,7 +748,7 @@ class EmployerConfigNotifier extends Notifier<AsyncValue<void>> {
   Future<EmployerConfig?> updateConfig(EmployerConfig config) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateEmployerConfig(config);
+      final saved = await _repo.updateEmployerConfig(config);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -759,7 +774,7 @@ class GarnisheeNotifier extends Notifier<AsyncValue<void>> {
   Future<GarnisheeOrder?> add(GarnisheeOrder order) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addGarnisheeOrder(order);
+      final saved = await _repo.addGarnisheeOrder(order);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -772,7 +787,7 @@ class GarnisheeNotifier extends Notifier<AsyncValue<void>> {
   Future<GarnisheeOrder?> update(GarnisheeOrder order) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateGarnisheeOrder(order);
+      final saved = await _repo.updateGarnisheeOrder(order);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -798,7 +813,7 @@ class IncidentNotifier extends Notifier<AsyncValue<void>> {
   Future<IncidentRecord?> add(IncidentRecord incident) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.addIncident(incident);
+      final saved = await _repo.addIncident(incident);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -811,7 +826,7 @@ class IncidentNotifier extends Notifier<AsyncValue<void>> {
   Future<IncidentRecord?> update(IncidentRecord incident) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.updateIncident(incident);
+      final saved = await _repo.updateIncident(incident);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -824,7 +839,7 @@ class IncidentNotifier extends Notifier<AsyncValue<void>> {
   Future<bool> deactivate(String id) async {
     state = const AsyncValue.loading();
     try {
-      _repo.deactivateIncident(id);
+      await _repo.deactivateIncident(id);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return true;
@@ -852,7 +867,7 @@ class ComplianceAlertNotifier extends Notifier<AsyncValue<void>> {
   ) async {
     state = const AsyncValue.loading();
     try {
-      final saved = _repo.resolveAlert(id, resolvedByUserId, resolution);
+      final saved = await _repo.resolveAlert(id, resolvedByUserId, resolution);
       ref.invalidate(payrollRepositoryProvider);
       state = const AsyncValue.data(null);
       return saved;
@@ -885,7 +900,7 @@ class CommunicationNotifier extends Notifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final log = _repo.sendCommunication(
+      final log = await _repo.sendCommunication(
         channel: channel,
         templateCode: templateCode,
         subject: subject,
@@ -958,4 +973,73 @@ class BenefitContributionNotifier extends Notifier<AsyncValue<void>> {
 final benefitContributionNotifierProvider =
     NotifierProvider<BenefitContributionNotifier, AsyncValue<void>>(
       BenefitContributionNotifier.new,
+    );
+
+// ─── Worker Dispute notifier ──────────────────────────────────────────────────
+class WorkerDisputeNotifier extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() => const AsyncValue.data(null);
+
+  PayrollRepository get _repo => ref.read(payrollRepositoryProvider);
+
+  Future<WorkerDispute?> fileDispute(WorkerDispute dispute) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repo.fileDispute(dispute);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<WorkerDispute?> updateDispute(WorkerDispute dispute) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repo.updateDispute(dispute);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<WorkerDispute?> resolveDispute(
+    String id,
+    String resolvedBy,
+    String resolutionNote,
+  ) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repo.resolveDispute(id, resolvedBy, resolutionNote);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<WorkerDispute?> dismissDispute(String id, String resolvedBy) async {
+    state = const AsyncValue.loading();
+    try {
+      final saved = await _repo.dismissDispute(id, resolvedBy);
+      ref.invalidate(payrollRepositoryProvider);
+      state = const AsyncValue.data(null);
+      return saved;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+}
+
+final workerDisputeNotifierProvider =
+    NotifierProvider<WorkerDisputeNotifier, AsyncValue<void>>(
+      WorkerDisputeNotifier.new,
     );

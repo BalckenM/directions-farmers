@@ -19,8 +19,7 @@ class AppEnvironment {
   /// `--dart-define=API_BASE_URL=http://localhost:3000/v1`.
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue:
-        'https://backendfarmers--directions-payroll.us-east4.hosted.app/v1',
+    defaultValue: 'http://localhost:3000/v1',
   );
 
   static const firebaseEnabled = bool.fromEnvironment(

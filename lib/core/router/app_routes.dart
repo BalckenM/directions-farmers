@@ -305,6 +305,7 @@ abstract final class AppRoutes {
   static const String payrollTaskSheet = '/payroll/roster/task-sheet';
   static const String payrollAddPieceworkLog =
       '/payroll/roster/add-piecework-log';
+  static const String payrollPieceworkLogs = '/payroll/roster/piecework-logs';
   static const String payrollAttendanceExceptions =
       '/payroll/attendance/exceptions';
   static String payrollPayRunApproval(String id) =>
@@ -324,6 +325,10 @@ abstract final class AppRoutes {
       '/payroll/settings/employer-config';
 
   // ── Payroll — additional detail / workflow routes ─────────────────────────
+  static const String payrollBenefitContributions =
+      '/payroll/deductions/benefit-contributions';
+  static String payrollBenefitContributionsByEmployee(String empId) =>
+      '/payroll/employees/$empId/benefit-contributions';
   static const String payrollGarnisheeOrders = '/payroll/deductions/garnishee';
   static const String payrollGarnisheeAdd = '/payroll/deductions/garnishee/add';
   static String payrollGarnisheeDetail(String id) =>

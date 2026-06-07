@@ -26,8 +26,9 @@ abstract class PayrollDataSource {
   // ── Employees ─────────────────────────────────────────────────────────────
   List<PayrollEmployee> getEmployees();
   PayrollEmployee? getEmployee(String id);
-  PayrollEmployee addEmployee(PayrollEmployee employee);
-  PayrollEmployee updateEmployee(PayrollEmployee employee);
+  Future<PayrollEmployee> addEmployee(PayrollEmployee employee);
+  Future<PayrollEmployee> updateEmployee(PayrollEmployee employee);
+  Future<String> uploadProfileImage(String employeeId, String filePath);
   Future<Map<String, dynamic>> bulkImportEmployees(
     List<PayrollEmployee> employees,
   );
@@ -35,28 +36,28 @@ abstract class PayrollDataSource {
   // ── Contracts ─────────────────────────────────────────────────────────────
   List<EmploymentContract> getContracts({String? employeeId});
   EmploymentContract? getContract(String id);
-  EmploymentContract addContract(EmploymentContract contract);
-  EmploymentContract updateContract(EmploymentContract contract);
+  Future<EmploymentContract> addContract(EmploymentContract contract);
+  Future<EmploymentContract> updateContract(EmploymentContract contract);
 
   // ── Pay groups ─────────────────────────────────────────────────────────────
   List<PayGroup> getPayGroups();
-  PayGroup addPayGroup(PayGroup group);
-  PayGroup updatePayGroup(PayGroup group);
+  Future<PayGroup> addPayGroup(PayGroup group);
+  Future<PayGroup> updatePayGroup(PayGroup group);
 
   // ── Pay structures ────────────────────────────────────────────────────────
   List<PayStructure> getPayStructures();
-  PayStructure addPayStructure(PayStructure structure);
-  PayStructure updatePayStructure(PayStructure structure);
+  Future<PayStructure> addPayStructure(PayStructure structure);
+  Future<PayStructure> updatePayStructure(PayStructure structure);
 
   // ── Shifts / roster ────────────────────────────────────────────────────────
   List<Shift> getShifts({DateTime? weekStart, String? employeeId});
-  Shift addShift(Shift shift);
-  Shift updateShift(Shift shift);
+  Future<Shift> addShift(Shift shift);
+  Future<Shift> updateShift(Shift shift);
 
   // ── Task assignments ───────────────────────────────────────────────────────
   List<TaskAssignment> getTaskAssignments({String? employeeId, DateTime? date});
-  TaskAssignment addTaskAssignment(TaskAssignment task);
-  TaskAssignment updateTaskAssignment(TaskAssignment task);
+  Future<TaskAssignment> addTaskAssignment(TaskAssignment task);
+  Future<TaskAssignment> updateTaskAssignment(TaskAssignment task);
 
   // ── Attendance ─────────────────────────────────────────────────────────────
   List<AttendanceRecord> getAttendanceRecords({
@@ -65,8 +66,8 @@ abstract class PayrollDataSource {
     DateTime? fromDate,
     DateTime? toDate,
   });
-  AttendanceRecord addAttendanceRecord(AttendanceRecord record);
-  AttendanceRecord updateAttendanceRecord(AttendanceRecord record);
+  Future<AttendanceRecord> addAttendanceRecord(AttendanceRecord record);
+  Future<AttendanceRecord> updateAttendanceRecord(AttendanceRecord record);
 
   // ── Piecework ──────────────────────────────────────────────────────────────
   List<PieceworkLog> getPieceworkLogs({
@@ -74,18 +75,19 @@ abstract class PayrollDataSource {
     DateTime? date,
     String? shiftId,
   });
-  PieceworkLog addPieceworkLog(PieceworkLog log);
+  Future<PieceworkLog> addPieceworkLog(PieceworkLog log);
 
   // ── Pay runs ───────────────────────────────────────────────────────────────
   List<PayRun> getPayRuns({String? payGroupId});
   PayRun? getPayRun(String id);
-  PayRun calculatePayRun(
+  Future<PayRun> calculatePayRun(
     String payGroupId,
     DateTime periodStart,
-    DateTime periodEnd,
-  );
-  PayRun approvePayRun(String id, String approverUserId);
-  PayRun disbursePayRun(String id);
+    DateTime periodEnd, {
+    DateTime? payDate,
+  });
+  Future<PayRun> approvePayRun(String id, String approverUserId);
+  Future<PayRun> disbursePayRun(String id);
 
   // ── Payslips ───────────────────────────────────────────────────────────────
   List<Payslip> getPayslips({String? employeeId, String? payRunId});
@@ -93,13 +95,13 @@ abstract class PayrollDataSource {
 
   // ── Deduction rules ────────────────────────────────────────────────────────
   List<DeductionRule> getDeductionRules({String? employeeId});
-  DeductionRule addDeductionRule(DeductionRule rule);
-  DeductionRule updateDeductionRule(DeductionRule rule);
+  Future<DeductionRule> addDeductionRule(DeductionRule rule);
+  Future<DeductionRule> updateDeductionRule(DeductionRule rule);
 
   // ── Garnishee orders (Sprint 6) ────────────────────────────────────────────
   List<GarnisheeOrder> getGarnisheeOrders({String? employeeId});
-  GarnisheeOrder addGarnisheeOrder(GarnisheeOrder order);
-  GarnisheeOrder updateGarnisheeOrder(GarnisheeOrder order);
+  Future<GarnisheeOrder> addGarnisheeOrder(GarnisheeOrder order);
+  Future<GarnisheeOrder> updateGarnisheeOrder(GarnisheeOrder order);
 
   // ── Leave types ────────────────────────────────────────────────────────────
   List<LeaveType> getLeaveTypes();
@@ -112,10 +114,14 @@ abstract class PayrollDataSource {
     String? employeeId,
     LeaveStatus? status,
   });
-  LeaveRequest addLeaveRequest(LeaveRequest request);
-  LeaveRequest approveLeaveRequest(String id, String approverId);
-  LeaveRequest rejectLeaveRequest(String id, String approverId, String reason);
-  LeaveRequest cancelLeaveRequest(String id);
+  Future<LeaveRequest> addLeaveRequest(LeaveRequest request);
+  Future<LeaveRequest> approveLeaveRequest(String id, String approverId);
+  Future<LeaveRequest> rejectLeaveRequest(
+    String id,
+    String approverId,
+    String reason,
+  );
+  Future<LeaveRequest> cancelLeaveRequest(String id);
 
   // ── Payment transactions ───────────────────────────────────────────────────
   List<PaymentTransaction> getTransactions({
@@ -126,7 +132,7 @@ abstract class PayrollDataSource {
 
   // ── Compliance alerts ──────────────────────────────────────────────────────
   List<ComplianceAlert> getComplianceAlerts({bool includeResolved = false});
-  ComplianceAlert resolveAlert(
+  Future<ComplianceAlert> resolveAlert(
     String id,
     String resolvedByUserId,
     String resolution,
@@ -141,12 +147,12 @@ abstract class PayrollDataSource {
 
   // ── Incidents ──────────────────────────────────────────────────────────────
   List<IncidentRecord> getIncidents({String? employeeId});
-  IncidentRecord addIncident(IncidentRecord incident);
-  IncidentRecord updateIncident(IncidentRecord incident);
+  Future<IncidentRecord> addIncident(IncidentRecord incident);
+  Future<IncidentRecord> updateIncident(IncidentRecord incident);
 
   // ── Communications ─────────────────────────────────────────────────────────
   List<CommunicationLog> getCommunicationLogs();
-  CommunicationLog sendCommunication({
+  Future<CommunicationLog> sendCommunication({
     required CommunicationChannel channel,
     required String templateCode,
     required String subject,
@@ -155,34 +161,34 @@ abstract class PayrollDataSource {
     required String sentByUserId,
   });
   // ── Soft-deletes / Terminations ─────────────────────────────────────────────────────
-  PayrollEmployee terminateEmployee(
+  Future<PayrollEmployee> terminateEmployee(
     String id,
     DateTime terminationDate,
     String reason,
   );
-  EmploymentContract voidContract(String id, String reason);
-  bool deleteShift(String id);
-  bool deleteTaskAssignment(String id);
-  DeductionRule deactivateDeductionRule(String id);
-  bool deletePieceworkLog(String id, String correctionReason);
-  bool deleteLeaveRequest(String id);
-  IncidentRecord deactivateIncident(String id);
-  PayGroup deactivatePayGroup(String id);
+  Future<EmploymentContract> voidContract(String id, String reason);
+  Future<bool> deleteShift(String id);
+  Future<bool> deleteTaskAssignment(String id);
+  Future<DeductionRule> deactivateDeductionRule(String id);
+  Future<bool> deletePieceworkLog(String id, String correctionReason);
+  Future<bool> deleteLeaveRequest(String id);
+  Future<IncidentRecord> deactivateIncident(String id);
+  Future<PayGroup> deactivatePayGroup(String id);
 
   // ── Employer configuration ─────────────────────────────────────────────────────
   EmployerConfig getEmployerConfig();
-  EmployerConfig updateEmployerConfig(EmployerConfig config);
+  Future<EmployerConfig> updateEmployerConfig(EmployerConfig config);
 
   // ── Worker disputes ────────────────────────────────────────────────────────
   List<WorkerDispute> getDisputes({String? employeeId});
-  WorkerDispute fileDispute(WorkerDispute dispute);
-  WorkerDispute updateDispute(WorkerDispute dispute);
-  WorkerDispute resolveDispute(
+  Future<WorkerDispute> fileDispute(WorkerDispute dispute);
+  Future<WorkerDispute> updateDispute(WorkerDispute dispute);
+  Future<WorkerDispute> resolveDispute(
     String id,
     String resolvedBy,
     String resolutionNote,
   );
-  WorkerDispute dismissDispute(String id, String resolvedBy);
+  Future<WorkerDispute> dismissDispute(String id, String resolvedBy);
 
   // ── Benefit contributions ──────────────────────────────────────────────────
   List<BenefitContribution> getBenefitContributions({String? employeeId});

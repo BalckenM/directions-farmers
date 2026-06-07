@@ -255,7 +255,7 @@ class FarmDrawer extends ConsumerWidget {
                             label: 'Payroll',
                             route: AppRoutes.payrollHub,
                             current: current,
-                            accentColor: AppColors.payrollPurple,
+                            accentColor: AppColors.secondary,
                           ),
                         _NavItem(
                           icon: Icons.tune_outlined,

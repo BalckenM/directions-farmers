@@ -5,6 +5,7 @@
 // this threshold are exempt. Paid together with PAYE/UIF on EMP201.
 
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -89,13 +90,13 @@ class _StatusHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    final statusColor = isLiable ? PayrollTokens.rose : PayrollTokens.green;
+    final statusColor = isLiable ? AppColors.error : AppColors.success;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [PayrollTokens.navy, Color.fromARGB(255, 46, 89, 132)],
+          colors: [AppColors.primary, Color.fromARGB(255, 46, 89, 132)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -200,7 +201,7 @@ class _MetricsRow extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             icon: Icons.account_balance_wallet_outlined,
-            accentColor: PayrollTokens.teal,
+            accentColor: AppColors.success,
             label: 'Annual Gross',
             value: _zarD.format(annualGross),
           ),
@@ -209,7 +210,7 @@ class _MetricsRow extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             icon: Icons.percent_rounded,
-            accentColor: PayrollTokens.indigo,
+            accentColor: AppColors.primary,
             label: 'SDL Rate',
             value: '1.0%',
           ),
@@ -218,7 +219,7 @@ class _MetricsRow extends StatelessWidget {
         Expanded(
           child: _MetricCard(
             icon: Icons.payments_outlined,
-            accentColor: isLiable ? PayrollTokens.rose : PayrollTokens.green,
+            accentColor: isLiable ? AppColors.error : AppColors.success,
             label: 'Annual SDL',
             value: isLiable ? _zarD.format(annualSdl) : 'Exempt',
           ),
@@ -335,13 +336,13 @@ class _PayRunBreakdown extends StatelessWidget {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: PayrollTokens.navy.withAlpha(18),
+                    color: AppColors.primary.withAlpha(18),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.receipt_long_outlined,
                     size: 18,
-                    color: PayrollTokens.navy,
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -496,7 +497,7 @@ class _PayRunRow extends StatelessWidget {
               sdl,
               textAlign: TextAlign.right,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: liable ? PayrollTokens.rose : cs.onSurfaceVariant,
+                color: liable ? AppColors.error : cs.onSurfaceVariant,
                 fontWeight: liable ? FontWeight.w700 : FontWeight.normal,
               ),
             ),
@@ -505,7 +506,7 @@ class _PayRunRow extends StatelessWidget {
           Icon(
             liable ? Icons.check_circle_outline : Icons.remove_circle_outline,
             size: 16,
-            color: liable ? PayrollTokens.rose : PayrollTokens.green,
+            color: liable ? AppColors.error : AppColors.success,
           ),
         ],
       ),

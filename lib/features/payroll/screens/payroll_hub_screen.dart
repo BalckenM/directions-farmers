@@ -1,20 +1,21 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
-import '../../../core/router/app_routes.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/status_chip.dart';
-import '../models/compliance_alert.dart';
-import '../models/leave_request.dart';
-import '../models/pay_run.dart';
-import '../providers/payroll_providers.dart';
-import '../theme/payroll_tokens.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/models/leave_request.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_sync_provider.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/status_chip.dart';
 
 // ─── Alias for brevity inside this file ──────────────────────────────────────
 typedef _C = PayrollTokens;
@@ -33,6 +34,13 @@ class PayrollHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // ── All watches/listens at the top — Riverpod requires no watches after
+    // a conditional return. The hub renders its real layout immediately while
+    // data is loading; section widgets gracefully show empty/zero state until
+    // their providers resolve.
+    final ready = ref.watch(payrollReadyProvider);
+    final loadError = ref.watch(payrollLoadErrorProvider);
+
     final stats = ref.watch(payrollDashboardStatsProvider);
     final payRuns = List.of(ref.watch(allPayRunsProvider))
       ..sort((a, b) => a.periodStart.compareTo(b.periodStart));
@@ -44,6 +52,26 @@ class PayrollHubScreen extends ConsumerWidget {
     };
     final leaveTypes = ref.watch(leaveTypesProvider);
     final typeMap = {for (final t in leaveTypes) t.id: t.name};
+
+    // Start 30s polling sync once data is loaded (don't hammer the API before
+    // the initial preload has finished).
+    ref.listen(payrollSyncProvider, (_, state) {
+      if (state.status == SyncStatus.error && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sync error: ${state.error}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    });
+    if (ready) {
+      // ignore: unused_result
+      Future.microtask(
+        () => ref.read(payrollSyncProvider.notifier).startPolling(),
+      );
+    }
 
     return FarmScaffold(
       appBar: FarmAppBar(
@@ -88,7 +116,45 @@ class PayrollHubScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 40),
         children: [
-          // ── Zone 1: Hero ─────────────────────────────────────────────────────
+          // Network error banner — non-blocking, real content still shows below
+          if (loadError != null)
+            Material(
+              color: AppColors.error,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.cloud_off_outlined,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Could not load payroll data.',
+                        style: TextStyle(color: Colors.white, fontSize: 12),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Retry',
+                      onPressed: () => ref.invalidate(payrollReadyProvider),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           _PeriodHeader(payRun: stats.latestPayRun),
 
           // ── Zone 2: Primary workflow actions ─────────────────────────────────
@@ -129,142 +195,314 @@ class PayrollHubScreen extends ConsumerWidget {
 
 // ─── 1. Period Header Card ────────────────────────────────────────────────────
 
-class _PeriodHeader extends StatelessWidget {
+class _PeriodHeader extends StatefulWidget {
   const _PeriodHeader({this.payRun});
   final PayRun? payRun;
+
+  @override
+  State<_PeriodHeader> createState() => _PeriodHeaderState();
+}
+
+class _PeriodHeaderState extends State<_PeriodHeader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeIn;
+  late Animation<double> _slideUp;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeIn = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, 0.6, curve: Curves.easeOut),
+    );
+    _slideUp = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLight = theme.brightness == Brightness.light;
 
-    final period = payRun == null
+    final period = widget.payRun == null
         ? 'No active pay run'
-        : '${_mFmt.format(payRun!.periodStart)} – ${_mFmt.format(payRun!.periodEnd)}';
-    final due = payRun == null ? '' : _mFmt.format(payRun!.payDate);
+        : '${_mFmt.format(widget.payRun!.periodStart)} – ${_mFmt.format(widget.payRun!.periodEnd)}';
+    final due = widget.payRun == null ? '' : _mFmt.format(widget.payRun!.payDate);
 
-    final net        = payRun?.totalNet ?? 0;
-    final gross      = payRun?.totalGross ?? 0;
-    final deductions = payRun?.totalDeductions ?? 0;
-    final empCount   = payRun?.employeeCount ?? 0;
+    final net = widget.payRun?.totalNet ?? 0;
+    final gross = widget.payRun?.totalGross ?? 0;
+    final deductions = widget.payRun?.totalDeductions ?? 0;
+    final empCount = widget.payRun?.employeeCount ?? 0;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isLight
-              ? [
-                  const Color.fromARGB(255, 30, 58, 95),
-                  const Color.fromARGB(255, 46, 89, 132),
-                ]
-              : [const Color(0xFF0D1F35), const Color(0xFF1A3356)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Top row: label + status chip ────────────────────────────────
-          Row(
-            children: [
-              Text(
-                'NET PAY',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: Colors.white.withAlpha(170),
-                  letterSpacing: 1.6,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, 10 * (1 - _slideUp.value)),
+          child: Opacity(
+            opacity: _fadeIn.value,
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isLight
+                      ? [
+                          const Color(0xFF22C55E), // Fresh green
+                          const Color(0xFF16A34A), // Medium green
+                          const Color(0xFF15803D), // Deep green
+                        ]
+                      : [
+                          const Color(0xFF166534), // Dark deep green
+                          const Color(0xFF15803D), // Dark medium green
+                          const Color(0xFF14532D), // Very dark green
+                        ],
+                  stops: const [0.0, 0.6, 1.0],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF16A34A).withValues(alpha: 0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Stack(
+                  children: [
+                    // Simple farming pattern overlay
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _FarmingPatternPainter(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    ),
+                    // Main content with reduced padding
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top row with clean labels
+                          Row(
+                            children: [
+                              Text(
+                                'NET PAY',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  letterSpacing: 1.4,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (widget.payRun != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    PayrollTokens.payRunStatusLabel(widget.payRun!.status),
+                                    style: TextStyle(
+                                      color: PayrollTokens.payRunStatusColor(widget.payRun!.status),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Hero amount - cleaner and more compact
+                          Text(
+                            widget.payRun == null ? '—' : _zar.format(net),
+                            style: theme.textTheme.displaySmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              height: 1.0,
+                              letterSpacing: -0.5,
+                              fontSize: 36, // Reduced from 48
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Period info - simpler display
+                          Text(
+                            period,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (due.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule,
+                                  size: 12,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Payment: $due',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          const SizedBox(height: 16),
+
+                          // Clean stats row
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                _CleanStat(
+                                  label: 'Gross',
+                                  value: _zar.format(gross),
+                                  icon: Icons.account_balance_wallet_outlined,
+                                ),
+                                _StatDivider(),
+                                _CleanStat(
+                                  label: 'Deductions',
+                                  value: _zar.format(deductions),
+                                  icon: Icons.remove_circle_outline,
+                                ),
+                                _StatDivider(),
+                                _CleanStat(
+                                  label: 'Employees',
+                                  value: '$empCount',
+                                  icon: Icons.people_outline,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              if (payRun != null)
-                StatusChip(
-                  label: PayrollTokens.payRunStatusLabel(payRun!.status),
-                  color: PayrollTokens.payRunStatusColor(payRun!.status),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-
-          // ── Hero number ─────────────────────────────────────────────────
-          Text(
-            payRun == null ? '—' : _zar.format(net),
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              height: 1.1,
-              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 6),
-
-          // ── Period + pay date ────────────────────────────────────────────
-          Text(
-            period,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white.withAlpha(175),
-            ),
-          ),
-          if (due.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            Row(
-              children: [
-                Icon(Icons.event_outlined, size: 11, color: Colors.white.withAlpha(130)),
-                const SizedBox(width: 4),
-                Text(
-                  'Pay date  $due',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white.withAlpha(130),
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          const Divider(color: Colors.white24, height: 22),
-
-          // ── Stats row: Gross · Deductions · Employees ────────────────────
-          Row(
-            children: [
-              _HeroStat(label: 'Gross', value: _zar.format(gross)),
-              _HeroStatDivider(),
-              _HeroStat(label: 'Deductions', value: _zar.format(deductions)),
-              _HeroStatDivider(),
-              _HeroStat(label: 'Employees', value: '$empCount'),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
-class _HeroStat extends StatelessWidget {
-  const _HeroStat({required this.label, required this.value});
+// Farming Pattern Painter
+class _FarmingPatternPainter extends CustomPainter {
+  final Color color;
+
+  _FarmingPatternPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    // Create a simple leaf/crop pattern
+    const spacing = 40.0;
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        // Draw simple leaf shape
+        final path = Path()
+          ..moveTo(x + spacing / 2, y + spacing / 2 - 10)
+          ..quadraticBezierTo(
+            x + spacing / 2 + 8, y + spacing / 2,
+            x + spacing / 2, y + spacing / 2 + 10,
+          )
+          ..quadraticBezierTo(
+            x + spacing / 2 - 8, y + spacing / 2,
+            x + spacing / 2, y + spacing / 2 - 10,
+          );
+        canvas.drawPath(path, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// Clean stat widget
+class _CleanStat extends StatelessWidget {
+  const _CleanStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
   final String label;
   final String value;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            value,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            ),
-            overflow: TextOverflow.ellipsis,
+          Icon(
+            icon,
+            size: 16,
+            color: Colors.white.withValues(alpha: 0.7),
           ),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: Colors.white.withAlpha(140),
-            ),
+          const SizedBox(width: 6),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 10,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -272,16 +510,23 @@ class _HeroStat extends StatelessWidget {
   }
 }
 
-class _HeroStatDivider extends StatelessWidget {
-  const _HeroStatDivider();
+// Stat divider
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
+  
   @override
-  Widget build(BuildContext context) => Container(
-    width: 1,
-    height: 28,
-    margin: const EdgeInsets.symmetric(horizontal: 12),
-    color: Colors.white.withAlpha(40),
-  );
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 20,
+      color: Colors.white.withValues(alpha: 0.2),
+    );
+  }
 }
+
+
+
+
 
 // ─── 2. Primary Actions Row ───────────────────────────────────────────────────
 
@@ -448,14 +693,20 @@ class _PayTrendSection extends StatelessWidget {
 
   List<_TrendPoint> _buildData() {
     final data = <_TrendPoint>[];
-    final base = payRuns.isNotEmpty ? payRuns.first.periodStart : DateTime.now();
+    final base = payRuns.isNotEmpty
+        ? payRuns.first.periodStart
+        : DateTime.now();
     const variance = [3100.0, 1800.0, 900.0];
     for (var i = 3; i >= 1; i--) {
       final dt = DateTime(base.year, base.month - i);
       data.add((
         label: DateFormat('MMM').format(dt),
-        gross: payRuns.isNotEmpty ? payRuns.first.totalGross - variance[3 - i] : 28000.0,
-        net: payRuns.isNotEmpty ? payRuns.first.totalNet - variance[3 - i] * 0.85 : 24800.0,
+        gross: payRuns.isNotEmpty
+            ? payRuns.first.totalGross - variance[3 - i]
+            : 28000.0,
+        net: payRuns.isNotEmpty
+            ? payRuns.first.totalNet - variance[3 - i] * 0.85
+            : 24800.0,
         isReal: false,
       ));
     }
@@ -506,8 +757,12 @@ class _PayTrendSection extends StatelessWidget {
                 ),
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -515,7 +770,9 @@ class _PayTrendSection extends StatelessWidget {
                       getTitlesWidget: (v, _) => Text(
                         'R${v.toInt()}k',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: cs.onSurfaceVariant, fontSize: 11),
+                          color: cs.onSurfaceVariant,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                   ),
@@ -525,7 +782,8 @@ class _PayTrendSection extends StatelessWidget {
                       reservedSize: 26,
                       getTitlesWidget: (v, _) {
                         final i = v.toInt();
-                        if (i < 0 || i >= data.length) return const SizedBox.shrink();
+                        if (i < 0 || i >= data.length)
+                          return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
@@ -534,7 +792,9 @@ class _PayTrendSection extends StatelessWidget {
                               color: data[i].isReal
                                   ? cs.onSurface
                                   : cs.onSurfaceVariant.withAlpha(100),
-                              fontWeight: data[i].isReal ? FontWeight.w700 : FontWeight.normal,
+                              fontWeight: data[i].isReal
+                                  ? FontWeight.w700
+                                  : FontWeight.normal,
                               fontSize: 10,
                             ),
                           ),
@@ -553,13 +813,17 @@ class _PayTrendSection extends StatelessWidget {
                         toY: e.value.gross / 1000,
                         color: real ? _C.navy : _C.navy.withAlpha(45),
                         width: 11,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(4),
+                        ),
                       ),
                       BarChartRodData(
                         toY: e.value.net / 1000,
                         color: real ? _C.teal : _C.teal.withAlpha(45),
                         width: 11,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(4),
+                        ),
                       ),
                     ],
                   );
@@ -614,7 +878,10 @@ class _Legend extends StatelessWidget {
         Container(
           width: 10,
           height: 10,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
         const SizedBox(width: 5),
         Text(
@@ -994,10 +1261,10 @@ class _ComplianceSection extends StatelessWidget {
               value: '$score / 100',
               bold: true,
               color: score >= 80
-                  ? PayrollTokens.green
+                  ? AppColors.success
                   : score >= 55
-                  ? PayrollTokens.amber
-                  : PayrollTokens.rose,
+                  ? AppColors.warning
+                  : AppColors.error,
             ),
             const SizedBox(height: 12),
             Text(
@@ -1509,7 +1776,9 @@ class _ModuleNav extends StatelessWidget {
         children: [
           Text(
             'Modules',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 10),
           // Primary modules — vertical menu list
@@ -1523,8 +1792,17 @@ class _ModuleNav extends StatelessWidget {
               children: [
                 for (int i = 0; i < _primary.length; i++) ...[
                   if (i > 0)
-                    Divider(height: 1, indent: 58, endIndent: 0, color: cs.outlineVariant),
-                  _ModuleListTile(module: _primary[i], isFirst: i == 0, isLast: i == _primary.length - 1),
+                    Divider(
+                      height: 1,
+                      indent: 58,
+                      endIndent: 0,
+                      color: cs.outlineVariant,
+                    ),
+                  _ModuleListTile(
+                    module: _primary[i],
+                    isFirst: i == 0,
+                    isLast: i == _primary.length - 1,
+                  ),
                 ],
               ],
             ),
@@ -1549,8 +1827,17 @@ class _ModuleNav extends StatelessWidget {
               children: [
                 for (int i = 0; i < _secondary.length; i++) ...[
                   if (i > 0)
-                    Divider(height: 1, indent: 58, endIndent: 0, color: cs.outlineVariant),
-                  _ModuleListTile(module: _secondary[i], isFirst: i == 0, isLast: i == _secondary.length - 1),
+                    Divider(
+                      height: 1,
+                      indent: 58,
+                      endIndent: 0,
+                      color: cs.outlineVariant,
+                    ),
+                  _ModuleListTile(
+                    module: _secondary[i],
+                    isFirst: i == 0,
+                    isLast: i == _secondary.length - 1,
+                  ),
                 ],
               ],
             ),
@@ -1623,7 +1910,11 @@ class _ModuleListTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant, size: 18),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: cs.onSurfaceVariant,
+                size: 18,
+              ),
             ],
           ),
         ),

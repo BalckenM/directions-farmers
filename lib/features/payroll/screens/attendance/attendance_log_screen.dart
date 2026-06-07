@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -23,12 +24,12 @@ final _dfFull = DateFormat('d MMMM y');
 // --- Status helpers -----------------------------------------------------------
 
 Color _statusColor(AttendanceStatus s) => switch (s) {
-  AttendanceStatus.present => PayrollTokens.teal,
-  AttendanceStatus.absent => PayrollTokens.rose,
-  AttendanceStatus.late => PayrollTokens.amber,
+  AttendanceStatus.present => AppColors.success,
+  AttendanceStatus.absent => AppColors.error,
+  AttendanceStatus.late => AppColors.warning,
   AttendanceStatus.onLeave => PayrollTokens.sky,
-  AttendanceStatus.halfDay => PayrollTokens.purple,
-  AttendanceStatus.publicHoliday => PayrollTokens.indigo,
+  AttendanceStatus.halfDay => AppColors.secondary,
+  AttendanceStatus.publicHoliday => AppColors.primary,
 };
 
 String _statusLabel(AttendanceStatus s) => switch (s) {
@@ -216,7 +217,7 @@ class _AttendanceLogScreenState extends ConsumerState<AttendanceLogScreen> {
                             child: Text(
                               _dfFull.format(parsedDate),
                               style: tt.labelLarge?.copyWith(
-                                color: PayrollTokens.navy,
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -321,7 +322,7 @@ class _RecordTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   StatusChip(
                     label: '+${r.overtimeHours!.toStringAsFixed(1)} OT',
-                    color: PayrollTokens.amber,
+                    color: AppColors.warning,
                     small: true,
                   ),
                 ],

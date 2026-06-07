@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
-import '../../models/shift.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
 class AddShiftScreen extends ConsumerStatefulWidget {
   const AddShiftScreen({super.key, this.editShift, this.preselectedDate});
@@ -100,7 +103,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Select at least one worker'),
-          backgroundColor: PayrollTokens.rose,
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -151,7 +154,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to save shift'),
-          backgroundColor: PayrollTokens.rose,
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -162,16 +165,9 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
     final employees = ref.watch(activeEmployeesProvider);
     final isEdit = widget.editShift != null;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy,
-        foregroundColor: Colors.white,
-        title: Text(
-          isEdit ? 'Edit Shift' : 'New Shift',
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
-        elevation: 0,
+    return FarmScaffold(
+      appBar: FarmAppBar(
+        title: isEdit ? 'Edit Shift' : 'New Shift',
         actions: [
           if (_saving)
             const Padding(
@@ -179,10 +175,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
             )
           else
@@ -190,10 +183,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
               onPressed: _save,
               child: const Text(
                 'SAVE',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
         ],
@@ -212,12 +202,12 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: PayrollTokens.navy.withValues(alpha: 0.08),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.calendar_today,
-                      color: PayrollTokens.navy,
+                      color: AppColors.primary,
                       size: 20,
                     ),
                   ),
@@ -230,7 +220,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: PayrollTokens.navy,
+                      color: AppColors.primary,
                     ),
                   ),
                   onTap: _pickDate,
@@ -305,22 +295,17 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
                             color: Colors.grey,
                           ),
                         ),
-                        secondary: CircleAvatar(
+                        secondary: AvatarWidget(
+                          imageUrl: emp.profileImageUrl,
+                          initials: '${emp.firstName[0]}${emp.lastName[0]}',
                           radius: 16,
-                          backgroundColor: PayrollTokens.teal.withValues(
+                          backgroundColor: AppColors.success.withValues(
                             alpha: 0.12,
                           ),
-                          child: Text(
-                            '${emp.firstName[0]}${emp.lastName[0]}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: PayrollTokens.teal,
-                            ),
-                          ),
+                          foregroundColor: AppColors.success,
                         ),
                         value: sel,
-                        activeColor: PayrollTokens.teal,
+                        activeColor: AppColors.success,
                         onChanged: (v) => setState(() {
                           if (v == true) {
                             _selectedEmployeeIds.add(emp.id);
@@ -358,8 +343,9 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
-        backgroundColor: PayrollTokens.teal,
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
         onPressed: _saving ? null : _save,
         icon: const Icon(Icons.check),
@@ -427,7 +413,7 @@ class _SectionCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: PayrollTokens.navy,
+                  color: AppColors.primary,
                   letterSpacing: 0.4,
                 ),
               ),

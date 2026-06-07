@@ -1,5 +1,6 @@
 import '../../theme/payroll_tokens.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +13,7 @@ import '../../../../shared/widgets/primary_button.dart';
 import '../../models/payroll_employee.dart';
 import '../../providers/payroll_action_providers.dart';
 import '../../providers/payroll_providers.dart';
+import '../../widgets/employee_image_picker.dart';
 
 final _dateFmt = DateFormat('d MMM y');
 
@@ -30,6 +32,9 @@ class _AddEditEmployeeScreenState
 
   final _formKey0 = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
+
+  String? _pickedImagePath;
+  String? _currentImageUrl;
 
   final _firstNameCtrl  = TextEditingController();
   final _lastNameCtrl   = TextEditingController();
@@ -71,6 +76,14 @@ class _AddEditEmployeeScreenState
     _startDate           = emp.startDate;
     _hasHousing          = emp.hasHousingBenefit;
     _hasFood             = emp.hasFoodBenefit;
+    _currentImageUrl     = emp.profileImageUrl;
+  }
+
+  String _buildInitials() {
+    final f = _firstNameCtrl.text.trim();
+    final l = _lastNameCtrl.text.trim();
+    return '${f.isNotEmpty ? f[0] : ''}${l.isNotEmpty ? l[0] : ''}'
+        .toUpperCase();
   }
 
   @override
@@ -146,6 +159,17 @@ class _AddEditEmployeeScreenState
               key: _formKey0,
               child: Column(
                 children: [
+                  // ── Profile photo ─────────────────────────────────────
+                  Center(
+                    child: EmployeeImagePicker(
+                      currentImageUrl: _currentImageUrl,
+                      localImagePath: _pickedImagePath,
+                      initials: _buildInitials(),
+                      onImagePicked: (path) =>
+                          setState(() => _pickedImagePath = path),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                   FarmTextField(
                     controller: _firstNameCtrl,
                     label: 'First Name',
@@ -311,7 +335,7 @@ class _AddEditEmployeeScreenState
                   onChanged: (v) => setState(() => _hasHousing = v),
                   title: const Text('Housing Benefit'),
                   secondary: const Icon(Icons.home_work_outlined),
-                  activeThumbColor: PayrollTokens.navy,
+                  activeThumbColor: AppColors.primary,
                   contentPadding: EdgeInsets.zero,
                 ),
                 SwitchListTile(
@@ -319,7 +343,7 @@ class _AddEditEmployeeScreenState
                   onChanged: (v) => setState(() => _hasFood = v),
                   title: const Text('Food / Meal Benefit'),
                   secondary: const Icon(Icons.restaurant_outlined),
-                  activeThumbColor: PayrollTokens.navy,
+                  activeThumbColor: AppColors.primary,
                   contentPadding: EdgeInsets.zero,
                 ),
               ],
@@ -372,6 +396,11 @@ class _AddEditEmployeeScreenState
 
     if (!context.mounted) return;
     if (result != null) {
+      // Upload profile image if user picked one
+      if (_pickedImagePath != null) {
+        await notifier.uploadProfileImage(result.id, _pickedImagePath!);
+      }
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(isEdit

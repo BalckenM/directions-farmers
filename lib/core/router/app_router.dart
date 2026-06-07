@@ -12,6 +12,7 @@ import 'package:mobile_app/features/payroll/screens/leave/leave_request_screen.d
 
 import 'package:mobile_app/features/auth/models/auth_state.dart';
 import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 import 'package:mobile_app/features/auth/screens/forgot_password_screen.dart';
 import 'package:mobile_app/features/auth/screens/intro_screen.dart';
 import 'package:mobile_app/features/auth/screens/login_screen.dart';
@@ -27,7 +28,8 @@ import 'package:mobile_app/features/cattle/screens/add_calf_screen.dart';
 import 'package:mobile_app/features/cattle/screens/add_cattle_screen.dart';
 import 'package:mobile_app/features/cattle/screens/add_medication_screen.dart'
     as cattle_medication;
-import 'package:mobile_app/features/cattle/screens/body_condition_screen.dart' as cattle_bcs;
+import 'package:mobile_app/features/cattle/screens/body_condition_screen.dart'
+    as cattle_bcs;
 import 'package:mobile_app/features/cattle/screens/breeding_screen.dart';
 import 'package:mobile_app/features/cattle/screens/calving_screen.dart';
 import 'package:mobile_app/features/cattle/screens/cattle_breed_screen.dart';
@@ -37,17 +39,21 @@ import 'package:mobile_app/features/cattle/screens/cattle_reports_screen.dart';
 import 'package:mobile_app/features/cattle/screens/cattle_screen.dart';
 import 'package:mobile_app/features/cattle/screens/cross_herd_comparison_screen.dart'
     as cattle_comparison;
-import 'package:mobile_app/features/cattle/screens/dipping_screen.dart' as cattle_dipping;
+import 'package:mobile_app/features/cattle/screens/dipping_screen.dart'
+    as cattle_dipping;
 import 'package:mobile_app/features/cattle/screens/edit_cattle_screen.dart';
 import 'package:mobile_app/features/cattle/screens/health_events_screen.dart'
     as cattle_health;
 import 'package:mobile_app/features/cattle/screens/inventory_screen.dart'
     show CattleInventoryScreen;
-import 'package:mobile_app/features/cattle/screens/milk_records_screen.dart' as cattle_milk;
-import 'package:mobile_app/features/cattle/screens/pasture_screen.dart' as cattle_pasture;
+import 'package:mobile_app/features/cattle/screens/milk_records_screen.dart'
+    as cattle_milk;
+import 'package:mobile_app/features/cattle/screens/pasture_screen.dart'
+    as cattle_pasture;
 import 'package:mobile_app/features/cattle/screens/pregnancy_check_screen.dart'
     as cattle_pregnancy;
-import 'package:mobile_app/features/cattle/screens/sales_screen.dart' show CattleSalesScreen;
+import 'package:mobile_app/features/cattle/screens/sales_screen.dart'
+    show CattleSalesScreen;
 import 'package:mobile_app/features/cattle/screens/vaccination_screen.dart'
     as cattle_vaccination;
 import 'package:mobile_app/features/cattle/screens/weight_records_screen.dart'
@@ -162,6 +168,7 @@ import 'package:mobile_app/features/payroll/screens/contracts/contract_list_scre
 import 'package:mobile_app/features/payroll/screens/contracts/contract_sign_screen.dart';
 import 'package:mobile_app/features/payroll/screens/contracts/generate_contract_screen.dart';
 import 'package:mobile_app/features/payroll/screens/deductions/add_edit_garnishee_screen.dart';
+import 'package:mobile_app/features/payroll/screens/deductions/benefit_contributions_screen.dart';
 import 'package:mobile_app/features/payroll/screens/deductions/deductions_screen.dart';
 import 'package:mobile_app/features/payroll/screens/deductions/garnishee_orders_screen.dart';
 import 'package:mobile_app/features/payroll/screens/disbursements/disbursements_screen.dart';
@@ -194,6 +201,7 @@ import 'package:mobile_app/features/payroll/screens/payslips/payslip_list_screen
 import 'package:mobile_app/features/payroll/screens/reports/payroll_reports_screen.dart';
 import 'package:mobile_app/features/payroll/screens/roster/add_piecework_log_screen.dart';
 import 'package:mobile_app/features/payroll/screens/roster/add_shift_screen.dart';
+import 'package:mobile_app/features/payroll/screens/roster/piecework_logs_screen.dart';
 import 'package:mobile_app/features/payroll/screens/roster/roster_board_screen.dart';
 import 'package:mobile_app/features/payroll/screens/roster/task_sheet_screen.dart';
 import 'package:mobile_app/features/payroll/screens/settings/employer_config_screen.dart';
@@ -298,6 +306,16 @@ class _AppShellState extends ConsumerState<_AppShell> {
   final _drawerNotifier = ValueNotifier<bool>(false);
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-warm the payroll module: triggers _PayrollLoaderNotifier.build()
+    // and starts preloadCritical() immediately after login rather than lazily
+    // when the user first navigates to /payroll. This eliminates the gray
+    // flash and most of the perceived load delay.
+    ref.read(payrollReadyProvider);
+  }
+
+  @override
   void dispose() {
     _drawerNotifier.dispose();
     super.dispose();
@@ -330,8 +348,7 @@ class _AppShellState extends ConsumerState<_AppShell> {
                   selectedIndex: widget.navigationShell.currentIndex,
                   onTap: (i) => widget.navigationShell.goBranch(
                     i,
-                    initialLocation:
-                        i == widget.navigationShell.currentIndex,
+                    initialLocation: i == widget.navigationShell.currentIndex,
                   ),
                 ),
               ),
@@ -614,7 +631,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Logged in and still on auth screens → dashboard
       // (except farmSetup — new social users need to complete it)
-      if (isLoggedIn && isOpen && loc != AppRoutes.splash && loc != AppRoutes.farmSetup) {
+      if (isLoggedIn &&
+          isOpen &&
+          loc != AppRoutes.splash &&
+          loc != AppRoutes.farmSetup) {
         return AppRoutes.dashboard;
       }
 
@@ -1426,7 +1446,6 @@ List<RouteBase> _buildRoutes() {
             ),
           ],
         ),
-
       ],
     ),
 
@@ -1435,249 +1454,216 @@ List<RouteBase> _buildRoutes() {
       path: AppRoutes.crop,
       builder: (_, _) => const CropHubScreen(),
       routes: [
+        GoRoute(
+          path: 'catalog',
+          builder: (_, _) => const CropCatalogScreen(),
+          routes: [
+            GoRoute(
+              path: ':cropId',
+              builder: (_, state) =>
+                  CropDetailScreen(cropId: state.pathParameters['cropId']!),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'fields',
+          builder: (_, _) => const FieldListScreen(),
+          routes: [
+            GoRoute(path: 'add', builder: (_, _) => const AddEditFieldScreen()),
+            GoRoute(
+              path: 'plan/add',
+              builder: (_, state) => AddPlantingPlanScreen(
+                preselectedFieldId: state.uri.queryParameters['fieldId'],
+              ),
+            ),
+            GoRoute(
+              path: 'plan/edit',
+              builder: (_, state) =>
+                  EditPlantingPlanScreen(plan: state.extra! as PlantingPlan),
+            ),
+            GoRoute(
+              path: ':fieldId',
+              builder: (_, state) =>
+                  FieldDetailScreen(fieldId: state.pathParameters['fieldId']!),
+              routes: [
                 GoRoute(
-                  path: 'catalog',
-                  builder: (_, _) => const CropCatalogScreen(),
-                  routes: [
-                    GoRoute(
-                      path: ':cropId',
-                      builder: (_, state) => CropDetailScreen(
-                        cropId: state.pathParameters['cropId']!,
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'fields',
-                  builder: (_, _) => const FieldListScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddEditFieldScreen(),
-                    ),
-                    GoRoute(
-                      path: 'plan/add',
-                      builder: (_, state) => AddPlantingPlanScreen(
-                        preselectedFieldId:
-                            state.uri.queryParameters['fieldId'],
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'plan/edit',
-                      builder: (_, state) => EditPlantingPlanScreen(
-                        plan: state.extra! as PlantingPlan,
-                      ),
-                    ),
-                    GoRoute(
-                      path: ':fieldId',
-                      builder: (_, state) => FieldDetailScreen(
-                        fieldId: state.pathParameters['fieldId']!,
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: 'edit',
-                          builder: (_, state) => AddEditFieldScreen(
-                            fieldId: state.pathParameters['fieldId']!,
-                          ),
-                        ),
-                        GoRoute(
-                          path: 'plan/:planId',
-                          builder: (_, state) => PlantedCropDetailScreen(
-                            planId: state.pathParameters['planId']!,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'seasons',
-                  builder: (_, _) => const SeasonPlannerScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddSeasonScreen(),
-                    ),
-                    GoRoute(
-                      path: 'edit',
-                      builder: (_, state) =>
-                          EditSeasonScreen(season: state.extra! as CropSeason),
-                    ),
-                    GoRoute(
-                      path: 'detail',
-                      builder: (_, state) => SeasonDetailScreen(
-                        season: state.extra! as CropSeason,
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'calendar',
-                  builder: (_, _) => const PlantingCalendarScreen(),
-                ),
-                GoRoute(
-                  path: 'tasks',
-                  builder: (_, _) => const TaskListScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddEditTaskScreen(),
-                    ),
-                    GoRoute(
-                      path: ':taskId',
-                      builder: (_, state) => TaskDetailScreen(
-                        taskId: state.pathParameters['taskId']!,
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: 'edit',
-                          builder: (_, state) => AddEditTaskScreen(
-                            taskId: state.pathParameters['taskId']!,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'weather',
-                  builder: (_, _) => const WeatherDashboardScreen(),
-                ),
-                GoRoute(
-                  path: 'pests',
-                  builder: (_, _) => const PestLogScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddPestObservationScreen(),
-                    ),
-                    GoRoute(
-                      path: 'sprays',
-                      builder: (_, _) => const SprayListScreen(),
-                    ),
-                    GoRoute(
-                      path: 'spray/add',
-                      builder: (_, state) => AddSprayRecordScreen(
-                        pestObservationId: state.uri.queryParameters['obsId'],
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'spray/detail',
-                      builder: (_, state) => SprayDetailScreen(
-                        record: state.extra! as SprayRecord,
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'edit',
-                      builder: (_, state) => EditPestObservationScreen(
-                        observation: state.extra! as PestObservation,
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'spray/edit',
-                      builder: (_, state) => EditSprayRecordScreen(
-                        record: state.extra! as SprayRecord,
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'sales',
-                  builder: (_, _) => const SalesScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddSaleScreen(),
-                    ),
-                    GoRoute(
-                      path: 'detail',
-                      builder: (_, state) =>
-                          SaleDetailScreen(sale: state.extra! as CropSale),
-                    ),
-                    GoRoute(
-                      path: 'edit',
-                      builder: (_, state) =>
-                          EditSaleScreen(sale: state.extra! as CropSale),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'expenses',
-                  builder: (_, _) => const ExpenseTrackerScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddExpenseScreen(),
-                    ),
-                    GoRoute(
-                      path: 'edit',
-                      builder: (_, state) => EditExpenseScreen(
-                        expense: state.extra! as CropExpense,
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'harvest',
-                  builder: (_, _) => const HarvestLogScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'add',
-                      builder: (_, _) => const AddHarvestScreen(),
-                    ),
-                    GoRoute(
-                      path: 'detail',
-                      builder: (_, state) => HarvestDetailScreen(
-                        record: state.extra! as HarvestRecord,
-                      ),
-                    ),
-                    GoRoute(
-                      path: 'edit',
-                      builder: (_, state) => EditHarvestScreen(
-                        record: state.extra! as HarvestRecord,
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'profitability',
-                  builder: (_, _) => const ProfitabilityScreen(),
-                ),
-                GoRoute(
-                  path: 'advisory',
-                  builder: (_, _) => const AdvisoryHubScreen(),
-                  routes: [
-                    GoRoute(
-                      path: ':articleId',
-                      builder: (_, state) => AdvisoryDetailScreen(
-                        articleId: state.pathParameters['articleId']!,
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: 'disease/scanner',
-                  builder: (_, _) => const CropScannerScreen(),
-                ),
-                GoRoute(
-                  path: 'disease/result',
-                  builder: (_, state) => DiseaseResultScreen(
-                    result: state.extra! as DiseaseDetectionResult,
+                  path: 'edit',
+                  builder: (_, state) => AddEditFieldScreen(
+                    fieldId: state.pathParameters['fieldId']!,
                   ),
                 ),
                 GoRoute(
-                  path: 'advisor',
-                  builder: (_, _) => const CropAdvisorScreen(),
-                  routes: [
-                    GoRoute(
-                      path: 'chat',
-                      builder: (_, state) =>
-                          AdvisorChatScreen(payload: state.extra!),
-                    ),
-                  ],
+                  path: 'plan/:planId',
+                  builder: (_, state) => PlantedCropDetailScreen(
+                    planId: state.pathParameters['planId']!,
+                  ),
                 ),
               ],
             ),
+          ],
+        ),
+        GoRoute(
+          path: 'seasons',
+          builder: (_, _) => const SeasonPlannerScreen(),
+          routes: [
+            GoRoute(path: 'add', builder: (_, _) => const AddSeasonScreen()),
+            GoRoute(
+              path: 'edit',
+              builder: (_, state) =>
+                  EditSeasonScreen(season: state.extra! as CropSeason),
+            ),
+            GoRoute(
+              path: 'detail',
+              builder: (_, state) =>
+                  SeasonDetailScreen(season: state.extra! as CropSeason),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'calendar',
+          builder: (_, _) => const PlantingCalendarScreen(),
+        ),
+        GoRoute(
+          path: 'tasks',
+          builder: (_, _) => const TaskListScreen(),
+          routes: [
+            GoRoute(path: 'add', builder: (_, _) => const AddEditTaskScreen()),
+            GoRoute(
+              path: ':taskId',
+              builder: (_, state) =>
+                  TaskDetailScreen(taskId: state.pathParameters['taskId']!),
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  builder: (_, state) => AddEditTaskScreen(
+                    taskId: state.pathParameters['taskId']!,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'weather',
+          builder: (_, _) => const WeatherDashboardScreen(),
+        ),
+        GoRoute(
+          path: 'pests',
+          builder: (_, _) => const PestLogScreen(),
+          routes: [
+            GoRoute(
+              path: 'add',
+              builder: (_, _) => const AddPestObservationScreen(),
+            ),
+            GoRoute(path: 'sprays', builder: (_, _) => const SprayListScreen()),
+            GoRoute(
+              path: 'spray/add',
+              builder: (_, state) => AddSprayRecordScreen(
+                pestObservationId: state.uri.queryParameters['obsId'],
+              ),
+            ),
+            GoRoute(
+              path: 'spray/detail',
+              builder: (_, state) =>
+                  SprayDetailScreen(record: state.extra! as SprayRecord),
+            ),
+            GoRoute(
+              path: 'edit',
+              builder: (_, state) => EditPestObservationScreen(
+                observation: state.extra! as PestObservation,
+              ),
+            ),
+            GoRoute(
+              path: 'spray/edit',
+              builder: (_, state) =>
+                  EditSprayRecordScreen(record: state.extra! as SprayRecord),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'sales',
+          builder: (_, _) => const SalesScreen(),
+          routes: [
+            GoRoute(path: 'add', builder: (_, _) => const AddSaleScreen()),
+            GoRoute(
+              path: 'detail',
+              builder: (_, state) =>
+                  SaleDetailScreen(sale: state.extra! as CropSale),
+            ),
+            GoRoute(
+              path: 'edit',
+              builder: (_, state) =>
+                  EditSaleScreen(sale: state.extra! as CropSale),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'expenses',
+          builder: (_, _) => const ExpenseTrackerScreen(),
+          routes: [
+            GoRoute(path: 'add', builder: (_, _) => const AddExpenseScreen()),
+            GoRoute(
+              path: 'edit',
+              builder: (_, state) =>
+                  EditExpenseScreen(expense: state.extra! as CropExpense),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'harvest',
+          builder: (_, _) => const HarvestLogScreen(),
+          routes: [
+            GoRoute(path: 'add', builder: (_, _) => const AddHarvestScreen()),
+            GoRoute(
+              path: 'detail',
+              builder: (_, state) =>
+                  HarvestDetailScreen(record: state.extra! as HarvestRecord),
+            ),
+            GoRoute(
+              path: 'edit',
+              builder: (_, state) =>
+                  EditHarvestScreen(record: state.extra! as HarvestRecord),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'profitability',
+          builder: (_, _) => const ProfitabilityScreen(),
+        ),
+        GoRoute(
+          path: 'advisory',
+          builder: (_, _) => const AdvisoryHubScreen(),
+          routes: [
+            GoRoute(
+              path: ':articleId',
+              builder: (_, state) => AdvisoryDetailScreen(
+                articleId: state.pathParameters['articleId']!,
+              ),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: 'disease/scanner',
+          builder: (_, _) => const CropScannerScreen(),
+        ),
+        GoRoute(
+          path: 'disease/result',
+          builder: (_, state) => DiseaseResultScreen(
+            result: state.extra! as DiseaseDetectionResult,
+          ),
+        ),
+        GoRoute(
+          path: 'advisor',
+          builder: (_, _) => const CropAdvisorScreen(),
+          routes: [
+            GoRoute(
+              path: 'chat',
+              builder: (_, state) => AdvisorChatScreen(payload: state.extra!),
+            ),
+          ],
+        ),
+      ],
+    ),
 
     // ── MFA challenge ─────────────────────────────────────────────────────────
     GoRoute(
@@ -1726,6 +1712,12 @@ List<RouteBase> _buildRoutes() {
                 GoRoute(
                   path: 'terminate',
                   builder: (_, state) => TerminationScreen(
+                    employeeId: state.pathParameters['id']!,
+                  ),
+                ),
+                GoRoute(
+                  path: 'benefit-contributions',
+                  builder: (_, state) => BenefitContributionsScreen(
                     employeeId: state.pathParameters['id']!,
                   ),
                 ),
@@ -1855,6 +1847,10 @@ List<RouteBase> _buildRoutes() {
           builder: (_, _) => const DeductionsScreen(),
           routes: [
             GoRoute(
+              path: 'benefit-contributions',
+              builder: (_, _) => const BenefitContributionsScreen(),
+            ),
+            GoRoute(
               path: 'garnishee',
               builder: (_, _) => const GarnisheeOrdersScreen(),
               routes: [
@@ -1966,6 +1962,10 @@ List<RouteBase> _buildRoutes() {
             GoRoute(
               path: 'add-piecework-log',
               builder: (_, _) => const AddPieceworkLogScreen(),
+            ),
+            GoRoute(
+              path: 'piecework-logs',
+              builder: (_, _) => const PieceworkLogsScreen(),
             ),
           ],
         ),

@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_dropdown.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/attendance_record.dart';
-import '../../models/leave_balance.dart';
-import '../../models/payslip.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/attendance_record.dart';
+import 'package:mobile_app/features/payroll/models/leave_balance.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 final _zar = NumberFormat.currency(
   locale: 'en_ZA',
@@ -65,9 +66,9 @@ class _WorkerSelfServiceScreenState
         title: 'Worker Self-Service',
         bottom: TabBar(
           controller: _tabs,
-          labelColor: PayrollTokens.navy,
+          labelColor: AppColors.primary,
           unselectedLabelColor: cs.onSurfaceVariant,
-          indicatorColor: PayrollTokens.navy,
+          indicatorColor: AppColors.primary,
           tabs: const [
             Tab(icon: Icon(Icons.receipt_long_outlined), text: 'Payslips'),
             Tab(icon: Icon(Icons.event_available_outlined), text: 'Leave'),
@@ -124,24 +125,20 @@ class _WorkerSelfServiceScreenState
                 vertical: AppSpacing.sm,
               ),
               decoration: BoxDecoration(
-                color: PayrollTokens.navy.withValues(alpha: 0.07),
+                color: AppColors.primary.withValues(alpha: 0.07),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: PayrollTokens.navy.withValues(alpha: 0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: PayrollTokens.navy.withValues(alpha: 0.15),
+                  AvatarWidget(
+                    imageUrl: selected.profileImageUrl,
+                    initials: '${selected.firstName[0]}${selected.lastName[0]}',
                     radius: 22,
-                    child: Text(
-                      '${selected.firstName[0]}${selected.lastName[0]}',
-                      style: tt.titleSmall?.copyWith(
-                        color: PayrollTokens.navy,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                    foregroundColor: AppColors.primary,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -242,12 +239,12 @@ class _PayslipsTab extends ConsumerWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: PayrollTokens.teal.withValues(alpha: 0.1),
+                      color: AppColors.success.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.receipt_outlined,
-                      color: PayrollTokens.teal,
+                      color: AppColors.success,
                       size: 20,
                     ),
                   ),
@@ -275,7 +272,7 @@ class _PayslipsTab extends ConsumerWidget {
                   Text(
                     _zar.format(ps.netPay),
                     style: tt.titleSmall?.copyWith(
-                      color: PayrollTokens.teal,
+                      color: AppColors.success,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -334,7 +331,7 @@ class _LeaveTab extends ConsumerWidget {
 
         // ── Request leave button ───────────────────────────────────────────
         FilledButton.icon(
-          style: FilledButton.styleFrom(backgroundColor: PayrollTokens.teal),
+          style: FilledButton.styleFrom(backgroundColor: AppColors.success),
           icon: const Icon(Icons.add_rounded),
           label: const Text('Request Leave'),
           onPressed: () => context.push(AppRoutes.payrollLeaveRequest),
@@ -415,10 +412,10 @@ class _LeaveBalanceCard extends StatelessWidget {
   final LeaveBalance balance;
 
   Color _barColor(double pct) => pct > 0.5
-      ? PayrollTokens.green
+      ? AppColors.success
       : pct > 0.25
-      ? PayrollTokens.amber
-      : PayrollTokens.rose;
+      ? AppColors.warning
+      : AppColors.error;
 
   @override
   Widget build(BuildContext context) {
@@ -467,7 +464,7 @@ class _LeaveBalanceCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '${balance.pending.toStringAsFixed(1)} days pending approval',
-              style: tt.labelSmall?.copyWith(color: PayrollTokens.amber),
+              style: tt.labelSmall?.copyWith(color: AppColors.warning),
             ),
           ],
         ],
@@ -514,11 +511,9 @@ class _AttendanceTab extends ConsumerWidget {
           margin: const EdgeInsets.all(AppSpacing.md),
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: PayrollTokens.navy.withValues(alpha: 0.07),
+            color: AppColors.primary.withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: PayrollTokens.navy.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -526,17 +521,17 @@ class _AttendanceTab extends ConsumerWidget {
               _AttStat(
                 label: 'Days (30d)',
                 value: '${recent.length}',
-                color: PayrollTokens.navy,
+                color: AppColors.primary,
               ),
               _AttStat(
                 label: 'Hours (30d)',
                 value: totalHours.toStringAsFixed(1),
-                color: PayrollTokens.teal,
+                color: AppColors.success,
               ),
               _AttStat(
                 label: 'OT Hours (30d)',
                 value: totalOt.toStringAsFixed(1),
-                color: totalOt > 0 ? PayrollTokens.amber : cs.onSurfaceVariant,
+                color: totalOt > 0 ? AppColors.warning : cs.onSurfaceVariant,
               ),
             ],
           ),
@@ -572,18 +567,15 @@ class _AttendanceTab extends ConsumerWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color:
-                            (isOpen ? PayrollTokens.amber : PayrollTokens.green)
-                                .withValues(alpha: 0.12),
+                        color: (isOpen ? AppColors.warning : AppColors.success)
+                            .withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         isOpen
                             ? Icons.timelapse_rounded
                             : Icons.check_circle_outline,
-                        color: isOpen
-                            ? PayrollTokens.amber
-                            : PayrollTokens.green,
+                        color: isOpen ? AppColors.warning : AppColors.success,
                         size: 18,
                       ),
                     ),
@@ -620,14 +612,14 @@ class _AttendanceTab extends ConsumerWidget {
                             '${r.hoursWorked!.toStringAsFixed(1)} h',
                             style: tt.bodySmall?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: PayrollTokens.navy,
+                              color: AppColors.primary,
                             ),
                           ),
                           if ((r.overtimeHours ?? 0) > 0)
                             Text(
                               'OT: ${r.overtimeHours!.toStringAsFixed(1)} h',
                               style: tt.labelSmall?.copyWith(
-                                color: PayrollTokens.amber,
+                                color: AppColors.warning,
                               ),
                             ),
                         ],

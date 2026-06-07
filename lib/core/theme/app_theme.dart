@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'app_colors.dart';
-import 'app_radius.dart';
-import 'app_typography.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_typography.dart';
 
 /// Full Material 3 ThemeData for FarmTrack — light and dark variants.
 /// Wired via MaterialApp in app.dart.
@@ -18,7 +17,9 @@ abstract final class AppTheme {
   static ThemeData _buildTheme({required Brightness brightness}) {
     final bool isDark = brightness == Brightness.dark;
 
-    final ColorScheme colorScheme = isDark ? _darkColorScheme : _lightColorScheme;
+    final ColorScheme colorScheme = isDark
+        ? _darkColorScheme
+        : _lightColorScheme;
     final TextTheme textTheme = AppTypography.textTheme;
 
     return ThemeData(
@@ -28,8 +29,9 @@ abstract final class AppTheme {
       textTheme: textTheme,
 
       // ── Scaffold ────────────────────────────────────────────────────────────
-      scaffoldBackgroundColor:
-          isDark ? colorScheme.surface : colorScheme.surfaceContainerLowest,
+      scaffoldBackgroundColor: isDark
+          ? colorScheme.surface
+          : colorScheme.surfaceContainerLowest,
 
       // ── AppBar ──────────────────────────────────────────────────────────────
       appBarTheme: AppBarTheme(
@@ -52,7 +54,10 @@ abstract final class AppTheme {
         indicatorColor: colorScheme.primaryContainer,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: colorScheme.onPrimaryContainer, size: 24);
+            return IconThemeData(
+              color: colorScheme.onPrimaryContainer,
+              size: 24,
+            );
           }
           return IconThemeData(color: colorScheme.onSurfaceVariant, size: 24);
         }),
@@ -74,10 +79,14 @@ abstract final class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: colorScheme.surface,
         indicatorColor: colorScheme.primaryContainer,
-        selectedIconTheme:
-            IconThemeData(color: colorScheme.onPrimaryContainer, size: 24),
-        unselectedIconTheme:
-            IconThemeData(color: colorScheme.onSurfaceVariant, size: 24),
+        selectedIconTheme: IconThemeData(
+          color: colorScheme.onPrimaryContainer,
+          size: 24,
+        ),
+        unselectedIconTheme: IconThemeData(
+          color: colorScheme.onSurfaceVariant,
+          size: 24,
+        ),
         selectedLabelTextStyle: textTheme.labelMedium?.copyWith(
           color: colorScheme.onSurface,
           fontWeight: FontWeight.w600,
@@ -146,8 +155,10 @@ abstract final class AppTheme {
         fillColor: isDark
             ? AppColors.darkSurfaceVariant.withAlpha(128)
             : colorScheme.surfaceContainerLow,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: AppRadius.button,
           borderSide: BorderSide(color: colorScheme.outline, width: 1),
@@ -239,10 +250,7 @@ abstract final class AppTheme {
       ),
 
       // ── Icon ─────────────────────────────────────────────────────────────────
-      iconTheme: IconThemeData(
-        color: colorScheme.onSurface,
-        size: 24,
-      ),
+      iconTheme: IconThemeData(color: colorScheme.onSurface, size: 24),
 
       // ── Switch ───────────────────────────────────────────────────────────────
       switchTheme: SwitchThemeData(
@@ -351,7 +359,7 @@ abstract final class AppTheme {
     tertiary: Color(0xFF58C4F6),
     onTertiary: Color(0xFF00344F),
     tertiaryContainer: Color(0xFF004C70),
-    onTertiaryContainer: Color(0xFFB3E5FC),
+    onTertiaryContainer: Color(0xFFE0F2FE),
     error: Color(0xFFFFB4AB),
     onError: Color(0xFF690005),
     errorContainer: Color(0xFF93000A),

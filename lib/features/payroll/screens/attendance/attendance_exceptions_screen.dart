@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -23,12 +24,12 @@ String _statusLabel(AttendanceStatus s) => switch (s) {
     };
 
 (Color, IconData) _statusStyle(AttendanceStatus s) => switch (s) {
-      AttendanceStatus.absent        => (PayrollTokens.rose,  Icons.cancel_outlined),
-      AttendanceStatus.late          => (PayrollTokens.amber, Icons.watch_later_outlined),
+      AttendanceStatus.absent        => (AppColors.error,  Icons.cancel_outlined),
+      AttendanceStatus.late          => (AppColors.warning, Icons.watch_later_outlined),
       AttendanceStatus.halfDay       => (PayrollTokens.sky,   Icons.looks_one_outlined),
-      AttendanceStatus.present       => (PayrollTokens.green, Icons.check_circle_outline),
-      AttendanceStatus.onLeave       => (PayrollTokens.teal,  Icons.event_available_outlined),
-      AttendanceStatus.publicHoliday => (PayrollTokens.navy,  Icons.flag_outlined),
+      AttendanceStatus.present       => (AppColors.success, Icons.check_circle_outline),
+      AttendanceStatus.onLeave       => (AppColors.success,  Icons.event_available_outlined),
+      AttendanceStatus.publicHoliday => (AppColors.primary,  Icons.flag_outlined),
     };
 
 class AttendanceExceptionsScreen extends ConsumerStatefulWidget {
@@ -87,7 +88,7 @@ class _AttendanceExceptionsScreenState
                 margin: const EdgeInsets.only(right: AppSpacing.md),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: PayrollTokens.rose,
+                  color: AppColors.error,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -126,7 +127,7 @@ class _AttendanceExceptionsScreenState
           child: exceptions.isEmpty
               ? const EmptyState(
                   icon: Icon(Icons.check_circle_outline_rounded,
-                      size: 56, color: PayrollTokens.green),
+                      size: 56, color: AppColors.success),
                   title: 'No exceptions',
                   subtitle:
                       'All attendance records are clear for this period.',
@@ -192,7 +193,7 @@ class _ExceptionCard extends ConsumerWidget {
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: PayrollTokens.navy),
+                      color: AppColors.primary),
                 ),
                 const SizedBox(height: 4),
                 const Text(
@@ -202,7 +203,7 @@ class _ExceptionCard extends ConsumerWidget {
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(Icons.event_available_outlined,
-                      color: PayrollTokens.teal),
+                      color: AppColors.success),
                   title: const Text('Approve Absence',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: const Text('Mark as approved leave'),
@@ -219,7 +220,7 @@ class _ExceptionCard extends ConsumerWidget {
                 ),
                 ListTile(
                   leading: const Icon(Icons.watch_later_outlined,
-                      color: PayrollTokens.amber),
+                      color: AppColors.warning),
                   title: const Text('Excuse Late Arrival',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: const Text('Mark lateness as excused'),
@@ -236,7 +237,7 @@ class _ExceptionCard extends ConsumerWidget {
                 ),
                 ListTile(
                   leading: const Icon(Icons.check_circle_outline,
-                      color: PayrollTokens.green),
+                      color: AppColors.success),
                   title: const Text('Mark Present',
                       style: TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: const Text('Override to present'),
@@ -305,7 +306,7 @@ class _ExceptionCard extends ConsumerWidget {
                           child: Text(name,
                               style: tt.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
-                                  color: PayrollTokens.navy)),
+                                  color: AppColors.primary)),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -352,7 +353,7 @@ class _ExceptionCard extends ConsumerWidget {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           style: TextButton.styleFrom(
-                            foregroundColor: PayrollTokens.navy,
+                            foregroundColor: AppColors.primary,
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(60, 28),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,

@@ -1,10 +1,11 @@
-import '../../theme/payroll_tokens.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/task_assignment.dart';
-import '../../models/shift.dart';
-import '../../providers/payroll_providers.dart';
-
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/payroll/models/task_assignment.dart';
+import 'package:mobile_app/features/payroll/models/shift.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
 class TaskSheetScreen extends ConsumerWidget {
   const TaskSheetScreen({super.key, required this.shiftId});
@@ -14,15 +15,14 @@ class TaskSheetScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allShifts = ref.watch(shiftsProvider(const ShiftFilter()));
     final shift = allShifts.where((s) => s.id == shiftId).firstOrNull;
-    final tasks = ref.watch(taskAssignmentsProvider(TaskFilter(date: shift?.date)));
+    final tasks = ref.watch(
+      taskAssignmentsProvider(TaskFilter(date: shift?.date)),
+    );
     final employees = ref.watch(activeEmployeesProvider);
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy, foregroundColor: Colors.white,
-        title: const Text('Task Sheet', style: TextStyle(fontWeight: FontWeight.w700)),
-        elevation: 0,
+    return FarmScaffold(
+      appBar: FarmAppBar(
+        title: 'Task Sheet',
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -33,36 +33,48 @@ class TaskSheetScreen extends ConsumerWidget {
       ),
       body: shift == null
           ? const Center(child: Text('Shift not found'))
-          : Column(children: [
-              _ShiftHeader(shift: shift, employees: employees),
-              Expanded(
-                child: tasks.isEmpty
-                    ? _emptyState()
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: tasks.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 10),
-                        itemBuilder: (ctx, i) => _TaskCard(
-                          task: tasks[i],
-                          employees: employees,
+          : Column(
+              children: [
+                _ShiftHeader(shift: shift, employees: employees),
+                Expanded(
+                  child: tasks.isEmpty
+                      ? _emptyState()
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: tasks.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (ctx, i) =>
+                              _TaskCard(task: tasks[i], employees: employees),
                         ),
-                      ),
-              ),
-            ]),
+                ),
+              ],
+            ),
     );
   }
 
   Widget _emptyState() {
     return Center(
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(Icons.assignment_outlined, size: 64, color: Colors.grey[300]),
-        const SizedBox(height: 12),
-        const Text('No tasks assigned yet',
-            style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 6),
-        const Text('Tap + to add a job card for this shift',
-            style: TextStyle(color: Colors.grey, fontSize: 13)),
-      ]),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.assignment_outlined, size: 64, color: Colors.grey[300]),
+          const SizedBox(height: 12),
+          const Text(
+            'No tasks assigned yet',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Tap + to add a job card for this shift',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 
@@ -82,65 +94,112 @@ class _ShiftHeader extends StatelessWidget {
   final List employees;
 
   String _fmt(DateTime d) {
-    const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return '${d.day.toString().padLeft(2,'0')} ${months[d.month]} ${d.year}';
+    const months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${d.day.toString().padLeft(2, '0')} ${months[d.month]} ${d.year}';
   }
 
   @override
   Widget build(BuildContext context) {
     final Color statusColor = switch (shift.status) {
-      ShiftStatus.planned    => PayrollTokens.indigo,
-      ShiftStatus.inProgress => PayrollTokens.amber,
-      ShiftStatus.completed  => PayrollTokens.green,
-      ShiftStatus.cancelled  => PayrollTokens.rose,
+      ShiftStatus.planned => AppColors.primary,
+      ShiftStatus.inProgress => AppColors.warning,
+      ShiftStatus.completed => AppColors.success,
+      ShiftStatus.cancelled => AppColors.error,
     };
     return Container(
-      color: PayrollTokens.navy,
+      color: AppColors.primary,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: statusColor.withValues(alpha: 0.5)),
-            ),
-            child: Text(shift.status.name.toUpperCase(),
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  shift.status.name.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${shift.startTime} - ${shift.endTime}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ),
+            ],
           ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(4),
+          const SizedBox(height: 8),
+          Text(
+            shift.taskCode,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
             ),
-            child: Text('${shift.startTime} - ${shift.endTime}',
-                style: const TextStyle(color: Colors.white70, fontSize: 12)),
           ),
-        ]),
-        const SizedBox(height: 8),
-        Text(shift.taskCode,
-            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 4),
-        Row(children: [
-          const Icon(Icons.calendar_today, color: Colors.white60, size: 14),
-          const SizedBox(width: 4),
-          Text(_fmt(shift.date), style: const TextStyle(color: Colors.white70, fontSize: 13)),
-          if (shift.fieldOrArea != null) ...[
-            const SizedBox(width: 12),
-            const Icon(Icons.location_on_outlined, color: Colors.white60, size: 14),
-            const SizedBox(width: 4),
-            Text(shift.fieldOrArea!, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-          ],
-          const Spacer(),
-          const Icon(Icons.group_outlined, color: Colors.white60, size: 14),
-          const SizedBox(width: 4),
-          Text('${shift.employeeIds.length} workers',
-              style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        ]),
-      ]),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, color: Colors.white60, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                _fmt(shift.date),
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              if (shift.fieldOrArea != null) ...[
+                const SizedBox(width: 12),
+                const Icon(
+                  Icons.location_on_outlined,
+                  color: Colors.white60,
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  shift.fieldOrArea!,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              ],
+              const Spacer(),
+              const Icon(Icons.group_outlined, color: Colors.white60, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                '${shift.employeeIds.length} workers',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -151,10 +210,10 @@ class _TaskCard extends StatelessWidget {
   final List employees;
 
   (Color, Color) _statusColors(TaskAssignmentStatus s) => switch (s) {
-    TaskAssignmentStatus.assigned   => (PayrollTokens.indigo, PayrollTokens.indigo),
-    TaskAssignmentStatus.inProgress => (PayrollTokens.amber, PayrollTokens.amber),
-    TaskAssignmentStatus.completed  => (PayrollTokens.green, PayrollTokens.green),
-    TaskAssignmentStatus.cancelled  => (PayrollTokens.rose, PayrollTokens.rose),
+    TaskAssignmentStatus.assigned => (AppColors.primary, AppColors.primary),
+    TaskAssignmentStatus.inProgress => (AppColors.warning, AppColors.warning),
+    TaskAssignmentStatus.completed => (AppColors.success, AppColors.success),
+    TaskAssignmentStatus.cancelled => (AppColors.error, AppColors.error),
   };
 
   String _employeeName() {
@@ -167,63 +226,132 @@ class _TaskCard extends StatelessWidget {
     final (color, _) = _statusColors(task.status);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Row(children: [
-        Container(
-          width: 4, height: 80,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12), bottomLeft: Radius.circular(12)),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 80,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
+            ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(
-                  child: Text(task.description,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: PayrollTokens.navy)),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: color.withValues(alpha: 0.3)),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          task.description,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Text(
+                          task.status.name.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(task.status.name.toUpperCase(),
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
-                ),
-              ]),
-              const SizedBox(height: 6),
-              Row(children: [
-                const Icon(Icons.person_outline, size: 14, color: Colors.grey),
-                const SizedBox(width: 4),
-                Text(_employeeName(), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                if (task.fieldOrArea != null) ...[
-                  const SizedBox(width: 10),
-                  const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(task.fieldOrArea!, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.person_outline,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _employeeName(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      if (task.fieldOrArea != null) ...[
+                        const SizedBox(width: 10),
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          task.fieldOrArea!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (task.payrollCode.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.qr_code,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            task.payrollCode,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
-              ]),
-              if (task.payrollCode.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(children: [
-                    const Icon(Icons.qr_code, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(task.payrollCode, style: const TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'monospace')),
-                  ]),
-                ),
-            ]),
+              ),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -246,7 +374,9 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
 
   @override
   void dispose() {
-    _descCtrl.dispose(); _codeCtrl.dispose(); _fieldCtrl.dispose();
+    _descCtrl.dispose();
+    _codeCtrl.dispose();
+    _fieldCtrl.dispose();
     super.dispose();
   }
 
@@ -261,41 +391,82 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottom),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Center(child: Container(width: 36, height: 4,
-            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
-        const SizedBox(height: 16),
-        const Text('New Task Assignment',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: PayrollTokens.navy)),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedEmployeeId,
-          decoration: _inputDec('Worker', icon: Icons.person_outline),
-          items: employees.map((e) => DropdownMenuItem(value: e.id, child: Text(e.fullName))).toList(),
-          onChanged: (v) => setState(() => _selectedEmployeeId = v),
-        ),
-        const SizedBox(height: 12),
-        TextFormField(controller: _descCtrl,
-            decoration: _inputDec('Task Description', icon: Icons.assignment_outlined)),
-        const SizedBox(height: 12),
-        TextFormField(controller: _codeCtrl, textCapitalization: TextCapitalization.characters,
-            decoration: _inputDec('Pay Code', icon: Icons.qr_code)),
-        const SizedBox(height: 12),
-        TextFormField(controller: _fieldCtrl,
-            decoration: _inputDec('Field / Area (optional)', icon: Icons.location_on_outlined)),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: PayrollTokens.teal),
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(width: 20, height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('Assign Task'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
           ),
-        ),
-      ]),
+          const SizedBox(height: 16),
+          const Text(
+            'New Task Assignment',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedEmployeeId,
+            decoration: _inputDec('Worker', icon: Icons.person_outline),
+            items: employees
+                .map(
+                  (e) => DropdownMenuItem(value: e.id, child: Text(e.fullName)),
+                )
+                .toList(),
+            onChanged: (v) => setState(() => _selectedEmployeeId = v),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _descCtrl,
+            decoration: _inputDec(
+              'Task Description',
+              icon: Icons.assignment_outlined,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _codeCtrl,
+            textCapitalization: TextCapitalization.characters,
+            decoration: _inputDec('Pay Code', icon: Icons.qr_code),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _fieldCtrl,
+            decoration: _inputDec(
+              'Field / Area (optional)',
+              icon: Icons.location_on_outlined,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.success),
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('Assign Task'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -303,31 +474,41 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
     labelText: label,
     prefixIcon: icon != null ? Icon(icon, size: 20, color: Colors.grey) : null,
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-    filled: true, fillColor: const Color.fromARGB(255, 244, 246, 249),
+    filled: true,
+    fillColor: const Color.fromARGB(255, 244, 246, 249),
     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
   );
 
   Future<void> _save() async {
     if (_selectedEmployeeId == null || _descCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Worker and description are required'), backgroundColor: PayrollTokens.rose,
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Worker and description are required'),
+          backgroundColor: AppColors.error,
+        ),
+      );
       return;
     }
     setState(() => _saving = true);
     final now = DateTime.now();
     final repo = widget.ref.read(payrollRepositoryProvider);
-    repo.addTaskAssignment(TaskAssignment(
-      id: 'task_${now.millisecondsSinceEpoch}',
-      employeeId: _selectedEmployeeId!,
-      date: widget.shift?.date ?? now,
-      shiftId: widget.shift?.id,
-      payrollCode: _codeCtrl.text.trim().isEmpty ? 'GENERAL' : _codeCtrl.text.trim(),
-      description: _descCtrl.text.trim(),
-      fieldOrArea: _fieldCtrl.text.trim().isEmpty ? null : _fieldCtrl.text.trim(),
-      status: TaskAssignmentStatus.assigned,
-      createdAt: now,
-    ));
+    repo.addTaskAssignment(
+      TaskAssignment(
+        id: 'task_${now.millisecondsSinceEpoch}',
+        employeeId: _selectedEmployeeId!,
+        date: widget.shift?.date ?? now,
+        shiftId: widget.shift?.id,
+        payrollCode: _codeCtrl.text.trim().isEmpty
+            ? 'GENERAL'
+            : _codeCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
+        fieldOrArea: _fieldCtrl.text.trim().isEmpty
+            ? null
+            : _fieldCtrl.text.trim(),
+        status: TaskAssignmentStatus.assigned,
+        createdAt: now,
+      ),
+    );
     widget.ref.invalidate(payrollRepositoryProvider);
     if (mounted) Navigator.of(context).pop();
   }

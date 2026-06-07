@@ -4,28 +4,28 @@
 // Supervisors and payroll managers can update dispute status.
 
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/payroll/models/worker_dispute.dart';
+import 'package:mobile_app/features/payroll/providers/dispute_provider.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 import 'package:mobile_app/shared/widgets/empty_state.dart';
 import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
 import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:mobile_app/shared/widgets/farm_text_field.dart';
 import 'package:mobile_app/shared/widgets/status_chip.dart';
-import 'package:mobile_app/features/payroll/models/worker_dispute.dart';
-import 'package:mobile_app/features/payroll/providers/dispute_provider.dart';
-import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
-import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 
 final _dateFmt = DateFormat('dd MMM yyyy');
 
 // ─── Color mapping ─────────────────────────────────────────────────────────────
 
 Color _statusColor(DisputeStatus s) => switch (s) {
-  DisputeStatus.open => PayrollTokens.rose,
-  DisputeStatus.underReview => PayrollTokens.amber,
-  DisputeStatus.resolved => PayrollTokens.green,
+  DisputeStatus.open => AppColors.error,
+  DisputeStatus.underReview => AppColors.warning,
+  DisputeStatus.resolved => AppColors.success,
   DisputeStatus.dismissed => const Color(0xFF9E9E9E),
 };
 
@@ -74,11 +74,12 @@ class _WorkerDisputesScreenState extends ConsumerState<WorkerDisputesScreen>
 
     return FarmScaffold(
       appBar: FarmAppBar(title: 'Worker Disputes'),
-      floatingActionButton: FloatingActionButton.extended(heroTag: null, 
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _showFileDisputeSheet(context),
         label: const Text('File Dispute'),
         icon: const Icon(Icons.add_rounded),
-        backgroundColor: PayrollTokens.navy,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -90,9 +91,9 @@ class _WorkerDisputesScreenState extends ConsumerState<WorkerDisputesScreen>
             color: cs.surface,
             child: TabBar(
               controller: _tabs,
-              labelColor: PayrollTokens.navy,
+              labelColor: AppColors.primary,
               unselectedLabelColor: cs.onSurfaceVariant,
-              indicatorColor: PayrollTokens.navy,
+              indicatorColor: AppColors.primary,
               indicatorWeight: 2.5,
               labelStyle: theme.textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.w700,
@@ -106,7 +107,7 @@ class _WorkerDisputesScreenState extends ConsumerState<WorkerDisputesScreen>
                       const Text('Open'),
                       if (openN > 0) ...[
                         const SizedBox(width: 4),
-                        _TabBadge(count: openN, color: PayrollTokens.rose),
+                        _TabBadge(count: openN, color: AppColors.error),
                       ],
                     ],
                   ),
@@ -208,14 +209,12 @@ class _SummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, 14, AppSpacing.md, 14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [PayrollTokens.navy, Color.fromARGB(255, 46, 89, 132)],
+          colors: [AppColors.primary, Color.fromARGB(255, 46, 89, 132)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -572,13 +571,13 @@ class _FileDisputeSheetState extends ConsumerState<_FileDisputeSheet> {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: PayrollTokens.navy.withAlpha(18),
+                  color: AppColors.primary.withAlpha(18),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.gavel_outlined,
                   size: 18,
-                  color: PayrollTokens.navy,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -664,7 +663,7 @@ class _FileDisputeSheetState extends ConsumerState<_FileDisputeSheet> {
             height: 48,
             child: FilledButton(
               style: FilledButton.styleFrom(
-                backgroundColor: PayrollTokens.navy,
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -719,13 +718,13 @@ class _UpdateStatusSheet extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: PayrollTokens.navy.withAlpha(18),
+                  color: AppColors.primary.withAlpha(18),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.update_rounded,
                   size: 18,
-                  color: PayrollTokens.navy,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),

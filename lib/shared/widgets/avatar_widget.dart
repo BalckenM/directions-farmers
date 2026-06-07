@@ -1,8 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-/// Circular avatar that shows a [CachedNetworkImage] when [imageUrl] is
-/// provided, falling back to a coloured circle with initials.
+/// Circular avatar that shows a network image when [imageUrl] is provided,
+/// falling back to a coloured circle with initials.
 class AvatarWidget extends StatelessWidget {
   const AvatarWidget({
     super.key,
@@ -24,21 +23,24 @@ class AvatarWidget extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final bg = backgroundColor ?? cs.primaryContainer;
     final fg = foregroundColor ?? cs.onPrimaryContainer;
+    final size = radius * 2;
 
     if (imageUrl != null && imageUrl!.isNotEmpty) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: bg,
+      return SizedBox(
+        width: size,
+        height: size,
         child: ClipOval(
-          child: CachedNetworkImage(
-            imageUrl: imageUrl!,
-            width: radius * 2,
-            height: radius * 2,
+          child: Image.network(
+            imageUrl!,
+            width: size,
+            height: size,
             fit: BoxFit.cover,
-            placeholder: (_, _) => _Initials(
-                initials: initials, fg: fg, bg: bg, radius: radius),
-            errorWidget: (_, _, _) => _Initials(
-                initials: initials, fg: fg, bg: bg, radius: radius),
+            errorBuilder: (_, __, ___) =>
+                _Initials(initials: initials, fg: fg, bg: bg, radius: radius),
+            loadingBuilder: (_, child, progress) {
+              if (progress == null) return child;
+              return _Initials(initials: initials, fg: fg, bg: bg, radius: radius);
+            },
           ),
         ),
       );

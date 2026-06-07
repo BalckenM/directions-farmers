@@ -1,4 +1,8 @@
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:mobile_app/core/constants/app_constants.dart';
+import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/features/payroll/data/payroll_data_source.dart';
 import 'package:mobile_app/features/payroll/models/attendance_record.dart';
 import 'package:mobile_app/features/payroll/models/audit_log_entry.dart';
@@ -63,64 +67,71 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   // ── Preload ────────────────────────────────────────────────────────────────
 
+  /// Phase 1 — loads only the data needed to render the hub dashboard.
+  /// Call this first; the UI unblocks as soon as it completes (~8 API calls).
+  Future<void> preloadCritical() => Future.wait([
+    _fetchAllPaginated('/payroll/employees', _employees, PayrollEmployee.fromJson),
+    _fetchList('/payroll/pay-groups', _payGroups, PayGroup.fromJson),
+    _fetchList(
+      '/payroll/pay-structures',
+      _payStructures,
+      PayStructure.fromJson,
+    ),
+    _fetchList('/payroll/pay-runs?limit=100', _payRuns, PayRun.fromJson),
+    _fetchList('/payroll/compliance-alerts?limit=200', _alerts, ComplianceAlert.fromJson),
+    _fetchList(
+      '/payroll/leave-requests',
+      _leaveRequests,
+      LeaveRequest.fromJson,
+    ),
+    _fetchList(
+      '/payroll/leave-balances',
+      _leaveBalances,
+      LeaveBalance.fromJson,
+    ),
+    _fetchEmployerConfig(),
+  ]);
+
+  /// Phase 2 — loads secondary data (contracts, payslips, attendance, etc.)
+  /// in the background after the UI is already visible.
+  Future<void> preloadBackground() => Future.wait([
+    _fetchAllPaginated('/payroll/contracts', _contracts, EmploymentContract.fromJson),
+    _fetchList('/payroll/payslips?limit=200', _payslips, Payslip.fromJson),
+    _fetchList('/payroll/deductions', _deductions, DeductionRule.fromJson),
+    _fetchList(
+      '/payroll/garnishee-orders',
+      _garnishees,
+      GarnisheeOrder.fromJson,
+    ),
+    _fetchList('/payroll/leave-types', _leaveTypes, LeaveType.fromJson),
+    _fetchList(
+      '/payroll/transactions?limit=200',
+      _transactions,
+      PaymentTransaction.fromJson,
+    ),
+    _fetchList('/payroll/audit-log', _auditLog, AuditLogEntry.fromJson),
+    _fetchList('/payroll/incidents', _incidents, IncidentRecord.fromJson),
+    _fetchList(
+      '/payroll/communications',
+      _communications,
+      CommunicationLog.fromJson,
+    ),
+    _fetchList('/payroll/shifts', _shifts, Shift.fromJson),
+    _fetchList('/payroll/task-assignments', _tasks, TaskAssignment.fromJson),
+    _fetchAllPaginated('/payroll/attendance', _attendance, AttendanceRecord.fromJson),
+    _fetchList('/payroll/piecework', _piecework, PieceworkLog.fromJson),
+    _fetchList('/payroll/worker-disputes', _disputes, WorkerDispute.fromJson),
+    _fetchList(
+      '/payroll/benefit-contributions',
+      _benefitContributions,
+      BenefitContribution.fromJson,
+    ),
+  ]);
+
+  /// Convenience: runs critical then background. Used by full-reload scenarios.
   Future<void> preload() async {
-    await Future.wait([
-      _fetchList('/payroll/employees', _employees, PayrollEmployee.fromJson),
-      _fetchList('/payroll/contracts', _contracts, EmploymentContract.fromJson),
-      _fetchList('/payroll/pay-groups', _payGroups, PayGroup.fromJson),
-      _fetchList(
-        '/payroll/pay-structures',
-        _payStructures,
-        PayStructure.fromJson,
-      ),
-      _fetchList('/payroll/pay-runs', _payRuns, PayRun.fromJson),
-      _fetchList('/payroll/payslips', _payslips, Payslip.fromJson),
-      _fetchList('/payroll/deductions', _deductions, DeductionRule.fromJson),
-      _fetchList(
-        '/payroll/garnishee-orders',
-        _garnishees,
-        GarnisheeOrder.fromJson,
-      ),
-      _fetchList('/payroll/leave-types', _leaveTypes, LeaveType.fromJson),
-      _fetchList(
-        '/payroll/leave-balances',
-        _leaveBalances,
-        LeaveBalance.fromJson,
-      ),
-      _fetchList(
-        '/payroll/leave-requests',
-        _leaveRequests,
-        LeaveRequest.fromJson,
-      ),
-      _fetchList(
-        '/payroll/transactions',
-        _transactions,
-        PaymentTransaction.fromJson,
-      ),
-      _fetchList(
-        '/payroll/compliance-alerts',
-        _alerts,
-        ComplianceAlert.fromJson,
-      ),
-      _fetchList('/payroll/audit-log', _auditLog, AuditLogEntry.fromJson),
-      _fetchList('/payroll/incidents', _incidents, IncidentRecord.fromJson),
-      _fetchList(
-        '/payroll/communications',
-        _communications,
-        CommunicationLog.fromJson,
-      ),
-      _fetchList('/payroll/shifts', _shifts, Shift.fromJson),
-      _fetchList('/payroll/task-assignments', _tasks, TaskAssignment.fromJson),
-      _fetchList('/payroll/attendance', _attendance, AttendanceRecord.fromJson),
-      _fetchList('/payroll/piecework', _piecework, PieceworkLog.fromJson),
-      _fetchList('/payroll/worker-disputes', _disputes, WorkerDispute.fromJson),
-      _fetchList(
-        '/payroll/benefit-contributions',
-        _benefitContributions,
-        BenefitContribution.fromJson,
-      ),
-      _fetchEmployerConfig(),
-    ]);
+    await preloadCritical();
+    preloadBackground(); // fire-and-forget: secondary data loads after UI shows
   }
 
   Future<void> _fetchEmployerConfig() async {
@@ -132,43 +143,135 @@ class PayrollRemoteDataSource implements PayrollDataSource {
         _employerConfig = EmployerConfig.fromJson(resp.data!);
       }
     } on DioException catch (e) {
-      assert(() {
-        // ignore: avoid_print
-        print('[Payroll] GET /payroll/employer-config failed: ${e.message}');
-        return true;
-      }());
+      _logDioError('GET', '/payroll/employer-config', e);
+    } catch (e, st) {
+      AppLogger.error(
+        'GET /payroll/employer-config failed',
+        tag: 'Payroll',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  /// Logs a DioException with full detail: status code, server message, and
+  /// the raw response body so the exact backend error is visible in the
+  /// in-app debug console AND the terminal.
+  void _logDioError(String method, String path, DioException e) {
+    final status = e.response?.statusCode ?? 'no-response';
+    final serverMsg = (() {
+      final data = e.response?.data;
+      if (data is Map) {
+        final err = data['error'];
+        if (err is Map) return err['message'] ?? err.toString();
+        return data.toString();
+      }
+      return data?.toString() ?? e.message ?? 'unknown';
+    })();
+    AppLogger.error(
+      '$method $path → $status | $serverMsg',
+      tag: 'Payroll',
+      error: e,
+    );
+  }
 
   Future<void> _fetchList<T>(
     String path,
     List<T> cache,
     T Function(Map<String, dynamic>) fromJson,
   ) async {
-    try {
-      final resp = await _dio.get<List<dynamic>>(path);
-      if (resp.data != null) {
-        cache
-          ..clear()
-          ..addAll(resp.data!.cast<Map<String, dynamic>>().map(fromJson));
+    for (int attempt = 0; attempt < 3; attempt++) {
+      try {
+        final resp = await _dio.get<List<dynamic>>(path);
+        if (resp.data != null) {
+          cache
+            ..clear()
+            ..addAll(resp.data!.cast<Map<String, dynamic>>().map(fromJson));
+        }
+        return;
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 429 && attempt < 2) {
+          await Future<void>.delayed(Duration(seconds: (attempt + 1) * 2));
+          continue;
+        }
+        _logDioError('GET', path, e);
+        return;
+      } catch (e, st) {
+        AppLogger.error(
+          'GET $path failed',
+          tag: 'Payroll',
+          error: e,
+          stackTrace: st,
+        );
+        return;
       }
-    } on DioException catch (e) {
-      assert(() {
-        print('[Payroll] GET $path failed: ${e.message}');
-        return true;
-      }());
+    }
+  }
+
+  /// Paginated fetch: loads ALL records page-by-page without blocking the UI.
+  /// Uses large page size to minimize request count and retries on 429.
+  Future<void> _fetchAllPaginated<T>(
+    String basePath,
+    List<T> cache,
+    T Function(Map<String, dynamic>) fromJson, {
+    int pageSize = 500,
+  }) async {
+    cache.clear();
+    int page = 1;
+    int retries = 0;
+    const maxRetries = 3;
+    while (true) {
+      final separator = basePath.contains('?') ? '&' : '?';
+      final path = '$basePath${separator}page=$page&limit=$pageSize';
+      try {
+        final resp = await _dio.get<List<dynamic>>(path);
+        if (resp.data == null || resp.data!.isEmpty) break;
+        cache.addAll(resp.data!.cast<Map<String, dynamic>>().map(fromJson));
+        if (resp.data!.length < pageSize) break; // last page
+        page++;
+        retries = 0;
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 429 && retries < maxRetries) {
+          retries++;
+          await Future<void>.delayed(Duration(seconds: retries * 2));
+          continue; // retry same page
+        }
+        _logDioError('GET', path, e);
+        break;
+      } catch (e, st) {
+        AppLogger.error(
+          'GET $path failed',
+          tag: 'Payroll',
+          error: e,
+          stackTrace: st,
+        );
+        break;
+      }
     }
   }
 
   Future<T> _post<T>(
     String path,
     Map<String, dynamic> body,
-    T Function(Map<String, dynamic>) f,
-  ) async {
-    final r = await _dio.post<Map<String, dynamic>>(path, data: body);
-    return f(r.data!);
+    T Function(Map<String, dynamic>) f, {
+    Duration? timeout,
+  }) async {
+    try {
+      final options = timeout != null
+          ? Options(receiveTimeout: timeout, sendTimeout: timeout)
+          : null;
+      final r = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: body,
+        options: options,
+      );
+      return f(r.data!);
+    } on DioException catch (e) {
+      _logDioError('POST', path, e);
+      rethrow;
+    }
   }
 
   Future<T> _put<T>(
@@ -176,8 +279,13 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     Map<String, dynamic> body,
     T Function(Map<String, dynamic>) f,
   ) async {
-    final r = await _dio.put<Map<String, dynamic>>(path, data: body);
-    return f(r.data!);
+    try {
+      final r = await _dio.put<Map<String, dynamic>>(path, data: body);
+      return f(r.data!);
+    } on DioException catch (e) {
+      _logDioError('PUT', path, e);
+      rethrow;
+    }
   }
 
   Future<T> _patch<T>(
@@ -185,35 +293,22 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     Map<String, dynamic> body,
     T Function(Map<String, dynamic>) f,
   ) async {
-    final r = await _dio.patch<Map<String, dynamic>>(path, data: body);
-    return f(r.data!);
+    try {
+      final r = await _dio.patch<Map<String, dynamic>>(path, data: body);
+      return f(r.data!);
+    } on DioException catch (e) {
+      _logDioError('PATCH', path, e);
+      rethrow;
+    }
   }
 
-  Future<void> _del(String path) => _dio.delete<void>(path);
-
-  // Synchronous bridge — only resolves if the future is already complete
-  // (e.g. resolved within the same microtask after a mock). For real async I/O
-  // callers must await preload() and cache mutations will be applied async.
-  T _sync<T>(Future<T> future) {
-    T? result;
-    Object? err;
-    bool done = false;
-    future.then(
-      (v) {
-        result = v;
-        done = true;
-      },
-      onError: (e) {
-        err = e;
-        done = true;
-      },
-    );
-    if (!done)
-      throw StateError(
-        'PayrollRemoteDataSource: sync write unavailable in async I/O context.',
-      );
-    if (err != null) throw err!;
-    return result as T;
+  Future<void> _del(String path) async {
+    try {
+      await _dio.delete<void>(path);
+    } on DioException catch (e) {
+      _logDioError('DELETE', path, e);
+      rethrow;
+    }
   }
 
   // ── Employees ──────────────────────────────────────────────────────────────
@@ -223,17 +318,14 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   PayrollEmployee? getEmployee(String id) =>
       _employees.where((e) => e.id == id).firstOrNull;
   @override
-  PayrollEmployee addEmployee(PayrollEmployee employee) {
-    final future =
-        _post(
-          '/payroll/employees',
-          employee.toJson(),
-          PayrollEmployee.fromJson,
-        ).then((s) {
-          _employees.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayrollEmployee> addEmployee(PayrollEmployee employee) async {
+    final s = await _post(
+      '/payroll/employees',
+      employee.toJson(),
+      PayrollEmployee.fromJson,
+    );
+    _employees.add(s);
+    return s;
   }
 
   @override
@@ -245,7 +337,6 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       data: {'employees': employees.map((e) => e.toJson()).toList()},
     );
     final result = response.data ?? {};
-    // Update local cache with inserted rows
     final inserted = (result['rows'] as List<dynamic>? ?? [])
         .map((r) => PayrollEmployee.fromJson(r as Map<String, dynamic>))
         .toList();
@@ -254,21 +345,43 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  PayrollEmployee updateEmployee(PayrollEmployee employee) {
-    final future =
-        _put(
-          '/payroll/employees/${employee.id}',
-          employee.toJson(),
-          PayrollEmployee.fromJson,
-        ).then((s) {
-          final i = _employees.indexWhere((e) => e.id == s.id);
-          if (i >= 0)
-            _employees[i] = s;
-          else
-            _employees.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayrollEmployee> updateEmployee(PayrollEmployee employee) async {
+    final s = await _put(
+      '/payroll/employees/${employee.id}',
+      employee.toJson(),
+      PayrollEmployee.fromJson,
+    );
+    final i = _employees.indexWhere((e) => e.id == s.id);
+    if (i >= 0)
+      _employees[i] = s;
+    else
+      _employees.add(s);
+    return s;
+  }
+
+  @override
+  Future<String> uploadProfileImage(String employeeId, String filePath) async {
+    final MultipartFile file;
+    if (kIsWeb) {
+      // On web, filePath is a blob URL from image_picker_for_web.
+      // We need to read it as bytes via XFile.
+      final xfile = XFile(filePath);
+      final bytes = await xfile.readAsBytes();
+      file = MultipartFile.fromBytes(bytes, filename: xfile.name.isNotEmpty ? xfile.name : 'profile.jpg');
+    } else {
+      file = await MultipartFile.fromFile(filePath);
+    }
+    final formData = FormData.fromMap({'image': file});
+    final r = await _dio.post<Map<String, dynamic>>(
+      '/payroll/employees/$employeeId/profile-image',
+      data: formData,
+    );
+    final imageUrl = r.data!['profileImageUrl'] as String;
+    final i = _employees.indexWhere((e) => e.id == employeeId);
+    if (i >= 0) {
+      _employees[i] = _employees[i].copyWith(profileImageUrl: imageUrl);
+    }
+    return imageUrl;
   }
 
   // ── Contracts ──────────────────────────────────────────────────────────────
@@ -282,103 +395,87 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   EmploymentContract? getContract(String id) =>
       _contracts.where((c) => c.id == id).firstOrNull;
   @override
-  EmploymentContract addContract(EmploymentContract contract) {
-    final future =
-        _post(
-          '/payroll/contracts',
-          contract.toJson(),
-          EmploymentContract.fromJson,
-        ).then((s) {
-          _contracts.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<EmploymentContract> addContract(EmploymentContract contract) async {
+    final s = await _post(
+      '/payroll/contracts',
+      contract.toJson(),
+      EmploymentContract.fromJson,
+    );
+    _contracts.add(s);
+    return s;
   }
 
   @override
-  EmploymentContract updateContract(EmploymentContract contract) {
-    final future =
-        _put(
-          '/payroll/contracts/${contract.id}',
-          contract.toJson(),
-          EmploymentContract.fromJson,
-        ).then((s) {
-          final i = _contracts.indexWhere((c) => c.id == s.id);
-          if (i >= 0)
-            _contracts[i] = s;
-          else
-            _contracts.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<EmploymentContract> updateContract(EmploymentContract contract) async {
+    final s = await _put(
+      '/payroll/contracts/${contract.id}',
+      contract.toJson(),
+      EmploymentContract.fromJson,
+    );
+    final i = _contracts.indexWhere((c) => c.id == s.id);
+    if (i >= 0)
+      _contracts[i] = s;
+    else
+      _contracts.add(s);
+    return s;
   }
 
   // ── Pay groups ──────────────────────────────────────────────────────────────
   @override
   List<PayGroup> getPayGroups() => List.unmodifiable(_payGroups);
   @override
-  PayGroup addPayGroup(PayGroup group) {
-    final future =
-        _post('/payroll/pay-groups', group.toJson(), PayGroup.fromJson).then((
-          s,
-        ) {
-          _payGroups.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayGroup> addPayGroup(PayGroup group) async {
+    final s = await _post(
+      '/payroll/pay-groups',
+      group.toJson(),
+      PayGroup.fromJson,
+    );
+    _payGroups.add(s);
+    return s;
   }
 
   @override
-  PayGroup updatePayGroup(PayGroup group) {
-    final future =
-        _put(
-          '/payroll/pay-groups/${group.id}',
-          group.toJson(),
-          PayGroup.fromJson,
-        ).then((s) {
-          final i = _payGroups.indexWhere((g) => g.id == s.id);
-          if (i >= 0)
-            _payGroups[i] = s;
-          else
-            _payGroups.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayGroup> updatePayGroup(PayGroup group) async {
+    final s = await _put(
+      '/payroll/pay-groups/${group.id}',
+      group.toJson(),
+      PayGroup.fromJson,
+    );
+    final i = _payGroups.indexWhere((g) => g.id == s.id);
+    if (i >= 0)
+      _payGroups[i] = s;
+    else
+      _payGroups.add(s);
+    return s;
   }
 
   // ── Pay structures ──────────────────────────────────────────────────────────
   @override
   List<PayStructure> getPayStructures() => List.unmodifiable(_payStructures);
   @override
-  PayStructure addPayStructure(PayStructure structure) {
-    final future =
-        _post(
-          '/payroll/pay-structures',
-          structure.toJson(),
-          PayStructure.fromJson,
-        ).then((s) {
-          _payStructures.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayStructure> addPayStructure(PayStructure structure) async {
+    final s = await _post(
+      '/payroll/pay-structures',
+      structure.toJson(),
+      PayStructure.fromJson,
+    );
+    _payStructures.add(s);
+    return s;
   }
 
   @override
-  PayStructure updatePayStructure(PayStructure structure) {
-    final future =
-        _put(
-          '/payroll/pay-structures/${structure.id}',
-          structure.toJson(),
-          PayStructure.fromJson,
-        ).then((s) {
-          final i = _payStructures.indexWhere((p) => p.id == s.id);
-          if (i >= 0)
-            _payStructures[i] = s;
-          else
-            _payStructures.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayStructure> updatePayStructure(PayStructure structure) async {
+    final s = await _put(
+      '/payroll/pay-structures/${structure.id}',
+      structure.toJson(),
+      PayStructure.fromJson,
+    );
+    final i = _payStructures.indexWhere((p) => p.id == s.id);
+    if (i >= 0)
+      _payStructures[i] = s;
+    else
+      _payStructures.add(s);
+    return s;
   }
 
   // ── Shifts (no fromJson — cache only, mutated in-memory) ───────────────────
@@ -397,31 +494,25 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  Shift addShift(Shift shift) {
-    final future = _post('/payroll/shifts', shift.toJson(), Shift.fromJson)
-        .then((s) {
-          _shifts.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<Shift> addShift(Shift shift) async {
+    final s = await _post('/payroll/shifts', shift.toJson(), Shift.fromJson);
+    _shifts.add(s);
+    return s;
   }
 
   @override
-  Shift updateShift(Shift shift) {
-    final future =
-        _put(
-          '/payroll/shifts/${shift.id}',
-          shift.toJson(),
-          Shift.fromJson,
-        ).then((s) {
-          final i = _shifts.indexWhere((e) => e.id == s.id);
-          if (i >= 0)
-            _shifts[i] = s;
-          else
-            _shifts.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<Shift> updateShift(Shift shift) async {
+    final s = await _put(
+      '/payroll/shifts/${shift.id}',
+      shift.toJson(),
+      Shift.fromJson,
+    );
+    final i = _shifts.indexWhere((e) => e.id == s.id);
+    if (i >= 0)
+      _shifts[i] = s;
+    else
+      _shifts.add(s);
+    return s;
   }
 
   // ── Task assignments (no fromJson — in-memory) ──────────────────────────────
@@ -446,35 +537,29 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  TaskAssignment addTaskAssignment(TaskAssignment task) {
-    final future =
-        _post(
-          '/payroll/task-assignments',
-          task.toJson(),
-          TaskAssignment.fromJson,
-        ).then((s) {
-          _tasks.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<TaskAssignment> addTaskAssignment(TaskAssignment task) async {
+    final s = await _post(
+      '/payroll/task-assignments',
+      task.toJson(),
+      TaskAssignment.fromJson,
+    );
+    _tasks.add(s);
+    return s;
   }
 
   @override
-  TaskAssignment updateTaskAssignment(TaskAssignment task) {
-    final future =
-        _put(
-          '/payroll/task-assignments/${task.id}',
-          task.toJson(),
-          TaskAssignment.fromJson,
-        ).then((s) {
-          final i = _tasks.indexWhere((t) => t.id == s.id);
-          if (i >= 0)
-            _tasks[i] = s;
-          else
-            _tasks.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<TaskAssignment> updateTaskAssignment(TaskAssignment task) async {
+    final s = await _put(
+      '/payroll/task-assignments/${task.id}',
+      task.toJson(),
+      TaskAssignment.fromJson,
+    );
+    final i = _tasks.indexWhere((t) => t.id == s.id);
+    if (i >= 0)
+      _tasks[i] = s;
+    else
+      _tasks.add(s);
+    return s;
   }
 
   // ── Attendance (no fromJson — in-memory) ────────────────────────────────────
@@ -505,35 +590,31 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  AttendanceRecord addAttendanceRecord(AttendanceRecord record) {
-    final future =
-        _post(
-          '/payroll/attendance',
-          record.toJson(),
-          AttendanceRecord.fromJson,
-        ).then((s) {
-          _attendance.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<AttendanceRecord> addAttendanceRecord(AttendanceRecord record) async {
+    final s = await _post(
+      '/payroll/attendance',
+      record.toJson(),
+      AttendanceRecord.fromJson,
+    );
+    _attendance.add(s);
+    return s;
   }
 
   @override
-  AttendanceRecord updateAttendanceRecord(AttendanceRecord record) {
-    final future =
-        _put(
-          '/payroll/attendance/${record.id}',
-          record.toJson(),
-          AttendanceRecord.fromJson,
-        ).then((s) {
-          final i = _attendance.indexWhere((a) => a.id == s.id);
-          if (i >= 0)
-            _attendance[i] = s;
-          else
-            _attendance.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<AttendanceRecord> updateAttendanceRecord(
+    AttendanceRecord record,
+  ) async {
+    final s = await _put(
+      '/payroll/attendance/${record.id}',
+      record.toJson(),
+      AttendanceRecord.fromJson,
+    );
+    final i = _attendance.indexWhere((a) => a.id == s.id);
+    if (i >= 0)
+      _attendance[i] = s;
+    else
+      _attendance.add(s);
+    return s;
   }
 
   // ── Piecework (no fromJson — in-memory) ─────────────────────────────────────
@@ -561,15 +642,14 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  PieceworkLog addPieceworkLog(PieceworkLog log) {
-    final future =
-        _post('/payroll/piecework', log.toJson(), PieceworkLog.fromJson).then((
-          s,
-        ) {
-          _piecework.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PieceworkLog> addPieceworkLog(PieceworkLog log) async {
+    final s = await _post(
+      '/payroll/piecework',
+      log.toJson(),
+      PieceworkLog.fromJson,
+    );
+    _piecework.add(s);
+    return s;
   }
 
   // ── Pay runs ─────────────────────────────────────────────────────────────────
@@ -582,51 +662,53 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   @override
   PayRun? getPayRun(String id) => _payRuns.where((r) => r.id == id).firstOrNull;
   @override
-  PayRun calculatePayRun(
+  Future<PayRun> calculatePayRun(
     String payGroupId,
     DateTime periodStart,
-    DateTime periodEnd,
-  ) {
-    final future =
-        _post('/payroll/pay-runs/calculate', {
-          'payGroupId': payGroupId,
-          'periodStart': periodStart.toIso8601String(),
-          'periodEnd': periodEnd.toIso8601String(),
-        }, PayRun.fromJson).then((s) {
-          _payRuns.add(s);
-          return s;
-        });
-    return _sync(future);
+    DateTime periodEnd, {
+    DateTime? payDate,
+  }) async {
+    final s = await _post(
+      '/payroll/pay-runs/calculate',
+      {
+        'payGroupId': payGroupId,
+        'periodStart': periodStart.toIso8601String().substring(0, 10),
+        'periodEnd': periodEnd.toIso8601String().substring(0, 10),
+        'payDate': (payDate ?? periodEnd).toIso8601String().substring(0, 10),
+      },
+      PayRun.fromJson,
+      timeout: AppConstants.apiLongTimeout,
+    );
+    _payRuns.add(s);
+    return s;
   }
 
   @override
-  PayRun approvePayRun(String id, String approverUserId) {
-    final future =
-        _patch('/payroll/pay-runs/$id/approve', {
-          'approverUserId': approverUserId,
-        }, PayRun.fromJson).then((s) {
-          final i = _payRuns.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _payRuns[i] = s;
-          else
-            _payRuns.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayRun> approvePayRun(String id, String approverUserId) async {
+    final s = await _patch('/payroll/pay-runs/$id/approve', {
+      'approverUserId': approverUserId,
+    }, PayRun.fromJson);
+    final i = _payRuns.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _payRuns[i] = s;
+    else
+      _payRuns.add(s);
+    return s;
   }
 
   @override
-  PayRun disbursePayRun(String id) {
-    final future = _patch('/payroll/pay-runs/$id/disburse', {}, PayRun.fromJson)
-        .then((s) {
-          final i = _payRuns.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _payRuns[i] = s;
-          else
-            _payRuns.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayRun> disbursePayRun(String id) async {
+    final s = await _patch(
+      '/payroll/pay-runs/$id/disburse',
+      {},
+      PayRun.fromJson,
+    );
+    final i = _payRuns.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _payRuns[i] = s;
+    else
+      _payRuns.add(s);
+    return s;
   }
 
   // ── Payslips ─────────────────────────────────────────────────────────────────
@@ -658,35 +740,29 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  DeductionRule addDeductionRule(DeductionRule rule) {
-    final future =
-        _post(
-          '/payroll/deductions',
-          rule.toJson(),
-          DeductionRule.fromJson,
-        ).then((s) {
-          _deductions.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<DeductionRule> addDeductionRule(DeductionRule rule) async {
+    final s = await _post(
+      '/payroll/deductions',
+      rule.toJson(),
+      DeductionRule.fromJson,
+    );
+    _deductions.add(s);
+    return s;
   }
 
   @override
-  DeductionRule updateDeductionRule(DeductionRule rule) {
-    final future =
-        _put(
-          '/payroll/deductions/${rule.id}',
-          rule.toJson(),
-          DeductionRule.fromJson,
-        ).then((s) {
-          final i = _deductions.indexWhere((d) => d.id == s.id);
-          if (i >= 0)
-            _deductions[i] = s;
-          else
-            _deductions.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<DeductionRule> updateDeductionRule(DeductionRule rule) async {
+    final s = await _put(
+      '/payroll/deductions/${rule.id}',
+      rule.toJson(),
+      DeductionRule.fromJson,
+    );
+    final i = _deductions.indexWhere((d) => d.id == s.id);
+    if (i >= 0)
+      _deductions[i] = s;
+    else
+      _deductions.add(s);
+    return s;
   }
 
   // ── Garnishee orders ─────────────────────────────────────────────────────────
@@ -697,35 +773,30 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  GarnisheeOrder addGarnisheeOrder(GarnisheeOrder order) {
-    final future =
-        _post(
-          '/payroll/garnishee-orders',
-          order.toJson(),
-          GarnisheeOrder.fromJson,
-        ).then((s) {
-          _garnishees.add(s);
-          return s;
-        });
-    return _sync(future);
+  @override
+  Future<GarnisheeOrder> addGarnisheeOrder(GarnisheeOrder order) async {
+    final s = await _post(
+      '/payroll/garnishee-orders',
+      order.toJson(),
+      GarnisheeOrder.fromJson,
+    );
+    _garnishees.add(s);
+    return s;
   }
 
   @override
-  GarnisheeOrder updateGarnisheeOrder(GarnisheeOrder order) {
-    final future =
-        _put(
-          '/payroll/garnishee-orders/${order.id}',
-          order.toJson(),
-          GarnisheeOrder.fromJson,
-        ).then((s) {
-          final i = _garnishees.indexWhere((g) => g.id == s.id);
-          if (i >= 0)
-            _garnishees[i] = s;
-          else
-            _garnishees.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<GarnisheeOrder> updateGarnisheeOrder(GarnisheeOrder order) async {
+    final s = await _put(
+      '/payroll/garnishee-orders/${order.id}',
+      order.toJson(),
+      GarnisheeOrder.fromJson,
+    );
+    final i = _garnishees.indexWhere((g) => g.id == s.id);
+    if (i >= 0)
+      _garnishees[i] = s;
+    else
+      _garnishees.add(s);
+    return s;
   }
 
   // ── Leave types ──────────────────────────────────────────────────────────────
@@ -753,68 +824,67 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  LeaveRequest addLeaveRequest(LeaveRequest request) {
-    final future =
-        _post(
-          '/payroll/leave-requests',
-          request.toJson(),
-          LeaveRequest.fromJson,
-        ).then((s) {
-          _leaveRequests.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<LeaveRequest> addLeaveRequest(LeaveRequest request) async {
+    final s = await _post(
+      '/payroll/leave-requests',
+      {
+        'employeeId': request.employeeId,
+        'leaveTypeId': request.leaveTypeId,
+        'startDate': request.startDate.toIso8601String().split('T').first,
+        'endDate': request.endDate.toIso8601String().split('T').first,
+        'daysRequested': request.daysRequested,
+        if (request.reason.isNotEmpty) 'reason': request.reason,
+      },
+      LeaveRequest.fromJson,
+    );
+    _leaveRequests.add(s);
+    return s;
   }
 
   @override
-  LeaveRequest approveLeaveRequest(String id, String approverId) {
-    final future =
-        _patch('/payroll/leave-requests/$id/approve', {
-          'approverId': approverId,
-        }, LeaveRequest.fromJson).then((s) {
-          final i = _leaveRequests.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _leaveRequests[i] = s;
-          else
-            _leaveRequests.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<LeaveRequest> approveLeaveRequest(String id, String approverId) async {
+    final s = await _patch('/payroll/leave-requests/$id/approve', {
+      'approverId': approverId,
+    }, LeaveRequest.fromJson);
+    final i = _leaveRequests.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _leaveRequests[i] = s;
+    else
+      _leaveRequests.add(s);
+    return s;
   }
 
   @override
-  LeaveRequest rejectLeaveRequest(String id, String approverId, String reason) {
-    final future =
-        _patch('/payroll/leave-requests/$id/reject', {
-          'approverId': approverId,
-          'reason': reason,
-        }, LeaveRequest.fromJson).then((s) {
-          final i = _leaveRequests.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _leaveRequests[i] = s;
-          else
-            _leaveRequests.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<LeaveRequest> rejectLeaveRequest(
+    String id,
+    String approverId,
+    String reason,
+  ) async {
+    final s = await _patch('/payroll/leave-requests/$id/reject', {
+      'approverId': approverId,
+      'reason': reason,
+    }, LeaveRequest.fromJson);
+    final i = _leaveRequests.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _leaveRequests[i] = s;
+    else
+      _leaveRequests.add(s);
+    return s;
   }
 
   @override
-  LeaveRequest cancelLeaveRequest(String id) {
-    final future =
-        _patch(
-          '/payroll/leave-requests/$id/cancel',
-          {},
-          LeaveRequest.fromJson,
-        ).then((s) {
-          final i = _leaveRequests.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _leaveRequests[i] = s;
-          else
-            _leaveRequests.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<LeaveRequest> cancelLeaveRequest(String id) async {
+    final s = await _patch(
+      '/payroll/leave-requests/$id/cancel',
+      {},
+      LeaveRequest.fromJson,
+    );
+    final i = _leaveRequests.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _leaveRequests[i] = s;
+    else
+      _leaveRequests.add(s);
+    return s;
   }
 
   // ── Payment transactions ─────────────────────────────────────────────────────
@@ -849,25 +919,31 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     return _alerts.where((a) => !a.isResolved).toList();
   }
 
+  /// Re-fetches compliance alerts from the API (used by the compliance screen
+  /// to get the full set including resolved, without waiting for preload).
+  Future<void> refreshComplianceAlerts({bool includeResolved = false}) =>
+      _fetchList(
+        '/payroll/compliance-alerts?limit=200${includeResolved ? '&includeResolved=true' : ''}',
+        _alerts,
+        ComplianceAlert.fromJson,
+      );
+
   @override
-  ComplianceAlert resolveAlert(
+  Future<ComplianceAlert> resolveAlert(
     String id,
     String resolvedByUserId,
     String resolution,
-  ) {
-    final future =
-        _patch('/payroll/compliance-alerts/$id/resolve', {
-          'resolvedByUserId': resolvedByUserId,
-          'resolution': resolution,
-        }, ComplianceAlert.fromJson).then((s) {
-          final i = _alerts.indexWhere((a) => a.id == s.id);
-          if (i >= 0)
-            _alerts[i] = s;
-          else
-            _alerts.add(s);
-          return s;
-        });
-    return _sync(future);
+  ) async {
+    final s = await _patch('/payroll/compliance-alerts/$id/resolve', {
+      'resolvedByUserId': resolvedByUserId,
+      'resolution': resolution,
+    }, ComplianceAlert.fromJson);
+    final i = _alerts.indexWhere((a) => a.id == s.id);
+    if (i >= 0)
+      _alerts[i] = s;
+    else
+      _alerts.add(s);
+    return s;
   }
 
   // ── Audit log ────────────────────────────────────────────────────────────────
@@ -893,35 +969,29 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  IncidentRecord addIncident(IncidentRecord incident) {
-    final future =
-        _post(
-          '/payroll/incidents',
-          incident.toJson(),
-          IncidentRecord.fromJson,
-        ).then((s) {
-          _incidents.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<IncidentRecord> addIncident(IncidentRecord incident) async {
+    final s = await _post(
+      '/payroll/incidents',
+      incident.toJson(),
+      IncidentRecord.fromJson,
+    );
+    _incidents.add(s);
+    return s;
   }
 
   @override
-  IncidentRecord updateIncident(IncidentRecord incident) {
-    final future =
-        _put(
-          '/payroll/incidents/${incident.id}',
-          incident.toJson(),
-          IncidentRecord.fromJson,
-        ).then((s) {
-          final i = _incidents.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _incidents[i] = s;
-          else
-            _incidents.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<IncidentRecord> updateIncident(IncidentRecord incident) async {
+    final s = await _put(
+      '/payroll/incidents/${incident.id}',
+      incident.toJson(),
+      IncidentRecord.fromJson,
+    );
+    final i = _incidents.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _incidents[i] = s;
+    else
+      _incidents.add(s);
+    return s;
   }
 
   // ── Communications ───────────────────────────────────────────────────────────
@@ -929,158 +999,131 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   List<CommunicationLog> getCommunicationLogs() =>
       List.unmodifiable(_communications);
   @override
-  CommunicationLog sendCommunication({
+  Future<CommunicationLog> sendCommunication({
     required CommunicationChannel channel,
     required String templateCode,
     required String subject,
     required String body,
     required List<String> recipientEmployeeIds,
     required String sentByUserId,
-  }) {
-    final future =
-        _post('/payroll/communications', {
-          'channel': channel.name,
-          'templateCode': templateCode,
-          'subject': subject,
-          'body': body,
-          'recipientEmployeeIds': recipientEmployeeIds,
-          'sentByUserId': sentByUserId,
-        }, CommunicationLog.fromJson).then((s) {
-          _communications.add(s);
-          return s;
-        });
-    return _sync(future);
+  }) async {
+    final s = await _post('/payroll/communications', {
+      'channel': channel.name,
+      'templateCode': templateCode,
+      'subject': subject,
+      'body': body,
+      'recipientEmployeeIds': recipientEmployeeIds,
+      'sentByUserId': sentByUserId,
+    }, CommunicationLog.fromJson);
+    _communications.add(s);
+    return s;
   }
 
   // ── Soft-deletes / Terminations ──────────────────────────────────────────────
   @override
-  PayrollEmployee terminateEmployee(
+  Future<PayrollEmployee> terminateEmployee(
     String id,
     DateTime terminationDate,
     String reason,
-  ) {
-    final future =
-        _patch('/payroll/employees/$id/terminate', {
-          'terminationDate': terminationDate.toIso8601String(),
-          'reason': reason,
-        }, PayrollEmployee.fromJson).then((s) {
-          final i = _employees.indexWhere((e) => e.id == s.id);
-          if (i >= 0)
-            _employees[i] = s;
-          else
-            _employees.add(s);
-          return s;
-        });
-    return _sync(future);
+  ) async {
+    final s = await _patch('/payroll/employees/$id/terminate', {
+      'terminationDate': terminationDate.toIso8601String(),
+      'reason': reason,
+    }, PayrollEmployee.fromJson);
+    final i = _employees.indexWhere((e) => e.id == s.id);
+    if (i >= 0)
+      _employees[i] = s;
+    else
+      _employees.add(s);
+    return s;
   }
 
   @override
-  EmploymentContract voidContract(String id, String reason) {
-    final future =
-        _patch('/payroll/contracts/$id/void', {
-          'reason': reason,
-        }, EmploymentContract.fromJson).then((s) {
-          final i = _contracts.indexWhere((c) => c.id == s.id);
-          if (i >= 0)
-            _contracts[i] = s;
-          else
-            _contracts.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<EmploymentContract> voidContract(String id, String reason) async {
+    final s = await _patch('/payroll/contracts/$id/void', {
+      'reason': reason,
+    }, EmploymentContract.fromJson);
+    final i = _contracts.indexWhere((c) => c.id == s.id);
+    if (i >= 0)
+      _contracts[i] = s;
+    else
+      _contracts.add(s);
+    return s;
   }
 
   @override
-  bool deleteShift(String id) {
-    final future = _del('/payroll/shifts/$id').then((_) {
-      _shifts.removeWhere((s) => s.id == id);
-      return true;
-    });
-    return _sync(future);
+  Future<bool> deleteShift(String id) async {
+    await _del('/payroll/shifts/$id');
+    _shifts.removeWhere((s) => s.id == id);
+    return true;
   }
 
   @override
-  bool deleteTaskAssignment(String id) {
-    final future = _del('/payroll/task-assignments/$id').then((_) {
-      _tasks.removeWhere((t) => t.id == id);
-      return true;
-    });
-    return _sync(future);
+  Future<bool> deleteTaskAssignment(String id) async {
+    await _del('/payroll/task-assignments/$id');
+    _tasks.removeWhere((t) => t.id == id);
+    return true;
   }
 
   @override
-  DeductionRule deactivateDeductionRule(String id) {
-    final future =
-        _patch(
-          '/payroll/deductions/$id/deactivate',
-          {},
-          DeductionRule.fromJson,
-        ).then((s) {
-          final i = _deductions.indexWhere((d) => d.id == s.id);
-          if (i >= 0)
-            _deductions[i] = s;
-          else
-            _deductions.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<DeductionRule> deactivateDeductionRule(String id) async {
+    final s = await _patch(
+      '/payroll/deductions/$id/deactivate',
+      {},
+      DeductionRule.fromJson,
+    );
+    final i = _deductions.indexWhere((d) => d.id == s.id);
+    if (i >= 0)
+      _deductions[i] = s;
+    else
+      _deductions.add(s);
+    return s;
   }
 
   @override
-  bool deletePieceworkLog(String id, String correctionReason) {
-    final future =
-        _del(
-          '/payroll/piecework/$id?reason=${Uri.encodeComponent(correctionReason)}',
-        ).then((_) {
-          _piecework.removeWhere((p) => p.id == id);
-          return true;
-        });
-    return _sync(future);
+  Future<bool> deletePieceworkLog(String id, String correctionReason) async {
+    await _del(
+      '/payroll/piecework/$id?reason=${Uri.encodeComponent(correctionReason)}',
+    );
+    _piecework.removeWhere((p) => p.id == id);
+    return true;
   }
 
   @override
-  bool deleteLeaveRequest(String id) {
-    final future = _del('/payroll/leave-requests/$id').then((_) {
-      _leaveRequests.removeWhere((r) => r.id == id);
-      return true;
-    });
-    return _sync(future);
+  Future<bool> deleteLeaveRequest(String id) async {
+    await _del('/payroll/leave-requests/$id');
+    _leaveRequests.removeWhere((r) => r.id == id);
+    return true;
   }
 
   @override
-  IncidentRecord deactivateIncident(String id) {
-    final future =
-        _patch(
-          '/payroll/incidents/$id/deactivate',
-          {},
-          IncidentRecord.fromJson,
-        ).then((s) {
-          final i = _incidents.indexWhere((r) => r.id == s.id);
-          if (i >= 0)
-            _incidents[i] = s;
-          else
-            _incidents.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<IncidentRecord> deactivateIncident(String id) async {
+    final s = await _patch(
+      '/payroll/incidents/$id/deactivate',
+      {},
+      IncidentRecord.fromJson,
+    );
+    final i = _incidents.indexWhere((r) => r.id == s.id);
+    if (i >= 0)
+      _incidents[i] = s;
+    else
+      _incidents.add(s);
+    return s;
   }
 
   @override
-  PayGroup deactivatePayGroup(String id) {
-    final future =
-        _patch(
-          '/payroll/pay-groups/$id/deactivate',
-          {},
-          PayGroup.fromJson,
-        ).then((s) {
-          final i = _payGroups.indexWhere((g) => g.id == s.id);
-          if (i >= 0)
-            _payGroups[i] = s;
-          else
-            _payGroups.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<PayGroup> deactivatePayGroup(String id) async {
+    final s = await _patch(
+      '/payroll/pay-groups/$id/deactivate',
+      {},
+      PayGroup.fromJson,
+    );
+    final i = _payGroups.indexWhere((g) => g.id == s.id);
+    if (i >= 0)
+      _payGroups[i] = s;
+    else
+      _payGroups.add(s);
+    return s;
   }
 
   // ── Employer configuration ──────────────────────────────────────────────────
@@ -1088,17 +1131,14 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   EmployerConfig getEmployerConfig() =>
       _employerConfig ?? EmployerConfig.defaultConfig;
   @override
-  EmployerConfig updateEmployerConfig(EmployerConfig config) {
-    final future =
-        _put(
-          '/payroll/employer-config',
-          config.toJson(),
-          EmployerConfig.fromJson,
-        ).then((s) {
-          _employerConfig = s;
-          return s;
-        });
-    return _sync(future);
+  Future<EmployerConfig> updateEmployerConfig(EmployerConfig config) async {
+    final s = await _put(
+      '/payroll/employer-config',
+      config.toJson(),
+      EmployerConfig.fromJson,
+    );
+    _employerConfig = s;
+    return s;
   }
 
   // ── Worker disputes ────────────────────────────────────────────────────────
@@ -1109,72 +1149,60 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  WorkerDispute fileDispute(WorkerDispute dispute) {
-    final future =
-        _post(
-          '/payroll/worker-disputes',
-          dispute.toJson(),
-          WorkerDispute.fromJson,
-        ).then((s) {
-          _disputes.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<WorkerDispute> fileDispute(WorkerDispute dispute) async {
+    final s = await _post(
+      '/payroll/worker-disputes',
+      dispute.toJson(),
+      WorkerDispute.fromJson,
+    );
+    _disputes.add(s);
+    return s;
   }
 
   @override
-  WorkerDispute updateDispute(WorkerDispute dispute) {
-    final future =
-        _put(
-          '/payroll/worker-disputes/${dispute.id}',
-          dispute.toJson(),
-          WorkerDispute.fromJson,
-        ).then((s) {
-          final i = _disputes.indexWhere((d) => d.id == s.id);
-          if (i >= 0)
-            _disputes[i] = s;
-          else
-            _disputes.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<WorkerDispute> updateDispute(WorkerDispute dispute) async {
+    final s = await _put(
+      '/payroll/worker-disputes/${dispute.id}',
+      dispute.toJson(),
+      WorkerDispute.fromJson,
+    );
+    final i = _disputes.indexWhere((d) => d.id == s.id);
+    if (i >= 0)
+      _disputes[i] = s;
+    else
+      _disputes.add(s);
+    return s;
   }
 
   @override
-  WorkerDispute resolveDispute(
+  Future<WorkerDispute> resolveDispute(
     String id,
     String resolvedBy,
     String resolutionNote,
-  ) {
-    final future =
-        _patch('/payroll/worker-disputes/$id/resolve', {
-          'resolvedBy': resolvedBy,
-          'resolutionNote': resolutionNote,
-        }, WorkerDispute.fromJson).then((s) {
-          final i = _disputes.indexWhere((d) => d.id == s.id);
-          if (i >= 0)
-            _disputes[i] = s;
-          else
-            _disputes.add(s);
-          return s;
-        });
-    return _sync(future);
+  ) async {
+    final s = await _patch('/payroll/worker-disputes/$id/resolve', {
+      'resolvedBy': resolvedBy,
+      'resolutionNote': resolutionNote,
+    }, WorkerDispute.fromJson);
+    final i = _disputes.indexWhere((d) => d.id == s.id);
+    if (i >= 0)
+      _disputes[i] = s;
+    else
+      _disputes.add(s);
+    return s;
   }
 
   @override
-  WorkerDispute dismissDispute(String id, String resolvedBy) {
-    final future =
-        _patch('/payroll/worker-disputes/$id/dismiss', {
-          'resolvedBy': resolvedBy,
-        }, WorkerDispute.fromJson).then((s) {
-          final i = _disputes.indexWhere((d) => d.id == s.id);
-          if (i >= 0)
-            _disputes[i] = s;
-          else
-            _disputes.add(s);
-          return s;
-        });
-    return _sync(future);
+  Future<WorkerDispute> dismissDispute(String id, String resolvedBy) async {
+    final s = await _patch('/payroll/worker-disputes/$id/dismiss', {
+      'resolvedBy': resolvedBy,
+    }, WorkerDispute.fromJson);
+    final i = _disputes.indexWhere((d) => d.id == s.id);
+    if (i >= 0)
+      _disputes[i] = s;
+    else
+      _disputes.add(s);
+    return s;
   }
 
   // ── Benefit contributions ──────────────────────────────────────────────────

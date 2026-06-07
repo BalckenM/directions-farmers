@@ -1,13 +1,15 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../providers/payroll_providers.dart';
-import '../../services/uif_export_service.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/services/uif_export_service.dart';
 
 final _zar = NumberFormat.currency(
   locale: 'en_ZA',
@@ -83,16 +85,9 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
     final totalEmployer = uifRows.fold(0.0, (s, r) => s + r.$4);
     final totalUif = totalEmployee + totalEmployer;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 246, 249),
-      appBar: AppBar(
-        backgroundColor: PayrollTokens.navy,
-        foregroundColor: Colors.white,
-        title: const Text(
-          'UIF Returns',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        elevation: 0,
+    return FarmScaffold(
+      appBar: FarmAppBar(
+        title: 'UIF Returns',
         actions: [
           IconButton(
             icon: const Icon(Icons.download_outlined),
@@ -106,7 +101,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
         children: [
           // Period selector
           Container(
-            color: PayrollTokens.navy,
+            color: AppColors.primary,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
               children: [
@@ -137,24 +132,24 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
               margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: PayrollTokens.amber.withValues(alpha: 0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: PayrollTokens.amber.withValues(alpha: 0.3),
+                  color: AppColors.warning.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.warning_amber_outlined,
-                    color: PayrollTokens.amber,
+                    color: AppColors.warning,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '${uifAlerts.length} UIF compliance alert(s) require attention',
                       style: const TextStyle(
-                        color: PayrollTokens.amber,
+                        color: AppColors.warning,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -172,7 +167,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                   child: _StatCard(
                     'Employee Contr.',
                     _zar.format(totalEmployee),
-                    PayrollTokens.teal,
+                    AppColors.success,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -180,7 +175,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                   child: _StatCard(
                     'Employer Contr.',
                     _zar.format(totalEmployer),
-                    PayrollTokens.navy,
+                    AppColors.primary,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -188,7 +183,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                   child: _StatCard(
                     'Total UIF',
                     _zar.format(totalUif),
-                    PayrollTokens.green,
+                    AppColors.success,
                     large: true,
                   ),
                 ),
@@ -219,7 +214,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                       children: [
                         const Icon(
                           Icons.table_chart_outlined,
-                          color: PayrollTokens.navy,
+                          color: AppColors.primary,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -228,7 +223,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: PayrollTokens.navy,
+                            color: AppColors.primary,
                           ),
                         ),
                         const Spacer(),
@@ -288,7 +283,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                           _zar.format(empContr),
                           style: TextStyle(
                             fontSize: 12,
-                            color: PayrollTokens.teal,
+                            color: AppColors.success,
                           ),
                           textAlign: TextAlign.right,
                         ),
@@ -299,7 +294,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                           _zar.format(emplContr),
                           style: TextStyle(
                             fontSize: 12,
-                            color: PayrollTokens.navy,
+                            color: AppColors.primary,
                           ),
                           textAlign: TextAlign.right,
                         ),
@@ -317,7 +312,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.teal,
+                  backgroundColor: AppColors.success,
                 ),
                 icon: const Icon(Icons.upload_file_outlined),
                 label: const Text(
@@ -340,8 +335,8 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                       ? Icons.check_circle_outline
                       : Icons.mark_email_read_outlined,
                   color: _filedStatus != FiledStatus.notFiled
-                      ? PayrollTokens.green
-                      : PayrollTokens.navy,
+                      ? AppColors.success
+                      : AppColors.primary,
                 ),
                 label: Text(
                   _filedStatus != FiledStatus.notFiled
@@ -349,16 +344,16 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
                       : 'Mark as Filed',
                   style: TextStyle(
                     color: _filedStatus != FiledStatus.notFiled
-                        ? PayrollTokens.green
-                        : PayrollTokens.navy,
+                        ? AppColors.success
+                        : AppColors.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(
                     color: _filedStatus != FiledStatus.notFiled
-                        ? PayrollTokens.green
-                        : PayrollTokens.navy,
+                        ? AppColors.success
+                        : AppColors.primary,
                   ),
                 ),
                 onPressed: _filedStatus != FiledStatus.notFiled
@@ -408,7 +403,7 @@ class _UifReturnsScreenState extends ConsumerState<UifReturnsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Exported: $filename (${filtered.length} payslips)'),
-          backgroundColor: PayrollTokens.green,
+          backgroundColor: AppColors.success,
         ),
       );
     }
@@ -518,4 +513,3 @@ class _TableHeader extends StatelessWidget {
     );
   }
 }
-

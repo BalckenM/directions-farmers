@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_app/core/theme/app_spacing.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 import 'package:mobile_app/features/payroll/services/payroll_engine.dart';
-import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+
 import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
 import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
 import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
@@ -59,7 +60,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
           content: Text(
             'Select an employee before saving the back-pay record.',
           ),
-          backgroundColor: PayrollTokens.amber,
+          backgroundColor: AppColors.warning,
         ),
       );
       return;
@@ -81,7 +82,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Back-pay record saved to transactions.'),
-            backgroundColor: PayrollTokens.green,
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -90,7 +91,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save: $e'),
-            backgroundColor: PayrollTokens.rose,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -134,7 +135,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('New rate must be greater than the old rate.'),
-          backgroundColor: PayrollTokens.rose,
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -190,17 +191,17 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: PayrollTokens.teal.withValues(alpha: 0.08),
+              color: AppColors.success.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: PayrollTokens.teal.withValues(alpha: 0.3),
+                color: AppColors.success.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
               children: [
                 const Icon(
                   Icons.info_outline_rounded,
-                  color: PayrollTokens.teal,
+                  color: AppColors.success,
                   size: 20,
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -221,7 +222,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
           PrSectionCard(
             title: 'Employee',
             icon: Icons.person_outline_rounded,
-            iconColor: PayrollTokens.navy,
+            iconColor: AppColors.primary,
             children: [
               FarmDropdown<String?>(
                 label: 'Employee (optional)',
@@ -250,7 +251,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
           PrSectionCard(
             title: 'Wage-Change Type',
             icon: Icons.compare_arrows_rounded,
-            iconColor: PayrollTokens.indigo,
+            iconColor: AppColors.primary,
             children: [
               Wrap(
                 spacing: AppSpacing.sm,
@@ -260,12 +261,12 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
                   return ChoiceChip(
                     label: Text(_typeLabel(t)),
                     selected: sel,
-                    selectedColor: PayrollTokens.indigo.withValues(alpha: 0.15),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.15),
                     side: BorderSide(
-                      color: sel ? PayrollTokens.indigo : cs.outlineVariant,
+                      color: sel ? AppColors.primary : cs.outlineVariant,
                     ),
                     labelStyle: TextStyle(
-                      color: sel ? PayrollTokens.indigo : cs.onSurfaceVariant,
+                      color: sel ? AppColors.primary : cs.onSurfaceVariant,
                       fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
                     ),
                     onSelected: (_) {
@@ -297,7 +298,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
           PrSectionCard(
             title: 'Rate Details',
             icon: Icons.payments_outlined,
-            iconColor: PayrollTokens.teal,
+            iconColor: AppColors.success,
             children: [
               Row(
                 children: [
@@ -373,7 +374,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
             width: double.infinity,
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
-                backgroundColor: PayrollTokens.teal,
+                backgroundColor: AppColors.success,
               ),
               icon: const Icon(Icons.calculate_outlined),
               label: const Text('Calculate Back-Pay'),
@@ -387,13 +388,13 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
             PrSectionCard(
               title: 'Calculation Result',
               icon: Icons.receipt_long_rounded,
-              iconColor: PayrollTokens.green,
+              iconColor: AppColors.success,
               children: [
                 PrInfoRow(
                   label: 'Gross Back-Pay',
                   value: _zar.format(_grossBackpay),
                   valueStyle: TextStyle(
-                    color: PayrollTokens.green,
+                    color: AppColors.success,
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
@@ -401,7 +402,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
                 PrInfoRow(
                   label: 'Estimated PAYE on Back-Pay',
                   value: _zar.format(_backpayPaye),
-                  valueStyle: const TextStyle(color: PayrollTokens.rose),
+                  valueStyle: const TextStyle(color: AppColors.error),
                 ),
                 const Divider(height: AppSpacing.md),
                 PrInfoRow(
@@ -416,10 +417,10 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
-                    color: PayrollTokens.amber.withValues(alpha: 0.08),
+                    color: AppColors.warning.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: PayrollTokens.amber.withValues(alpha: 0.3),
+                      color: AppColors.warning.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(
@@ -452,7 +453,7 @@ class _RetroactivePayScreenState extends ConsumerState<RetroactivePayScreen> {
                 Expanded(
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                      backgroundColor: PayrollTokens.green,
+                      backgroundColor: AppColors.success,
                     ),
                     icon: _saving
                         ? const SizedBox(

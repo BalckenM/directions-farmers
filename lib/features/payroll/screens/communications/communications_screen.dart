@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -43,7 +44,7 @@ class _CommunicationsScreenState extends ConsumerState<CommunicationsScreen> {
         onPressed: () => _showComposeSheet(context),
         icon: const Icon(Icons.send_outlined),
         label: const Text('Compose'),
-        backgroundColor: PayrollTokens.green,
+        backgroundColor: AppColors.success,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -186,10 +187,10 @@ class _CommCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final deliveryPct  = (log.deliveryRate * 100).toInt();
     final deliveryColor = deliveryPct >= 90
-        ? PayrollTokens.green
+        ? AppColors.success
         : deliveryPct >= 70
-            ? PayrollTokens.amber
-            : PayrollTokens.rose;
+            ? AppColors.warning
+            : AppColors.error;
 
     return Card(
       elevation: 0,
@@ -266,19 +267,19 @@ class _CommCard extends StatelessWidget {
                           ?.copyWith(color: cs.onSurfaceVariant)),
                   const SizedBox(width: AppSpacing.sm),
                   Icon(Icons.check_circle_outline_rounded,
-                      size: 14, color: PayrollTokens.green),
+                      size: 14, color: AppColors.success),
                   const SizedBox(width: AppSpacing.xs),
                   Text('${log.deliveredCount} delivered',
                       style: tt.labelSmall
-                          ?.copyWith(color: PayrollTokens.green)),
+                          ?.copyWith(color: AppColors.success)),
                   if (log.failedCount > 0) ...[
                     const SizedBox(width: AppSpacing.sm),
                     Icon(Icons.cancel_outlined,
-                        size: 14, color: PayrollTokens.rose),
+                        size: 14, color: AppColors.error),
                     const SizedBox(width: AppSpacing.xs),
                     Text('${log.failedCount} failed',
                         style: tt.labelSmall
-                            ?.copyWith(color: PayrollTokens.rose)),
+                            ?.copyWith(color: AppColors.error)),
                   ],
                   const Spacer(),
                   Text(_dateFmt.format(log.sentAt),
@@ -311,10 +312,10 @@ class _CommDetailSheet extends ConsumerWidget {
     final deliveryPct = (log.deliveryRate * 100).toInt();
     final mq          = MediaQuery.of(context);
     final deliveryColor = deliveryPct >= 90
-        ? PayrollTokens.green
+        ? AppColors.success
         : deliveryPct >= 70
-            ? PayrollTokens.amber
-            : PayrollTokens.rose;
+            ? AppColors.warning
+            : AppColors.error;
 
     return DraggableScrollableSheet(
       expand: false,
@@ -424,10 +425,10 @@ class _CommDetailSheet extends ConsumerWidget {
                           'Total', PayrollTokens.sky),
                       const SizedBox(width: AppSpacing.sm),
                       _statBadge(context, log.deliveredCount.toString(),
-                          'Delivered', PayrollTokens.green),
+                          'Delivered', AppColors.success),
                       const SizedBox(width: AppSpacing.sm),
                       _statBadge(context, log.failedCount.toString(),
-                          'Failed', PayrollTokens.rose),
+                          'Failed', AppColors.error),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -674,7 +675,7 @@ class _ComposeSheetState extends ConsumerState<_ComposeSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: const Text('Message sent successfully.'),
-            backgroundColor: PayrollTokens.green,
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating),
       );
     }
@@ -694,11 +695,11 @@ IconData _channelIcon(CommunicationChannel ch) => switch (ch) {
     };
 
 Color _channelColor(CommunicationChannel ch) => switch (ch) {
-      CommunicationChannel.sms      => PayrollTokens.teal,
-      CommunicationChannel.whatsapp => PayrollTokens.green,
+      CommunicationChannel.sms      => AppColors.success,
+      CommunicationChannel.whatsapp => AppColors.success,
       CommunicationChannel.email    => PayrollTokens.sky,
-      CommunicationChannel.inApp    => PayrollTokens.purple,
-      CommunicationChannel.push     => PayrollTokens.amber,
+      CommunicationChannel.inApp    => AppColors.secondary,
+      CommunicationChannel.push     => AppColors.warning,
     };
 
 String _channelLabel(CommunicationChannel ch) => switch (ch) {

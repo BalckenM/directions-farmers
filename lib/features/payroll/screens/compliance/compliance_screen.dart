@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/compliance_alert.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/payroll/data/payroll_remote_data_source.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 
 final _fmtDate = DateFormat('d MMM y');
 
@@ -25,10 +27,40 @@ class ComplianceScreen extends ConsumerStatefulWidget {
 
 class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
   _Filter _filter = _Filter.open;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch fresh compliance alerts (including resolved) when screen opens.
+    // Using addPostFrameCallback so it runs after the first build — prevents
+    // the "setState during build" error from Riverpod subscription setup.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshAlerts());
+  }
+
+  Future<void> _refreshAlerts() async {
+    if (!mounted) return;
+    setState(() => _loading = true);
+    try {
+      final source = ref.read(payrollDataSourceProvider);
+      if (source is PayrollRemoteDataSource) {
+        await source.refreshComplianceAlerts(includeResolved: true);
+      }
+      if (mounted) {
+        // Notify providers AFTER fetch — never during a build frame.
+        ref.invalidate(allComplianceAlertsProvider);
+        ref.invalidate(complianceAlertsProvider);
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final allAlerts = ref.watch(allComplianceAlertsProvider);
+    final employees = ref.watch(employeesProvider);
+    final empMap = {for (final e in employees) e.id: e.fullName};
     final cs = Theme.of(context).colorScheme;
 
     final openAlerts = allAlerts.where((a) => a.isOpen).toList();
@@ -48,17 +80,34 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
           _Filter.resolved => resolvedAlerts,
         })..sort((a, b) {
           if (a.severity == ComplianceSeverity.critical &&
-              b.severity != ComplianceSeverity.critical) return -1;
+              b.severity != ComplianceSeverity.critical)
+            return -1;
           if (b.severity == ComplianceSeverity.critical &&
-              a.severity != ComplianceSeverity.critical) return 1;
+              a.severity != ComplianceSeverity.critical)
+            return 1;
           return b.raisedAt.compareTo(a.raisedAt);
         });
 
     return FarmScaffold(
-      appBar: const FarmAppBar(title: 'Compliance'),
+      appBar: FarmAppBar(
+        title: 'Compliance',
+        actions: [
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: Column(
         children: [
-          // ── Status banner ─────────────────────────────────────────────
+          // -- Status banner ---------------------------------------------
           _AlertsBanner(
             openCount: openAlerts.length,
             criticalCount: criticalAlerts.length,
@@ -68,7 +117,7 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
             child: ListView(
               padding: const EdgeInsets.only(bottom: 32),
               children: [
-                // ── Compact stats strip ─────────────────────────────────
+                // -- Compact stats strip ---------------------------------
                 _StatsStrip(
                   openCount: openAlerts.length,
                   criticalCount: criticalAlerts.length,
@@ -78,16 +127,16 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
 
                 const SizedBox(height: AppSpacing.md),
 
-                // ── Compliance sub-modules ──────────────────────────────
+                // -- Compliance sub-modules ------------------------------
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md),
+                    horizontal: AppSpacing.md,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: AppSpacing.xs),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                         child: Text(
                           'Statutory Returns',
                           style: Theme.of(context).textTheme.labelMedium
@@ -110,17 +159,16 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                               icon: Icons.receipt_long_outlined,
                               label: 'PAYE',
                               subtitle: 'Pay As You Earn tax',
-                              color: PayrollTokens.navy,
+                              color: AppColors.primary,
                               isFirst: true,
-                              onTap: () =>
-                                  context.push(AppRoutes.payrollPaye),
+                              onTap: () => context.push(AppRoutes.payrollPaye),
                             ),
                             const Divider(height: 1, indent: 56),
                             _ModuleRow(
                               icon: Icons.people_alt_outlined,
                               label: 'UIF Returns',
                               subtitle: 'Unemployment Insurance Fund',
-                              color: PayrollTokens.teal,
+                              color: AppColors.success,
                               onTap: () =>
                                   context.push(AppRoutes.payrollUifReturns),
                             ),
@@ -129,16 +177,15 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                               icon: Icons.school_outlined,
                               label: 'SDL',
                               subtitle: 'Skills Development Levy',
-                              color: PayrollTokens.indigo,
-                              onTap: () =>
-                                  context.push(AppRoutes.payrollSdl),
+                              color: AppColors.primary,
+                              onTap: () => context.push(AppRoutes.payrollSdl),
                             ),
                             const Divider(height: 1, indent: 56),
                             _ModuleRow(
                               icon: Icons.summarize_outlined,
                               label: 'EMP501 Reconciliation',
                               subtitle: 'Annual employer reconciliation',
-                              color: PayrollTokens.purple,
+                              color: AppColors.secondary,
                               isLast: true,
                               onTap: () =>
                                   context.push(AppRoutes.payrollEmp501),
@@ -152,16 +199,16 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
 
                 const SizedBox(height: AppSpacing.md),
 
-                // ── Filter chips ─────────────────────────────────────────
+                // -- Filter chips -----------------------------------------
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md),
+                    horizontal: AppSpacing.md,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: AppSpacing.xs),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                         child: Text(
                           'Compliance Alerts',
                           style: Theme.of(context).textTheme.labelMedium
@@ -177,10 +224,8 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                         child: Row(
                           children: _Filter.values.map((f) {
                             final label = switch (f) {
-                              _Filter.all =>
-                                'All (${allAlerts.length})',
-                              _Filter.open =>
-                                'Open (${openAlerts.length})',
+                              _Filter.all => 'All (${allAlerts.length})',
+                              _Filter.open => 'Open (${openAlerts.length})',
                               _Filter.critical =>
                                 'Critical (${criticalAlerts.length})',
                               _Filter.resolved =>
@@ -188,12 +233,14 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                             };
                             return Padding(
                               padding: const EdgeInsets.only(
-                                  right: AppSpacing.sm),
+                                right: AppSpacing.sm,
+                              ),
                               child: FilterChip(
                                 label: Text(label),
                                 selected: _filter == f,
-                                onSelected: (_) =>
-                                    setState(() => _filter = f),
+                                onSelected: (_) => setState(() {
+                                  _filter = f;
+                                }),
                               ),
                             );
                           }).toList(),
@@ -205,35 +252,35 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
                       if (filtered.isEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.xl),
+                            vertical: AppSpacing.xl,
+                          ),
                           child: EmptyState(
                             icon: const Icon(
                               Icons.verified_outlined,
                               size: 56,
-                              color: PayrollTokens.green,
+                              color: AppColors.success,
                             ),
                             title: 'No alerts',
                             subtitle:
                                 'No compliance issues found for this filter.',
                           ),
                         )
-                      else
-                        RefreshIndicator(
-                          onRefresh: () async {
-                            ref.invalidate(allComplianceAlertsProvider);
-                            ref.invalidate(complianceAlertsProvider);
-                          },
-                          child: Column(
-                            children: [
-                              for (int i = 0; i < filtered.length; i++) ...[
-                                _AlertCard(alert: filtered[i]),
-                                if (i < filtered.length - 1)
-                                  const SizedBox(
-                                      height: AppSpacing.sm),
-                              ],
-                            ],
+                      else ...[
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: filtered.length,
+                          itemBuilder: (_, i) => Padding(
+                            padding: EdgeInsets.only(
+                              bottom: i < filtered.length - 1
+                                  ? AppSpacing.sm
+                                  : 0,
+                            ),
+                            child: _AlertCard(
+                                alert: filtered[i], empMap: empMap),
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -246,9 +293,9 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Compact stats strip
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 class _StatsStrip extends StatelessWidget {
   const _StatsStrip({
@@ -269,41 +316,41 @@ class _StatsStrip extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
 
     Widget stat(String label, int count, Color color) => Expanded(
-          child: Column(
-            children: [
-              Text(
-                '$count',
-                style: tt.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: count > 0 ? color : cs.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: tt.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  fontSize: 10,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ],
+      child: Column(
+        children: [
+          Text(
+            '$count',
+            style: tt.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: count > 0 ? color : cs.onSurfaceVariant,
+            ),
           ),
-        );
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: tt.labelSmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontSize: 10,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
 
-    Widget divider() => Container(
-          width: 1,
-          height: 28,
-          color: cs.outlineVariant,
-        );
+    Widget divider() =>
+        Container(width: 1, height: 28, color: cs.outlineVariant);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(
-          AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
-      padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.sm + 2),
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        0,
+      ),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(12),
@@ -311,25 +358,30 @@ class _StatsStrip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          stat('Open', openCount,
-              openCount > 0 ? cs.error : PayrollTokens.green),
+          stat('Open', openCount, openCount > 0 ? cs.error : AppColors.success),
           divider(),
-          stat('Critical', criticalCount,
-              criticalCount > 0 ? PayrollTokens.rose : PayrollTokens.green),
+          stat(
+            'Critical',
+            criticalCount,
+            criticalCount > 0 ? AppColors.error : AppColors.success,
+          ),
           divider(),
-          stat('Warnings', warningCount,
-              warningCount > 0 ? PayrollTokens.amber : PayrollTokens.green),
+          stat(
+            'Warnings',
+            warningCount,
+            warningCount > 0 ? AppColors.warning : AppColors.success,
+          ),
           divider(),
-          stat('Resolved', resolvedCount, PayrollTokens.green),
+          stat('Resolved', resolvedCount, AppColors.success),
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Compliance module row
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 class _ModuleRow extends StatelessWidget {
   const _ModuleRow({
@@ -367,7 +419,9 @@ class _ModuleRow extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm + 2,
+          ),
           child: Row(
             children: [
               Container(
@@ -387,19 +441,22 @@ class _ModuleRow extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: tt.bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: tt.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       subtitle,
-                      style: tt.bodySmall
-                          ?.copyWith(color: cs.onSurfaceVariant),
+                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded,
-                  size: 20, color: cs.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: cs.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -408,9 +465,9 @@ class _ModuleRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Alerts count banner
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 class _AlertsBanner extends StatelessWidget {
   const _AlertsBanner({required this.openCount, required this.criticalCount});
@@ -422,10 +479,10 @@ class _AlertsBanner extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final hasOpen = openCount > 0;
     final bg = criticalCount > 0
-        ? PayrollTokens.rose
+        ? AppColors.error
         : hasOpen
-        ? PayrollTokens.amber
-        : PayrollTokens.green;
+        ? AppColors.warning
+        : AppColors.success;
     final icon = criticalCount > 0
         ? Icons.error_rounded
         : hasOpen
@@ -441,7 +498,9 @@ class _AlertsBanner extends StatelessWidget {
       width: double.infinity,
       color: bg,
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: 10),
+        horizontal: AppSpacing.md,
+        vertical: 10,
+      ),
       child: Row(
         children: [
           Icon(icon, color: Colors.white, size: 18),
@@ -478,29 +537,30 @@ class _AlertsBanner extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // Alert card
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
 class _AlertCard extends ConsumerWidget {
-  const _AlertCard({required this.alert});
+  const _AlertCard({required this.alert, required this.empMap});
   final ComplianceAlert alert;
+  final Map<String, String> empMap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final employees = ref.watch(employeesProvider);
-    final empMap = {for (final e in employees) e.id: e.fullName};
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
     final (color, icon) = switch (alert.severity) {
-      ComplianceSeverity.critical =>
-        (PayrollTokens.rose, Icons.error_rounded),
-      ComplianceSeverity.warning =>
-        (PayrollTokens.amber, Icons.warning_amber_rounded),
-      ComplianceSeverity.info =>
-        (PayrollTokens.sky, Icons.info_outline_rounded),
+      ComplianceSeverity.critical => (AppColors.error, Icons.error_rounded),
+      ComplianceSeverity.warning => (AppColors.warning, Icons.warning_amber_rounded),
+      ComplianceSeverity.info => (PayrollTokens.sky, Icons.info_outline_rounded),
     };
+
+    final accentColor = alert.isResolved ? AppColors.success : color;
+    final borderColor =
+        alert.isResolved ? cs.outlineVariant : color.withValues(alpha: 0.5);
+    final borderWidth = alert.isResolved ? 1.0 : 1.5;
 
     return Material(
       color: Colors.transparent,
@@ -509,185 +569,182 @@ class _AlertCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () =>
             context.push(AppRoutes.payrollComplianceAlertDetail(alert.id)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: cs.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: alert.isResolved
-                  ? cs.outlineVariant
-                  : color.withValues(alpha: 0.5),
-              width: alert.isResolved ? 1.0 : 1.5,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor, width: borderWidth),
             ),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Stack(
               children: [
-                // Left accent bar
-                Container(
-                  width: 4,
-                  decoration: BoxDecoration(
-                    color: alert.isResolved
-                        ? PayrollTokens.green
-                        : color,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      bottomLeft: Radius.circular(12),
+                // Left accent bar � Positioned avoids IntrinsicHeight
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 4,
+                    decoration: BoxDecoration(
+                      color: accentColor,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(11),
+                        bottomLeft: Radius.circular(11),
+                      ),
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header: icon + title + severity chip
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              icon,
-                              color: alert.isResolved
-                                  ? cs.onSurfaceVariant
-                                  : color,
-                              size: 18,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    alert.title,
-                                    style: tt.bodyMedium?.copyWith(
-                                      color: alert.isResolved
-                                          ? cs.onSurfaceVariant
-                                          : cs.onSurface,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    alert.code,
-                                    style: tt.labelSmall?.copyWith(
-                                        color: cs.onSurfaceVariant),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            _severityChip(context, tt, alert, color),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-
-                        // Description
-                        Text(
-                          alert.description,
-                          style: tt.bodySmall
-                              ?.copyWith(color: cs.onSurfaceVariant),
-                        ),
-
-                        if (alert.employeeId != null) ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.person_outline,
-                                  size: 13, color: cs.onSurfaceVariant),
-                              const SizedBox(width: 4),
-                              Text(
-                                empMap[alert.employeeId] ??
-                                    alert.employeeId!,
-                                style: tt.labelSmall?.copyWith(
-                                    color: cs.onSurfaceVariant),
-                              ),
-                            ],
+                // Card content � left-padded past the accent bar
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 4 + AppSpacing.md,
+                    right: AppSpacing.md,
+                    top: AppSpacing.md,
+                    bottom: AppSpacing.md,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header row: icon + title + severity chip
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            icon,
+                            color: alert.isResolved ? cs.onSurfaceVariant : color,
+                            size: 18,
                           ),
-                        ],
-
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.schedule,
-                                size: 13, color: cs.onSurfaceVariant),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Raised ${_fmtDate.format(alert.raisedAt)}',
-                              style: tt.labelSmall
-                                  ?.copyWith(color: cs.onSurfaceVariant),
-                            ),
-                            if (alert.isResolved &&
-                                alert.resolvedAt != null) ...[
-                              Text(
-                                '  \u00b7  ',
-                                style: tt.labelSmall?.copyWith(
-                                    color: cs.onSurfaceVariant),
-                              ),
-                              Icon(Icons.check_circle,
-                                  size: 12, color: PayrollTokens.green),
-                              const SizedBox(width: 3),
-                              Text(
-                                'Resolved ${_fmtDate.format(alert.resolvedAt!)}',
-                                style: tt.labelSmall?.copyWith(
-                                    color: PayrollTokens.green),
-                              ),
-                            ],
-                          ],
-                        ),
-
-                        if (alert.isResolved &&
-                            alert.resolution != null) ...[
-                          const SizedBox(height: 6),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: PayrollTokens.green
-                                  .withValues(alpha: 0.07),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sm, vertical: 6),
-                            child: Row(
+                          const SizedBox(width: AppSpacing.xs),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.notes,
-                                    size: 13, color: PayrollTokens.green),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    alert.resolution!,
-                                    style: tt.bodySmall?.copyWith(
-                                        color: PayrollTokens.green),
+                                Text(
+                                  alert.title,
+                                  style: tt.bodyMedium?.copyWith(
+                                    color: alert.isResolved
+                                        ? cs.onSurfaceVariant
+                                        : cs.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  alert.code,
+                                  style: tt.labelSmall?.copyWith(
+                                    color: cs.onSurfaceVariant,
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(width: AppSpacing.xs),
+                          _severityChip(context, tt, alert, color),
                         ],
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
 
-                        if (alert.isOpen) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          Row(
+                      // Description
+                      Text(
+                        alert.description,
+                        style: tt.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+
+                      if (alert.employeeId != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.person_outline,
+                                size: 13, color: cs.onSurfaceVariant),
+                            const SizedBox(width: 4),
+                            Text(
+                              empMap[alert.employeeId] ?? alert.employeeId!,
+                              style: tt.labelSmall
+                                  ?.copyWith(color: cs.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ],
+
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.schedule,
+                              size: 13, color: cs.onSurfaceVariant),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Raised ${_fmtDate.format(alert.raisedAt)}',
+                            style: tt.labelSmall
+                                ?.copyWith(color: cs.onSurfaceVariant),
+                          ),
+                          if (alert.isResolved && alert.resolvedAt != null) ...[
+                            Text(
+                              '  \u00b7  ',
+                              style: tt.labelSmall
+                                  ?.copyWith(color: cs.onSurfaceVariant),
+                            ),
+                            Icon(Icons.check_circle,
+                                size: 12, color: AppColors.success),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Resolved ${_fmtDate.format(alert.resolvedAt!)}',
+                              style: tt.labelSmall
+                                  ?.copyWith(color: AppColors.success),
+                            ),
+                          ],
+                        ],
+                      ),
+
+                      if (alert.isResolved && alert.resolution != null) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.07),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm, vertical: 6),
+                          child: Row(
                             children: [
+                              const Icon(Icons.notes,
+                                  size: 13, color: AppColors.success),
+                              const SizedBox(width: 6),
                               Expanded(
-                                child: OutlinedButton.icon(
-                                  icon: const Icon(
-                                      Icons.check_rounded, size: 15),
-                                  label: const Text('Mark Resolved'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: PayrollTokens.green,
-                                    side: const BorderSide(
-                                        color: PayrollTokens.green),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                  onPressed: () =>
-                                      _showResolveSheet(context, ref),
+                                child: Text(
+                                  alert.resolution!,
+                                  style: tt.bodySmall
+                                      ?.copyWith(color: AppColors.success),
                                 ),
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ],
-                    ),
+
+                      if (alert.isOpen) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                icon: const Icon(Icons.check_rounded, size: 15),
+                                label: const Text('Mark Resolved'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.success,
+                                  side: const BorderSide(
+                                      color: AppColors.success),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                onPressed: () =>
+                                    _showResolveSheet(context, ref),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
@@ -697,6 +754,7 @@ class _AlertCard extends ConsumerWidget {
       ),
     );
   }
+
 
   Widget _severityChip(
     BuildContext context,
@@ -708,13 +766,15 @@ class _AlertCard extends ConsumerWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: PayrollTokens.green.withValues(alpha: 0.12),
+          color: AppColors.success.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           'Resolved',
           style: tt.labelSmall?.copyWith(
-              fontWeight: FontWeight.w700, color: PayrollTokens.green),
+            fontWeight: FontWeight.w700,
+            color: AppColors.success,
+          ),
         ),
       );
     }
@@ -732,7 +792,9 @@ class _AlertCard extends ConsumerWidget {
       child: Text(
         label,
         style: tt.labelSmall?.copyWith(
-            fontWeight: FontWeight.w700, color: color),
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
@@ -762,16 +824,16 @@ class _AlertCard extends ConsumerWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: AppSpacing.md),
                 decoration: BoxDecoration(
-                  color:
-                      Theme.of(ctx).colorScheme.outlineVariant,
+                  color: Theme.of(ctx).colorScheme.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             Text(
               'Resolve Alert',
-              style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700),
+              style: Theme.of(
+                ctx,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
@@ -787,8 +849,7 @@ class _AlertCard extends ConsumerWidget {
               maxLines: 3,
               decoration: const InputDecoration(
                 labelText: 'Resolution notes',
-                hintText:
-                    'Describe what was done to resolve this alert\u2026',
+                hintText: 'Describe what was done to resolve this alert\u2026',
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(),
               ),
@@ -807,7 +868,7 @@ class _AlertCard extends ConsumerWidget {
                   flex: 2,
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(
-                      backgroundColor: PayrollTokens.green,
+                      backgroundColor: AppColors.success,
                     ),
                     onPressed: () async {
                       Navigator.pop(ctx);
@@ -816,8 +877,7 @@ class _AlertCard extends ConsumerWidget {
                           : ctrl.text.trim();
                       ref
                           .read(payrollRepositoryProvider)
-                          .resolveAlert(
-                              alert.id, 'usr_manager', resolution);
+                          .resolveAlert(alert.id, 'usr_manager', resolution);
                       ref.invalidate(allComplianceAlertsProvider);
                       ref.invalidate(complianceAlertsProvider);
                       if (context.mounted) {

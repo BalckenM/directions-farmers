@@ -1,15 +1,20 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/pay_run.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../providers/payroll_providers.dart';
-import '../../theme/payroll_tokens.dart';
-import '../../widgets/payroll_widgets.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/models/pay_group.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 final _zar = NumberFormat.currency(
@@ -35,6 +40,7 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
   late DateTime _periodStart;
   late DateTime _periodEnd;
   PayRun? _calculatedRun;
+  bool _isCalculating = false;
 
   @override
   void initState() {
@@ -46,6 +52,25 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch shared providers here in the stateful parent so that children
+    // (_StepSelectPeriod, _StepPreReport) never trigger a first-subscription
+    // flush mid-build, which causes the setState-during-build crash.
+    final allEmployees = ref.watch(activeEmployeesProvider);
+    final allAlerts = ref
+        .watch(complianceAlertsProvider)
+        .where((a) => a.isOpen)
+        .toList();
+    final payGroups = ref.watch(activePayGroupsProvider);
+    final pgEmployees = _selectedPayGroupId != null
+        ? allEmployees
+              .where((e) => e.payGroupId == _selectedPayGroupId)
+              .toList()
+        : <PayrollEmployee>[];
+    final pgAlerts = pgEmployees.isEmpty
+        ? <ComplianceAlert>[]
+        : allAlerts
+              .where((a) => pgEmployees.any((e) => e.id == a.employeeId))
+              .toList();
     return FarmScaffold(
       appBar: FarmAppBar(
         title: 'Run Payroll',
@@ -70,9 +95,11 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
               child: switch (_step) {
                 0 => _StepSelectPeriod(
                   key: const ValueKey(0),
+                  payGroups: payGroups,
                   payGroupId: _selectedPayGroupId,
                   periodStart: _periodStart,
                   periodEnd: _periodEnd,
+                  employees: allEmployees,
                   onPayGroupChanged: (v) =>
                       setState(() => _selectedPayGroupId = v),
                   onPeriodStartChanged: (d) => setState(() => _periodStart = d),
@@ -81,11 +108,13 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
                 ),
                 1 => _StepPreReport(
                   key: const ValueKey(1),
-                  payGroupId: _selectedPayGroupId!,
+                  employees: pgEmployees,
+                  empAlerts: pgAlerts,
                   periodStart: _periodStart,
                   periodEnd: _periodEnd,
                   onBack: () => setState(() => _step = 0),
                   onCalculate: _runCalculation,
+                  isCalculating: _isCalculating,
                 ),
                 2 => _StepReviewCalculation(
                   key: const ValueKey(2),
@@ -117,24 +146,31 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
   }
 
   Future<void> _runCalculation() async {
-    final run = await ref
-        .read(payRunNotifierProvider.notifier)
-        .calculatePayRun(
-          payGroupId: _selectedPayGroupId!,
-          periodStart: _periodStart,
-          periodEnd: _periodEnd,
+    if (_isCalculating) return; // prevent duplicate taps
+    setState(() => _isCalculating = true);
+    try {
+      final run = await ref
+          .read(payRunNotifierProvider.notifier)
+          .calculatePayRun(
+            payGroupId: _selectedPayGroupId!,
+            periodStart: _periodStart,
+            periodEnd: _periodEnd,
+            payDate: _periodEnd,
+          );
+      if (!mounted) return;
+      if (run == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Calculation failed — check inputs.')),
         );
-    if (!mounted) return;
-    if (run == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Calculation failed — check inputs.')),
-      );
-      return;
+        return;
+      }
+      setState(() {
+        _calculatedRun = run;
+        _step = 2;
+      });
+    } finally {
+      if (mounted) setState(() => _isCalculating = false);
     }
-    setState(() {
-      _calculatedRun = run;
-      _step = 2;
-    });
   }
 
   Future<void> _approveRun() async {
@@ -175,7 +211,7 @@ class _StepIndicator extends StatelessWidget {
               child: Container(
                 height: 2,
                 color: i ~/ 2 < currentStep
-                    ? PayrollTokens.navy
+                    ? AppColors.primary
                     : cs.outlineVariant,
               ),
             );
@@ -189,7 +225,7 @@ class _StepIndicator extends StatelessWidget {
               CircleAvatar(
                 radius: 14,
                 backgroundColor: done || active
-                    ? PayrollTokens.navy
+                    ? AppColors.primary
                     : cs.outlineVariant,
                 child: done
                     ? const Icon(Icons.check, size: 14, color: Colors.white)
@@ -206,9 +242,11 @@ class _StepIndicator extends StatelessWidget {
               Text(
                 _labels[step],
                 style: tt.labelSmall?.copyWith(
-                  color: active ? PayrollTokens.navy : cs.onSurfaceVariant,
+                  color: active ? AppColors.primary : cs.onSurfaceVariant,
                   fontWeight: active ? FontWeight.bold : FontWeight.normal,
                 ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ],
           );
@@ -219,28 +257,31 @@ class _StepIndicator extends StatelessWidget {
 }
 
 // ─── Step 0: Select Period ────────────────────────────────────────────────────
-class _StepSelectPeriod extends ConsumerWidget {
+class _StepSelectPeriod extends StatelessWidget {
   const _StepSelectPeriod({
     super.key,
+    required this.payGroups,
     required this.payGroupId,
     required this.periodStart,
     required this.periodEnd,
+    required this.employees,
     required this.onPayGroupChanged,
     required this.onPeriodStartChanged,
     required this.onPeriodEndChanged,
     required this.onNext,
   });
+  final List<PayGroup> payGroups;
   final String? payGroupId;
   final DateTime periodStart;
   final DateTime periodEnd;
+  final List<PayrollEmployee> employees;
   final ValueChanged<String?> onPayGroupChanged;
   final ValueChanged<DateTime> onPeriodStartChanged;
   final ValueChanged<DateTime> onPeriodEndChanged;
   final VoidCallback onNext;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final payGroups = ref.watch(activePayGroupsProvider);
+  Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
     return SingleChildScrollView(
@@ -263,7 +304,12 @@ class _StepSelectPeriod extends ConsumerWidget {
               border: OutlineInputBorder(),
             ),
             items: payGroups
-                .map((g) => DropdownMenuItem(value: g.id, child: Text(g.name)))
+                .map(
+                  (g) => DropdownMenuItem<String>(
+                    value: g.id,
+                    child: Text(g.name),
+                  ),
+                )
                 .toList(),
             onChanged: onPayGroupChanged,
           ),
@@ -282,7 +328,9 @@ class _StepSelectPeriod extends ConsumerWidget {
           if (payGroupId != null) ...[
             const SizedBox(height: 24),
             _EmployeeCountCard(
-              payGroupId: payGroupId!,
+              employeeCount: employees
+                  .where((e) => e.payGroupId == payGroupId)
+                  .length,
               periodStart: periodStart,
               periodEnd: periodEnd,
             ),
@@ -337,44 +385,40 @@ class _DateRow extends StatelessWidget {
   }
 }
 
-class _EmployeeCountCard extends ConsumerWidget {
+class _EmployeeCountCard extends StatelessWidget {
   const _EmployeeCountCard({
-    required this.payGroupId,
+    required this.employeeCount,
     required this.periodStart,
     required this.periodEnd,
   });
-  final String payGroupId;
+  final int employeeCount;
   final DateTime periodStart;
   final DateTime periodEnd;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final employees = ref
-        .watch(activeEmployeesProvider)
-        .where((e) => e.payGroupId == payGroupId)
-        .toList();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: PayrollTokens.green.withValues(alpha: 0.08),
+        color: AppColors.success.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PayrollTokens.green.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(Icons.people_outline_rounded, color: PayrollTokens.green),
+          Icon(Icons.people_outline_rounded, color: AppColors.success),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${employees.length} employee${employees.length == 1 ? '' : 's'}',
+                '$employeeCount employee${employeeCount == 1 ? '' : 's'}',
                 style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               Text(
-                '${_df.format(periodStart)} \u2013 ${_df.format(periodEnd)}',
+                '${_df.format(periodStart)} – ${_df.format(periodEnd)}',
                 style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
               ),
             ],
@@ -386,35 +430,46 @@ class _EmployeeCountCard extends ConsumerWidget {
 }
 
 // ─── Step 1: Pre-payroll Report ───────────────────────────────────────────────
-class _StepPreReport extends ConsumerWidget {
+class _StepPreReport extends StatefulWidget {
   const _StepPreReport({
     super.key,
-    required this.payGroupId,
+    required this.employees,
+    required this.empAlerts,
     required this.periodStart,
     required this.periodEnd,
     required this.onBack,
     required this.onCalculate,
+    required this.isCalculating,
   });
-  final String payGroupId;
+  final List<PayrollEmployee> employees;
+  final List<ComplianceAlert> empAlerts;
   final DateTime periodStart;
   final DateTime periodEnd;
   final VoidCallback onBack;
   final VoidCallback onCalculate;
+  final bool isCalculating;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<_StepPreReport> createState() => _StepPreReportState();
+}
+
+class _StepPreReportState extends State<_StepPreReport> {
+  bool _showEmployeeList = false;
+
+  @override
+  Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final employees = ref
-        .watch(activeEmployeesProvider)
-        .where((e) => e.payGroupId == payGroupId)
+
+    // Group alerts by severity
+    final criticalAlerts = widget.empAlerts
+        .where((a) => a.severity == ComplianceSeverity.critical)
         .toList();
-    final allAlerts = ref
-        .watch(complianceAlertsProvider)
-        .where((a) => a.isOpen)
+    final warningAlerts = widget.empAlerts
+        .where((a) => a.severity == ComplianceSeverity.warning)
         .toList();
-    final empAlerts = allAlerts
-        .where((a) => employees.any((e) => e.id == a.employeeId))
+    final infoAlerts = widget.empAlerts
+        .where((a) => a.severity == ComplianceSeverity.info)
         .toList();
 
     return SingleChildScrollView(
@@ -423,124 +478,216 @@ class _StepPreReport extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Pre-Payroll Report', style: tt.titleLarge),
+          const SizedBox(height: 4),
           Text(
-            '${_mf.format(periodStart)} \u00b7 ${employees.length} employees',
+            '${_mf.format(widget.periodStart)} \u2022 ${widget.employees.length} employees',
             style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
-          const SizedBox(height: 16),
-          if (empAlerts.isNotEmpty) ...[
+          const SizedBox(height: 20),
+
+          // ── Compliance Alerts Summary ──
+          if (widget.empAlerts.isNotEmpty) ...[
             Container(
               decoration: BoxDecoration(
-                color: PayrollTokens.amber.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: PayrollTokens.amber.withValues(alpha: 0.4),
-                ),
+                color: cs.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: cs.outlineVariant),
               ),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: PayrollTokens.amber,
-                      ),
+                      Icon(Icons.warning_amber_rounded,
+                          color: AppColors.warning, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        '${empAlerts.length} open compliance alert(s)',
-                        style: tt.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: PayrollTokens.amber,
+                        'Compliance Alerts',
+                        style: tt.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () =>
+                            context.push(AppRoutes.payrollCompliance),
+                        icon: const Icon(Icons.open_in_new, size: 14),
+                        label: const Text('View All'),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          textStyle: tt.labelSmall,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  for (final a in empAlerts)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Row(
-                        children: [
-                          Text(
-                            '\u2022',
-                            style: TextStyle(
-                              color: PayrollTokens.complianceSeverityColor(
-                                a.severity,
-                              ),
-                              fontSize: 14,
-                              height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(a.title, style: tt.bodySmall)),
-                        ],
-                      ),
+                  const SizedBox(height: 12),
+                  // Alert counts by severity
+                  if (criticalAlerts.isNotEmpty)
+                    _AlertCountRow(
+                      label: 'Critical',
+                      count: criticalAlerts.length,
+                      color: cs.error,
+                    ),
+                  if (warningAlerts.isNotEmpty)
+                    _AlertCountRow(
+                      label: 'Warning',
+                      count: warningAlerts.length,
+                      color: AppColors.warning,
+                    ),
+                  if (infoAlerts.isNotEmpty)
+                    _AlertCountRow(
+                      label: 'Info',
+                      count: infoAlerts.length,
+                      color: cs.primary,
                     ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-          ],
-          Text('Employees in this pay run:', style: tt.titleSmall),
-          const SizedBox(height: 8),
-          ...employees.map((e) {
-            final alerts = empAlerts
-                .where((a) => a.employeeId == e.id)
-                .toList();
-            final initials =
-                '${e.firstName.isNotEmpty ? e.firstName[0] : ''}'
-                        '${e.lastName.isNotEmpty ? e.lastName[0] : ''}'
-                    .toUpperCase();
-            return Card(
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: PayrollTokens.navy.withValues(alpha: 0.1),
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      color: PayrollTokens.navy,
-                      fontWeight: FontWeight.bold,
+          ] else ...[
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.success.withAlpha(15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.success.withAlpha(60)),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_rounded,
+                      color: AppColors.success, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'No compliance alerts',
+                    style: tt.bodyMedium?.copyWith(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-                title: Text('${e.firstName} ${e.lastName}'),
-                subtitle: Text(e.occupationTitle),
-                trailing: alerts.isNotEmpty
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: PayrollTokens.amber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(99),
-                          border: Border.all(
-                            color: PayrollTokens.amber.withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: Text(
-                          '${alerts.length} alert',
-                          style: tt.labelSmall?.copyWith(
-                            color: PayrollTokens.amber,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                    : Icon(
-                        Icons.check_circle_outline_rounded,
-                        color: PayrollTokens.green,
-                      ),
+                ],
               ),
-            );
-          }),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // ── Employees Summary ──
+          Container(
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: cs.outlineVariant),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.people_outline, color: cs.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${widget.employees.length} Employees',
+                      style: tt.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () => setState(
+                          () => _showEmployeeList = !_showEmployeeList),
+                      icon: Icon(
+                        _showEmployeeList
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        size: 16,
+                      ),
+                      label: Text(_showEmployeeList ? 'Hide' : 'View List'),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        textStyle: tt.labelSmall,
+                      ),
+                    ),
+                  ],
+                ),
+                if (_showEmployeeList) ...[
+                  const SizedBox(height: 8),
+                  const Divider(height: 1),
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: widget.employees.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final e = widget.employees[i];
+                        final initials =
+                            '${e.firstName.isNotEmpty ? e.firstName[0] : ''}'
+                                    '${e.lastName.isNotEmpty ? e.lastName[0] : ''}'
+                                .toUpperCase();
+                        final alertCount = widget.empAlerts
+                            .where((a) => a.employeeId == e.id)
+                            .length;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              AvatarWidget(
+                                imageUrl: e.profileImageUrl,
+                                initials: initials,
+                                radius: 16,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  '${e.firstName} ${e.lastName}',
+                                  style: tt.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (alertCount > 0)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warning.withAlpha(25),
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: Text(
+                                    '$alertCount',
+                                    style: tt.labelSmall?.copyWith(
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Icon(Icons.check_circle_outline,
+                                    size: 14, color: AppColors.success),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
           const SizedBox(height: 24),
+          // ── Navigation Buttons ──
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: onBack,
+                  onPressed: widget.onBack,
                   icon: const Icon(Icons.arrow_back),
                   label: const Text('Back'),
                 ),
@@ -549,12 +696,71 @@ class _StepPreReport extends ConsumerWidget {
               Expanded(
                 flex: 2,
                 child: FilledButton.icon(
-                  onPressed: onCalculate,
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('Calculate Payroll'),
+                  onPressed:
+                      widget.isCalculating ? null : widget.onCalculate,
+                  icon: widget.isCalculating
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.calculate),
+                  label: Text(
+                    widget.isCalculating
+                        ? 'Calculating\u2026'
+                        : 'Calculate Payroll',
+                  ),
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AlertCountRow extends StatelessWidget {
+  const _AlertCountRow({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+  final String label;
+  final int count;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(label, style: tt.bodySmall),
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text(
+              '$count',
+              style: tt.labelSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -603,21 +809,21 @@ class _StepReviewCalculation extends ConsumerWidget {
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: PayrollTokens.rose.withValues(alpha: 0.06),
+                color: AppColors.error.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: PayrollTokens.rose.withValues(alpha: 0.4),
+                  color: AppColors.error.withValues(alpha: 0.4),
                 ),
               ),
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline_rounded, color: PayrollTokens.rose),
+                  Icon(Icons.error_outline_rounded, color: AppColors.error),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '${payRun.complianceAlertIds.length} compliance alert(s) raised. Review before approving.',
-                      style: tt.bodySmall?.copyWith(color: PayrollTokens.rose),
+                      style: tt.bodySmall?.copyWith(color: AppColors.error),
                     ),
                   ),
                 ],
@@ -638,12 +844,10 @@ class _StepReviewCalculation extends ConsumerWidget {
                     .toUpperCase();
             return Card(
               child: ExpansionTile(
-                leading: CircleAvatar(
-                  backgroundColor: PayrollTokens.navy.withValues(alpha: 0.1),
-                  child: Text(
-                    initials,
-                    style: const TextStyle(color: PayrollTokens.navy),
-                  ),
+                leading: AvatarWidget(
+                  imageUrl: emp.profileImageUrl,
+                  initials: initials,
+                  radius: 20,
                 ),
                 title: Text('${emp.firstName} ${emp.lastName}'),
                 subtitle: Text(_zar.format(ps.netPay)),
@@ -699,7 +903,7 @@ class _StepReviewCalculation extends ConsumerWidget {
                 flex: 2,
                 child: FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: PayrollTokens.green,
+                    backgroundColor: AppColors.success,
                   ),
                   onPressed: isLoading ? null : onApprove,
                   icon: isLoading
@@ -754,10 +958,10 @@ class _StepDisbursementState extends ConsumerState<_StepDisbursement> {
               width: 96,
               height: 96,
               decoration: BoxDecoration(
-                color: PayrollTokens.green.withValues(alpha: 0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: PayrollTokens.green.withValues(alpha: 0.3),
+                  color: AppColors.success.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -766,7 +970,7 @@ class _StepDisbursementState extends ConsumerState<_StepDisbursement> {
                     ? Icons.check_circle_rounded
                     : Icons.task_alt_rounded,
                 size: 52,
-                color: PayrollTokens.green,
+                color: AppColors.success,
               ),
             ),
           ),
@@ -793,7 +997,7 @@ class _StepDisbursementState extends ConsumerState<_StepDisbursement> {
               width: double.infinity,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: PayrollTokens.teal,
+                  backgroundColor: AppColors.success,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: isLoading
@@ -811,7 +1015,7 @@ class _StepDisbursementState extends ConsumerState<_StepDisbursement> {
                             content: const Text(
                               'Pay run disbursed \u2014 payments initiated.',
                             ),
-                            backgroundColor: PayrollTokens.green,
+                            backgroundColor: AppColors.success,
                           ),
                         );
                       },
@@ -902,7 +1106,7 @@ class _TotalsSection extends StatelessWidget {
     return PrSectionCard(
       title: 'Payroll Summary',
       icon: Icons.summarize_outlined,
-      iconColor: PayrollTokens.navy,
+      iconColor: AppColors.primary,
       children: [
         _LineRow('Total Gross', payRun.totalGross),
         _LineRow('Total Deductions', -payRun.totalDeductions, isRed: true),
@@ -933,9 +1137,9 @@ class _LineRow extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
     final color = isRed
-        ? PayrollTokens.rose
+        ? AppColors.error
         : isGreen
-        ? PayrollTokens.green
+        ? AppColors.success
         : null;
     final style =
         (bold

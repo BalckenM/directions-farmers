@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_app/core/router/app_routes.dart';
@@ -6,13 +6,13 @@ import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:mobile_app/core/theme/app_spacing.dart';
 import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
-import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
 import 'package:mobile_app/shared/widgets/empty_state.dart';
 import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
 import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 import 'package:mobile_app/shared/widgets/farm_text_field.dart';
 import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
-import 'package:mobile_app/shared/widgets/status_chip.dart';
+import 'package:mobile_app/shared/widgets/payroll/payroll_widgets.dart';
 
 class EmployeeListScreen extends ConsumerStatefulWidget {
   const EmployeeListScreen({super.key});
@@ -138,17 +138,21 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
       return CustomScrollView(slivers: slivers);
     }
 
-    Widget buildFlatList() => ListView.separated(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.xs,
-        AppSpacing.md,
-        100,
-      ),
-      itemCount: filtered.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, i) => _EmployeeTile(employee: filtered[i]),
-    );
+    Widget buildFlatList() {
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.xs,
+          AppSpacing.md,
+          100,
+        ),
+        itemCount: filtered.length,
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+        itemBuilder: (context, i) {
+          return _EmployeeTile(employee: filtered[i]);
+        },
+      );
+    }
 
     return FarmScaffold(
       appBar: const FarmAppBar(title: 'Employees'),
@@ -157,7 +161,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
         onPressed: () => context.push(AppRoutes.payrollAddEmployee),
         icon: const Icon(Icons.person_add_rounded),
         label: const Text('Add Employee'),
-        backgroundColor: PayrollTokens.navy,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Column(
@@ -191,7 +195,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                 _EngagementFilterChip(
                   label: 'All',
                   selected: _filter == null,
-                  color: PayrollTokens.navy,
+                  color: AppColors.primary,
                   onTap: () => setState(() => _filter = null),
                 ),
                 for (final t in EngagementType.values) ...[
@@ -233,7 +237,7 @@ class _EmployeeListScreenState extends ConsumerState<EmployeeListScreen> {
                     icon: const Icon(
                       Icons.people_outline_rounded,
                       size: 56,
-                      color: PayrollTokens.navy,
+                      color: AppColors.primary,
                     ),
                     title: _search.isNotEmpty
                         ? 'No results for "$_search"'
@@ -268,10 +272,10 @@ Color _statusColor(EmploymentStatus s) => switch (s) {
 };
 
 Color _engagementAccentColor(EngagementType t) => switch (t) {
-  EngagementType.permanent => PayrollTokens.navy,
-  EngagementType.seasonal => PayrollTokens.seasonal,
-  EngagementType.casual => PayrollTokens.casual,
-  EngagementType.contractor => PayrollTokens.indigo,
+  EngagementType.permanent => AppColors.primary,
+  EngagementType.seasonal => AppColors.secondary,
+  EngagementType.casual => AppColors.warning,
+  EngagementType.contractor => AppColors.success,
 };
 
 // ─── Group header ─────────────────────────────────────────────────────────────
@@ -396,108 +400,73 @@ class _EmployeeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final initial = employee.firstName.isNotEmpty
-        ? employee.firstName[0].toUpperCase()
-        : '?';
-    final accentColor = _engagementAccentColor(employee.engagementType);
+    final initials =
+        '${employee.firstName.isNotEmpty ? employee.firstName[0] : ''}${employee.lastName.isNotEmpty ? employee.lastName[0] : ''}'
+            .toUpperCase();
 
     return Material(
       color: cs.surface,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(8),
         onTap: () => context.push(AppRoutes.payrollEmployeeDetail(employee.id)),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border(
-              left: BorderSide(color: accentColor, width: 4),
-              top: BorderSide(color: cs.outlineVariant),
-              right: BorderSide(color: cs.outlineVariant),
-              bottom: BorderSide(color: cs.outlineVariant),
-            ),
-          ),
+        child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
-            vertical: 14,
+            vertical: 10,
           ),
           child: Row(
             children: [
-              // Avatar
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: accentColor.withValues(alpha: 0.15),
-                child: Text(
-                  initial,
-                  style: TextStyle(
-                    color: accentColor,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                  ),
-                ),
+              // Avatar with profile image
+              AvatarWidget(
+                imageUrl: employee.profileImageUrl,
+                initials: initials,
+                radius: 20,
               ),
-              const SizedBox(width: AppSpacing.md),
-              // Name + role + phone
+              const SizedBox(width: 12),
+              // Name + role
               Expanded(
+                flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       employee.fullName,
-                      style: tt.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      style: tt.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: cs.onSurface,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      employee.occupationTitle,
-                      style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                    ),
-                    if (employee.phone != null &&
-                        employee.phone!.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.phone_outlined,
-                            size: 11,
-                            color: cs.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            employee.phone!,
-                            style: tt.labelSmall?.copyWith(
-                              color: cs.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                    if (employee.occupationTitle.isNotEmpty)
+                      Text(
+                        employee.occupationTitle,
+                        style: tt.labelSmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              // Trailing: status + chevron
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  StatusChip(
-                    label: employee.status == EmploymentStatus.active
-                        ? 'Active'
-                        : employee.status.name,
-                    color: _statusColor(employee.status),
-                    small: true,
-                  ),
-                  const SizedBox(height: 6),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 18,
-                    color: cs.outlineVariant,
-                  ),
-                ],
+              const SizedBox(width: 8),
+              // Status pill
+              PrStatusPill(
+                label: employee.status == EmploymentStatus.active
+                    ? 'Active'
+                    : employee.status.name,
+                foreground: _statusColor(employee.status),
+                background: _statusColor(employee.status).withAlpha(20),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 16,
+                color: cs.outlineVariant,
               ),
             ],
           ),
@@ -531,7 +500,7 @@ class _EmployeeContextStrip extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      color: PayrollTokens.navy.withValues(alpha: 0.06),
+      color: AppColors.primary.withValues(alpha: 0.06),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
@@ -543,31 +512,31 @@ class _EmployeeContextStrip extends StatelessWidget {
             _StripStat(
               label: 'Total',
               value: '${employees.length}',
-              color: PayrollTokens.navy,
+              color: AppColors.primary,
             ),
             _StripDivider(),
             _StripStat(
               label: 'Active',
               value: '$active',
-              color: PayrollTokens.green,
+              color: AppColors.success,
             ),
             _StripDivider(),
             _StripStat(
               label: 'Permanent',
               value: '$permanent',
-              color: PayrollTokens.permanent,
+              color: AppColors.primary,
             ),
             _StripDivider(),
             _StripStat(
               label: 'Seasonal',
               value: '$seasonal',
-              color: PayrollTokens.seasonal,
+              color: AppColors.secondary,
             ),
             _StripDivider(),
             _StripStat(
               label: 'Casual',
               value: '$casual',
-              color: PayrollTokens.casual,
+              color: AppColors.warning,
             ),
           ],
         ),

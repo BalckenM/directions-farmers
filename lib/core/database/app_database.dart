@@ -2,6 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:mobile_app/core/database/connection.dart'
     if (dart.library.io) 'connection_native.dart'
     if (dart.library.html) 'connection_web.dart';
+import 'package:mobile_app/features/payroll/data/payroll_tables.dart';
+
+export 'package:mobile_app/features/payroll/data/payroll_tables.dart';
 
 part 'app_database.g.dart';
 
@@ -35,7 +38,19 @@ class PendingSyncs extends Table {
 
 // ── Database ──────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [PendingSyncs])
+@DriftDatabase(
+  tables: [
+    PendingSyncs,
+    CachedPayrollEmployees,
+    CachedPayRuns,
+    CachedPayslips,
+    CachedLeaveRequests,
+    CachedLeaveBalances,
+    CachedAttendanceRecords,
+    CachedComplianceAlerts,
+    CachedPayGroups,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
     : super(executor ?? openDatabaseConnection());
@@ -44,7 +59,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   // ── PendingSyncs helpers ────────────────────────────────────────────────────
 
