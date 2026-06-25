@@ -1,26 +1,29 @@
 /// Compile-time environment configuration driven by `--dart-define`.
 ///
-/// Usage (local development — Flutter web on port 8080):
-///   flutter run -d chrome --web-port=8080 --dart-define=APP_ENV=dev \
-///               --dart-define=API_BASE_URL=http://localhost:3000/v1
+/// Port layout (local dev):
+///   Backend  →  http://127.0.0.1:3001  (Node.js / Express, path /api/v1)
+///   Flutter web dev server  →  http://localhost:8080
 ///
-/// Usage (production build — done automatically by apphosting.yaml):
+/// Run commands:
+///   flutter run -d chrome          (uses .vscode/launch.json — port 8080)
+///   flutter run -d <android-id>    (uses 10.0.2.2:3001 emulator loopback)
+///
+/// Production build (apphosting.yaml):
 ///   flutter build web --release \
 ///               --dart-define=APP_ENV=production \
-///               --dart-define=API_BASE_URL=https://backendfarmers--directions-payroll.us-east4.hosted.app/v1 \
+///               --dart-define=API_BASE_URL=https://backendfarmers--directions-payroll.us-east4.hosted.app/api/v1 \
 ///               --dart-define=FIREBASE_ENABLED=true
 class AppEnvironment {
   AppEnvironment._();
 
   static const env = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
 
-  /// Base URL for the REST API (includes /v1 prefix).
-  /// Defaults to the production backend. Override for local dev with
-  /// `--dart-define=API_BASE_URL=http://localhost:3000/v1`.
+  /// Base URL for the REST API (includes /api/v1 prefix).
+  /// Backend: 127.0.0.1:3001, base path /api/v1.
+  /// Android emulator override: --dart-define=API_BASE_URL=http://10.0.2.2:3001/api/v1
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue:
-        'https://backendfarmers--directions-payroll.us-east4.hosted.app/v1',
+    defaultValue: 'http://127.0.0.1:3001/api/v1',
   );
 
   static const firebaseEnabled = bool.fromEnvironment(

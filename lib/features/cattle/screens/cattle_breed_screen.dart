@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/cattle_animal.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 // ── Sort enum ─────────────────────────────────────────────────────────────────
 
@@ -186,7 +186,7 @@ class _CattleBreedScreenState extends ConsumerState<CattleBreedScreen> {
                           100,
                         ),
                         itemCount: sorted.length,
-                        separatorBuilder: (_, __) =>
+                        separatorBuilder: (_, _) =>
                             const SizedBox(height: AppSpacing.xs),
                         itemBuilder: (_, i) =>
                             _AnimalCard(animal: sorted[i]),

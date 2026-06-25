@@ -142,8 +142,8 @@ class CropIllustration extends StatelessWidget {
             height: size,
             fit: BoxFit.cover,
             fadeInDuration: const Duration(milliseconds: 200),
-            placeholder: (_, __) => _Fallback(size: size, bg: bg, type: type),
-            errorWidget:  (_, __, ___) => _Fallback(size: size, bg: bg, type: type),
+            placeholder: (_, _) => _Fallback(size: size, bg: bg, type: type),
+            errorWidget:  (_, _, _) => _Fallback(size: size, bg: bg, type: type),
           ),
         ),
         if (showLabel) ...[

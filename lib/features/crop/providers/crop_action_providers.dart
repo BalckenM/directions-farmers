@@ -1,16 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/crop_repository.dart';
-import '../models/calendar_event.dart';
-import '../models/crop_expense.dart';
-import '../models/crop_field.dart';
-import '../models/crop_sale.dart';
-import '../models/crop_season.dart';
-import '../models/crop_task.dart';
-import '../models/harvest_record.dart';
-import '../models/pest_observation.dart';
-import '../models/planting_plan.dart';
-import '../models/spray_record.dart';
-import 'crop_providers.dart';
+import 'package:mobile_app/features/crop/data/crop_repository.dart';
+import 'package:mobile_app/features/crop/models/calendar_event.dart';
+import 'package:mobile_app/features/crop/models/crop_expense.dart';
+import 'package:mobile_app/features/crop/models/crop_field.dart';
+import 'package:mobile_app/features/crop/models/crop_sale.dart';
+import 'package:mobile_app/features/crop/models/crop_season.dart';
+import 'package:mobile_app/features/crop/models/crop_task.dart';
+import 'package:mobile_app/features/crop/models/harvest_record.dart';
+import 'package:mobile_app/features/crop/models/pest_observation.dart';
+import 'package:mobile_app/features/crop/models/planting_plan.dart';
+import 'package:mobile_app/features/crop/models/spray_record.dart';
+import 'package:mobile_app/features/crop/providers/crop_providers.dart';
 
 class CropActionNotifier extends Notifier<AsyncValue<void>> {
   @override

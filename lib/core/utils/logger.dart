@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 // Conditional import: web gets a no-op stub; native gets real dart:io file I/O.
-import 'logger_file_stub.dart'
+import 'package:mobile_app/core/utils/logger_file_stub.dart'
     if (dart.library.io) 'logger_file_io.dart';
 
 /// Log severity levels.

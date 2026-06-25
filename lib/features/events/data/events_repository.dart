@@ -1,9 +1,9 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/breeding_event.dart';
-import '../models/health_event.dart';
-import '../models/weight_record.dart';
-import 'events_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/events/models/breeding_event.dart';
+import 'package:mobile_app/features/events/models/health_event.dart';
+import 'package:mobile_app/features/events/models/weight_record.dart';
+import 'package:mobile_app/features/events/data/events_data_source.dart';
 
 class EventsRepository {
   EventsRepository(this._source);

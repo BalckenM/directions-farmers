@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// A compact label chip for displaying status values (health, breeding,
 /// production, etc.). Pass a [color] to drive the tonal fill automatically.

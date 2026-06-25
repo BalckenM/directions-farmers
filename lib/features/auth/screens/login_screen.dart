@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/social_auth_buttons.dart';
-import '../data/social_auth_service.dart';
-import '../models/auth_state.dart';
-import '../providers/auth_provider.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/social_auth_buttons.dart';
+import 'package:mobile_app/features/auth/data/social_auth_service.dart';
+import 'package:mobile_app/features/auth/models/auth_state.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

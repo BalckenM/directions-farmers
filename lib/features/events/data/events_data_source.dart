@@ -1,6 +1,6 @@
-import '../models/breeding_event.dart';
-import '../models/health_event.dart';
-import '../models/weight_record.dart';
+import 'package:mobile_app/features/events/models/breeding_event.dart';
+import 'package:mobile_app/features/events/models/health_event.dart';
+import 'package:mobile_app/features/events/models/weight_record.dart';
 
 /// Contract that all events data sources must fulfil.
 abstract class EventsDataSource {

@@ -4,6 +4,7 @@
 /// DailyMilkRecord, CattleHealthEvent, CattleMedicationLog, CattleVaccination,
 /// CattleSaleRecord, CattleFeedRecord, PastureRecord, BodyConditionRecord,
 /// DippingRecord.
+library;
 
 // ── Weight record ─────────────────────────────────────────────────────────────
 

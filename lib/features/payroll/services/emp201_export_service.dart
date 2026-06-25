@@ -1,8 +1,8 @@
 import 'package:intl/intl.dart';
 
-import '../models/employer_config.dart';
-import '../models/pay_run.dart';
-import '../models/payslip.dart';
+import 'package:mobile_app/features/payroll/models/employer_config.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
 
 /// Service producing EMP201 monthly employer declarations as structured
 /// data (not PDF). PDF rendering is handled by `Irp5Generator.generateEmp201`.

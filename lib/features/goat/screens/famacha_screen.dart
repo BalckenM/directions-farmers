@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../models/goat_animal.dart';
-import '../models/goat_records.dart';
-import '../providers/goat_providers.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/features/goat/models/goat_animal.dart';
+import 'package:mobile_app/features/goat/models/goat_records.dart';
+import 'package:mobile_app/features/goat/providers/goat_providers.dart';
 
 class GoatFamachaScreen extends ConsumerStatefulWidget {
   const GoatFamachaScreen({super.key});
@@ -111,7 +111,7 @@ class _GoatFamachaScreenState extends ConsumerState<GoatFamachaScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedAnimalId,
+                initialValue: _selectedAnimalId,
                 decoration: const InputDecoration(
                   labelText: 'Animal',
                   border: OutlineInputBorder(),
@@ -182,7 +182,7 @@ class _GoatFamachaScreenState extends ConsumerState<GoatFamachaScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _action,
+                initialValue: _action,
                 decoration: const InputDecoration(
                   labelText: 'Action taken',
                   border: OutlineInputBorder(),

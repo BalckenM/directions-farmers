@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/cattle_animal.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class AddCalfScreen extends ConsumerStatefulWidget {
   const AddCalfScreen({super.key, required this.damId});
@@ -104,7 +104,7 @@ class _AddCalfScreenState extends ConsumerState<AddCalfScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: _sex,
+                  initialValue: _sex,
                   decoration: const InputDecoration(
                     labelText: 'Sex *',
                     prefixIcon: Icon(Icons.wc_rounded),

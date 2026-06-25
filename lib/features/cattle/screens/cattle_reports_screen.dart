@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class CattleReportsScreen extends ConsumerStatefulWidget {
   const CattleReportsScreen({super.key});
@@ -46,7 +46,9 @@ class _CattleReportsScreenState
       final d = DateTime.parse(dateStr);
       if (_from != null && d.isBefore(_from!)) return false;
       if (_to != null &&
-          d.isAfter(_to!.add(const Duration(days: 1)))) return false;
+          d.isAfter(_to!.add(const Duration(days: 1)))) {
+        return false;
+      }
       return true;
     } catch (_) {
       return true;

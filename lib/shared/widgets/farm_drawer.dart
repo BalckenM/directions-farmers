@@ -23,6 +23,7 @@ class FarmDrawer extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final current = GoRouterState.of(context).matchedLocation;
     final role = ref.watch(userRoleProvider);
+    final hasPayroll = ref.watch(hasFeatureProvider('payroll'));
 
     return Drawer(
       width: 308,
@@ -248,7 +249,7 @@ class FarmDrawer extends ConsumerWidget {
                             current: current,
                             accentColor: AppColors.tertiary,
                           ),
-                        if (role.canEditFinancials)
+                        if (role.canEditFinancials && hasPayroll)
                           _NavItem(
                             icon: Icons.badge_outlined,
                             activeIcon: Icons.badge_rounded,

@@ -1,6 +1,6 @@
-import '../models/poultry_flock.dart';
-import '../models/flock.dart';
-import '../models/inventory_item.dart';
+import 'package:mobile_app/features/poultry/models/poultry_flock.dart';
+import 'package:mobile_app/features/poultry/models/flock.dart';
+import 'package:mobile_app/features/poultry/models/inventory_item.dart';
 
 abstract class PoultryDataSource {
   Future<List<PoultryFlock>> getFlocks();

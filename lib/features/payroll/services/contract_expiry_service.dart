@@ -3,7 +3,7 @@
 // Checks each employee's [endDate] against today and produces
 // [ComplianceAlert] entries used in the compliance dashboard.
 
-import '../models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
 
 // ─── Alert severity ───────────────────────────────────────────────────────────
 

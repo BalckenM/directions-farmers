@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import 'primary_button.dart';
-import 'secondary_button.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/shared/widgets/secondary_button.dart';
 
 /// Shows a confirmation dialog and returns `true` if the user confirms.
 ///

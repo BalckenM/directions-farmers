@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_spacing.dart';
-import 'icon_action_button.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/icon_action_button.dart';
 
 /// A styled [AppBar] consistent with the farm design system.
 ///

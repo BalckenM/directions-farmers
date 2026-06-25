@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/loading_shimmer.dart';
-import '../../../../shared/widgets/section_header.dart';
-import '../../models/farm_weather.dart';
-import '../../models/weather_alert.dart';
-import '../../providers/crop_providers.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/shared/widgets/section_header.dart';
+import 'package:mobile_app/features/crop/models/farm_weather.dart';
+import 'package:mobile_app/features/crop/models/weather_alert.dart';
+import 'package:mobile_app/features/crop/providers/crop_providers.dart';
 
 // Maps WeatherCondition to a Material icon for the current-conditions header.
 IconData _conditionIcon(WeatherCondition c) => switch (c) {
@@ -68,7 +68,7 @@ class WeatherDashboardScreen extends ConsumerWidget {
               ),
               child: forecastAsync.when(
                 loading: () => const LoadingShimmer(height: 100),
-                error: (_, __) => const _ErrorTile(message: 'Failed to load forecast'),
+                error: (_, _) => const _ErrorTile(message: 'Failed to load forecast'),
                 data: (days) => _ForecastRow(days: days),
               ),
             ),
@@ -137,7 +137,7 @@ class WeatherDashboardScreen extends ConsumerWidget {
               ),
               child: weatherAsync.when(
                 loading: () => const LoadingShimmer(height: 72),
-                error: (_, __) =>
+                error: (_, _) =>
                     const _SpraySuitabilityCard(sprayWindow: SprayWindow.marginal),
                 data: (weather) =>
                     _SpraySuitabilityCard(sprayWindow: weather.sprayWindow),
@@ -314,7 +314,7 @@ class _ForecastRow extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: days.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (_, i) => _ForecastCard(day: days[i]),
       ),
     );

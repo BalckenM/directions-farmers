@@ -174,9 +174,7 @@ class PayRunDetailScreen extends ConsumerWidget {
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isCrit
-                              ? AppColors.error
-                              : AppColors.warning,
+                          color: isCrit ? AppColors.error : AppColors.warning,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -567,7 +565,7 @@ class _PayslipTile extends StatelessWidget {
         tilePadding: EdgeInsets.zero,
         leading: AvatarWidget(
           imageUrl: emp.profileImageUrl,
-          initials: '${emp.firstName[0]}${emp.lastName[0]}',
+          initials: _initials(emp.firstName, emp.lastName),
           radius: 20,
           backgroundColor: AppColors.primary.withValues(alpha: 0.1),
           foregroundColor: AppColors.primary,
@@ -628,5 +626,12 @@ class _PayslipTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  static String _initials(String first, String last) {
+    final f = first.isNotEmpty ? first[0].toUpperCase() : '';
+    final l = last.isNotEmpty ? last[0].toUpperCase() : '';
+    final combined = '$f$l';
+    return combined.isNotEmpty ? combined : '?';
   }
 }

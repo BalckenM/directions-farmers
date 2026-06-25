@@ -233,8 +233,9 @@ class _GenerateContractScreenState
                           final n = double.tryParse(
                             v.replaceAll(RegExp(r'[^0-9.]'), ''),
                           );
-                          if (n == null || n <= 0)
+                          if (n == null || n <= 0) {
                             return 'Enter a valid amount';
+                          }
                           return null;
                         },
                       ),

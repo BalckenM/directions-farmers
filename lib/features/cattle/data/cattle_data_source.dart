@@ -1,5 +1,5 @@
-import '../models/cattle_animal.dart';
-import '../models/cattle_records.dart';
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
 
 /// Contract for all cattle data operations (GET / POST / PUT / PATCH / DELETE).
 ///

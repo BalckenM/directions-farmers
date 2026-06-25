@@ -3,17 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/loading_shimmer.dart';
-import '../../../../shared/widgets/status_chip.dart';
-import '../../models/pest_observation.dart';
-import '../../models/spray_record.dart';
-import '../../providers/crop_providers.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/shared/widgets/status_chip.dart';
+import 'package:mobile_app/features/crop/models/pest_observation.dart';
+import 'package:mobile_app/features/crop/models/spray_record.dart';
+import 'package:mobile_app/features/crop/providers/crop_providers.dart';
 
 class PestLogScreen extends ConsumerStatefulWidget {
   const PestLogScreen({super.key});
@@ -66,7 +66,7 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
                 final tab = DefaultTabController.of(ctx);
                 return AnimatedBuilder(
                   animation: tab,
-                  builder: (_, __) => tab.index == 1
+                  builder: (_, _) => tab.index == 1
                       ? IconButton(
                           icon: const Icon(Icons.open_in_full_rounded),
                           tooltip: 'Full Spray List',
@@ -92,7 +92,7 @@ class _PestLogScreenState extends ConsumerState<PestLogScreen> {
             final tab = DefaultTabController.of(ctx);
             return AnimatedBuilder(
               animation: tab,
-              builder: (_, __) => FloatingActionButton.extended(heroTag: null, 
+              builder: (_, _) => FloatingActionButton.extended(heroTag: null, 
                 onPressed: () => tab.index == 0
                     ? ctx.push(AppRoutes.addPestObs)
                     : ctx.push(AppRoutes.addSprayRecord),

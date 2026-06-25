@@ -1,9 +1,9 @@
 
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/goat_animal.dart';
-import '../models/goat_records.dart';
-import 'goat_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/goat/models/goat_animal.dart';
+import 'package:mobile_app/features/goat/models/goat_records.dart';
+import 'package:mobile_app/features/goat/data/goat_data_source.dart';
 
 class GoatRepository {
   GoatRepository(this._source);

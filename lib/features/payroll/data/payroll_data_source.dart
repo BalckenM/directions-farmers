@@ -41,6 +41,7 @@ abstract class PayrollDataSource {
 
   // ── Pay groups ─────────────────────────────────────────────────────────────
   List<PayGroup> getPayGroups();
+  List<String> getGroupMemberIds(String groupId);
   Future<PayGroup> addPayGroup(PayGroup group);
   Future<PayGroup> updatePayGroup(PayGroup group);
 
@@ -86,8 +87,12 @@ abstract class PayrollDataSource {
     DateTime periodEnd, {
     DateTime? payDate,
   });
+  Future<PayRun> completePayRun(String id);
   Future<PayRun> approvePayRun(String id, String approverUserId);
   Future<PayRun> disbursePayRun(String id);
+  Future<PayRun> rejectPayRun(String id, {String? reason});
+  Future<PayRun> cancelPayRun(String id, {String? reason});
+  Future<PayRun> recalculatePayRun(String id);
 
   // ── Payslips ───────────────────────────────────────────────────────────────
   List<Payslip> getPayslips({String? employeeId, String? payRunId});

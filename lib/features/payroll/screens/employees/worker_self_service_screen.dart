@@ -135,7 +135,8 @@ class _WorkerSelfServiceScreenState
                 children: [
                   AvatarWidget(
                     imageUrl: selected.profileImageUrl,
-                    initials: '${selected.firstName[0]}${selected.lastName[0]}',
+                    initials:
+                        '${selected.firstName.isNotEmpty ? selected.firstName[0].toUpperCase() : ''}${selected.lastName.isNotEmpty ? selected.lastName[0].toUpperCase() : '?'}',
                     radius: 22,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                     foregroundColor: AppColors.primary,

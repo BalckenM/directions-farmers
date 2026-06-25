@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/spray_record.dart';
-import '../../providers/crop_providers.dart';
-import '../../providers/crop_action_providers.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/crop/models/spray_record.dart';
+import 'package:mobile_app/features/crop/providers/crop_providers.dart';
+import 'package:mobile_app/features/crop/providers/crop_action_providers.dart';
 
 class AddSprayRecordScreen extends ConsumerStatefulWidget {
   const AddSprayRecordScreen({super.key, this.pestObservationId});
@@ -194,8 +194,9 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Dosage is required';
-                if (double.tryParse(v.trim()) == null)
+                if (double.tryParse(v.trim()) == null) {
                   return 'Enter a valid number';
+                }
                 return null;
               },
             ),
@@ -215,8 +216,9 @@ class _AddSprayRecordScreenState extends ConsumerState<AddSprayRecordScreen> {
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Area is required';
-                if (double.tryParse(v.trim()) == null)
+                if (double.tryParse(v.trim()) == null) {
                   return 'Enter a valid number';
+                }
                 return null;
               },
             ),

@@ -1,11 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/goat_records.dart';
-import '../providers/goat_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/goat/models/goat_records.dart';
+import 'package:mobile_app/features/goat/providers/goat_providers.dart';
 
 class GoatShearingScreen extends ConsumerStatefulWidget {
   const GoatShearingScreen({super.key, required this.goatId});
@@ -217,7 +217,7 @@ class _GoatShearingScreenState extends ConsumerState<GoatShearingScreen> {
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: records.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final r = records[i];

@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/network/api_client.dart';
-import '../data/goat_data_source.dart';
-import '../data/goat_remote_data_source.dart';
-import '../data/goat_repository.dart';
-import '../models/goat_animal.dart';
-import '../models/goat_records.dart';
+import 'package:mobile_app/core/network/api_client.dart';
+import 'package:mobile_app/features/goat/data/goat_data_source.dart';
+import 'package:mobile_app/features/goat/data/goat_remote_data_source.dart';
+import 'package:mobile_app/features/goat/data/goat_repository.dart';
+import 'package:mobile_app/features/goat/models/goat_animal.dart';
+import 'package:mobile_app/features/goat/models/goat_records.dart';
 
 // ── DI providers ──────────────────────────────────────────────────────────────
 

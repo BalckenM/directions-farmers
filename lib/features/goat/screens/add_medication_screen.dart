@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
-import '../providers/goat_providers.dart';
+import 'package:mobile_app/features/goat/providers/goat_providers.dart';
 
 
 class GoatAddMedicationScreen extends ConsumerStatefulWidget {
@@ -93,7 +93,7 @@ class _GoatAddMedicationScreenState
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _route,
+                initialValue: _route,
                 decoration: const InputDecoration(labelText: 'Route *'),
                 items: _routes
                     .map((r) => DropdownMenuItem(value: r, child: Text(r)))

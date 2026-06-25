@@ -1,4 +1,4 @@
-import '../models/pagination_meta.dart';
+import 'package:mobile_app/shared/models/pagination_meta.dart';
 
 /// Generic API response envelope used throughout the data layer.
 class ApiResponse<T> {

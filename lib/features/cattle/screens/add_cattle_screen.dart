@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../models/cattle_animal.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class AddCattleScreen extends ConsumerStatefulWidget {
   const AddCattleScreen({super.key});
@@ -83,7 +83,7 @@ class _AddCattleScreenState extends ConsumerState<AddCattleScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _sex,
+              initialValue: _sex,
               decoration: const InputDecoration(
                 labelText: 'Sex',
                 prefixIcon: Icon(Icons.wc_rounded),
@@ -104,7 +104,7 @@ class _AddCattleScreenState extends ConsumerState<AddCattleScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _productionType,
+              initialValue: _productionType,
               decoration: const InputDecoration(
                 labelText: 'Production Type',
                 prefixIcon: Icon(Icons.category_outlined),

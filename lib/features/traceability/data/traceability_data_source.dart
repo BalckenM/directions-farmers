@@ -1,4 +1,4 @@
-import '../models/movement_record.dart';
+import 'package:mobile_app/features/traceability/models/movement_record.dart';
 
 abstract class TraceabilityDataSource {
   Future<List<MovementRecord>> getMovementRecords();

@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/livestock_constants.dart';
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../shared/widgets/chart_card.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../../../shared/widgets/section_header.dart';
-import '../../../shared/widgets/stat_card.dart';
-import '../../dashboard/models/dashboard_summary.dart';
-import '../../dashboard/providers/dashboard_providers.dart';
+import 'package:mobile_app/core/constants/livestock_constants.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_shadows.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_typography.dart';
+import 'package:mobile_app/shared/widgets/chart_card.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/shared/widgets/section_header.dart';
+import 'package:mobile_app/shared/widgets/stat_card.dart';
+import 'package:mobile_app/features/dashboard/models/dashboard_summary.dart';
+import 'package:mobile_app/features/dashboard/providers/dashboard_providers.dart';
 
 class InsightsScreen extends ConsumerStatefulWidget {
   const InsightsScreen({super.key});

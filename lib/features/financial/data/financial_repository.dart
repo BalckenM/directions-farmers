@@ -1,7 +1,7 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/financial_transaction.dart';
-import 'financial_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/financial/models/financial_transaction.dart';
+import 'package:mobile_app/features/financial/data/financial_data_source.dart';
 
 class FinancialRepository {
   FinancialRepository(this._source);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/livestock_constants.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_radius.dart';
-import '../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/constants/livestock_constants.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// Full-screen overlay prompt shown when a notifiable disease is recorded.
 ///

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/utils/connectivity_service.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/core/utils/connectivity_service.dart';
 
 /// Slides in from the top when the device goes offline and hides when
 /// connectivity is restored. Wraps a Riverpod [isOnlineProvider] watch.

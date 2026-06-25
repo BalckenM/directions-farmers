@@ -4,16 +4,16 @@
 
 import 'dart:math' show min, max;
 
-import '../models/attendance_record.dart';
-import '../models/compliance_alert.dart';
-import '../models/deduction_rule.dart';
-import '../models/garnishee_order.dart';
-import '../models/leave_type.dart';
-import '../models/pay_run.dart';
-import '../models/pay_structure.dart';
-import '../models/payroll_employee.dart';
-import '../models/payslip.dart';
-import '../models/piecework_log.dart';
+import 'package:mobile_app/features/payroll/models/attendance_record.dart';
+import 'package:mobile_app/features/payroll/models/compliance_alert.dart';
+import 'package:mobile_app/features/payroll/models/deduction_rule.dart';
+import 'package:mobile_app/features/payroll/models/garnishee_order.dart';
+import 'package:mobile_app/features/payroll/models/leave_type.dart';
+import 'package:mobile_app/features/payroll/models/pay_run.dart';
+import 'package:mobile_app/features/payroll/models/pay_structure.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
+import 'package:mobile_app/features/payroll/models/piecework_log.dart';
 
 // ─── SA Statutory Constants (2025 / 2026 tax year) ───────────────────────────
 class SaStatutory {
@@ -951,8 +951,9 @@ class PayrollEngine {
     final otHours = rec.overtimeHours!;
     final isSunday = rec.date.weekday == DateTime.sunday;
 
-    if (rec.status == AttendanceStatus.publicHoliday)
+    if (rec.status == AttendanceStatus.publicHoliday) {
       return 0.0; // handled separately
+    }
     if (isSunday) {
       return otHours * hourlyRate * (SaStatutory.sundayMultiplier - 1.0);
     }
@@ -1002,10 +1003,12 @@ class PayrollEngine {
     // Voluntary / benefit rules from deduction rules list
     for (final rule in rules) {
       if (!rule.isActive) continue;
-      if (rule.code == 'UIF_EE' || rule.code == 'UIF_ER' || rule.code == 'PAYE')
+      if (rule.code == 'UIF_EE' || rule.code == 'UIF_ER' || rule.code == 'PAYE') {
         continue; // already handled
-      if (rule.employeeIds != null && !rule.employeeIds!.contains(employeeId))
+      }
+      if (rule.employeeIds != null && !rule.employeeIds!.contains(employeeId)) {
         continue;
+      }
 
       double amount;
       if (rule.basis == DeductionBasis.fixedAmount) {

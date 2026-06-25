@@ -245,10 +245,12 @@ class _AddEditGarnisheeScreenState
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Required';
-                      if (double.tryParse(v.trim()) == null)
+                      if (double.tryParse(v.trim()) == null) {
                         return 'Invalid amount';
-                      if ((double.tryParse(v.trim()) ?? 0) <= 0)
+                      }
+                      if ((double.tryParse(v.trim()) ?? 0) <= 0) {
                         return 'Must be > 0';
+                      }
                       return null;
                     },
                   ),
@@ -263,10 +265,12 @@ class _AddEditGarnisheeScreenState
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Required';
-                      if (double.tryParse(v.trim()) == null)
+                      if (double.tryParse(v.trim()) == null) {
                         return 'Invalid amount';
-                      if ((double.tryParse(v.trim()) ?? 0) <= 0)
+                      }
+                      if ((double.tryParse(v.trim()) ?? 0) <= 0) {
                         return 'Must be > 0';
+                      }
                       return null;
                     },
                   ),

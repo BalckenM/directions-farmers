@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mobile_app/core/auth/user_role.dart';
 import 'package:mobile_app/core/network/api_client.dart';
 import 'package:mobile_app/core/providers/secure_storage_provider.dart';
@@ -9,6 +8,7 @@ import 'package:mobile_app/features/auth/data/auth_data_source.dart';
 import 'package:mobile_app/features/auth/data/auth_remote_data_source.dart';
 import 'package:mobile_app/features/auth/models/auth_state.dart';
 import 'package:mobile_app/features/auth/models/auth_user.dart';
+import 'package:mobile_app/features/billing/providers/billing_providers.dart';
 
 export '../data/subscription_data.dart'
     show kSubscriptionPlans, kCountryProvinces, FarmerModules, SubscriptionPlan;
@@ -45,10 +45,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       );
       final secure = ref.read(secureStorageProvider);
       final accessToken = await secure.read(kAccessTokenKey) ?? '';
-      return AuthAuthenticated(
-        user: user,
-        accessToken: accessToken,
-      );
+      return AuthAuthenticated(user: user, accessToken: accessToken);
     }
     return const AuthUnauthenticated();
   }
@@ -67,6 +64,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       state = AsyncValue.data(
         AuthAuthenticated(user: user, accessToken: accessToken),
       );
+    } on MfaRequiredException catch (e) {
+      // Backend requires TOTP — transition to MFA state so UI can navigate to
+      // the MFA challenge screen.
+      state = AsyncValue.data(
+        AuthMfaRequired(challengeToken: e.challengeToken, email: e.email),
+      );
     } on DioException catch (e) {
       final message = _extractErrorMessage(e);
       state = AsyncValue.data(AuthError(message));
@@ -81,11 +84,15 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String password,
     required String firstName,
     required String lastName,
-    required String farmName,
-    required String country,
-    required String province,
-    required String subscriptionPlan,
-    required List<String> activatedModules,
+    // SaaS-oriented params (canonical):
+    String? companyName,
+    String? planSlug,
+    // Legacy / farm-app params (kept for backward compat):
+    String? farmName,
+    String country = '',
+    String province = '',
+    String subscriptionPlan = 'starter',
+    List<String> activatedModules = const [],
     String? phone,
   }) async {
     state = const AsyncValue.loading();
@@ -96,10 +103,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         password: password,
         firstName: firstName,
         lastName: lastName,
-        farmName: farmName,
+        farmName: companyName ?? farmName ?? '',
         country: country,
         province: province,
-        subscriptionPlan: subscriptionPlan,
+        subscriptionPlan: planSlug ?? subscriptionPlan,
         activatedModules: activatedModules,
         phone: phone,
       );
@@ -131,10 +138,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncValue.loading();
     try {
       final ds = ref.read(authDataSourceProvider);
-      final result = await ds.socialLogin(
-        provider: provider,
-        idToken: idToken,
-      );
+      final result = await ds.socialLogin(provider: provider, idToken: idToken);
       ref
           .read(userRoleProvider.notifier)
           .setRole(UserRoleX.fromString(result.user.role));
@@ -160,8 +164,25 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String totp,
   }) async {
     state = const AsyncValue.loading();
-    // TODO: Verify TOTP code against the 4D Farmer API.
-    state = const AsyncValue.data(AuthError('MFA not yet implemented.'));
+    try {
+      final ds = ref.read(authRemoteDataSourceProvider);
+      final user = await ds.completeMfaChallenge(
+        challengeToken: challengeToken,
+        totpCode: totp,
+      );
+      ref
+          .read(userRoleProvider.notifier)
+          .setRole(UserRoleX.fromString(user.role));
+      final secure = ref.read(secureStorageProvider);
+      final accessToken = await secure.read(kAccessTokenKey) ?? '';
+      state = AsyncValue.data(
+        AuthAuthenticated(user: user, accessToken: accessToken),
+      );
+    } on DioException catch (e) {
+      state = AsyncValue.data(AuthError(_extractErrorMessage(e)));
+    } catch (e) {
+      state = AsyncValue.data(AuthError('MFA verification failed: $e'));
+    }
   }
 
   // ── Sign Out ─────────────────────────────────────────────────────────────────
@@ -313,22 +334,41 @@ final teamMembersProvider = FutureProvider<List<AuthUser>>((ref) async {
 });
 
 /// True when the user is on a trial plan that expires within 7 days.
+/// Reads from GET /billing/subscription — not from the JWT.
 final trialExpiringProvider = Provider<bool>((ref) {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return false;
-  if (user.subscriptionStatus != 'trial') return false;
-  final endsAt = user.trialEndsAt;
+  final sub = ref.watch(subscriptionProvider).value;
+  if (sub == null) return false;
+  if (sub.status != 'trialing') return false;
+  final endsAt = sub.trialEndsAt;
   if (endsAt == null) return false;
   return endsAt.isBefore(DateTime.now().add(const Duration(days: 7)));
 });
 
 /// Days remaining in the current trial, or null if not on trial.
+/// Reads from GET /billing/subscription — not from the JWT.
 final trialDaysRemainingProvider = Provider<int?>((ref) {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return null;
-  if (user.subscriptionStatus != 'trial') return null;
-  final endsAt = user.trialEndsAt;
+  final sub = ref.watch(subscriptionProvider).value;
+  if (sub == null) return null;
+  if (sub.status != 'trialing') return null;
+  final endsAt = sub.trialEndsAt;
   if (endsAt == null) return null;
   final diff = endsAt.difference(DateTime.now()).inDays;
   return diff.clamp(0, 9999);
+});
+
+/// The raw subscription status string, e.g. 'trialing' | 'active' | 'suspended'.
+/// Reads from GET /billing/subscription — not from the JWT.
+final subscriptionStatusProvider = Provider<String>((ref) {
+  return ref.watch(subscriptionProvider).value?.status ?? 'trialing';
+});
+
+/// The feature flags on the current plan, e.g. ['payroll', 'leave'].
+/// Reads from GET /billing/subscription — not from the JWT.
+final featuresProvider = Provider<List<String>>((ref) {
+  return ref.watch(subscriptionProvider).value?.plan.features ?? const [];
+});
+
+/// Returns true when the current user's plan includes the given feature flag.
+final hasFeatureProvider = Provider.family<bool, String>((ref, key) {
+  return ref.watch(featuresProvider).contains(key);
 });

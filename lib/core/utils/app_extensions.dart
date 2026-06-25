@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../constants/livestock_constants.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/constants/livestock_constants.dart';
 
 /// Extension methods to reduce boilerplate throughout the codebase.
 extension BuildContextX on BuildContext {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/settings/screens/upgrade_plan_sheet.dart';
 
 /// A top-of-screen banner shown when the user's trial expires within 7 days.
 ///
@@ -36,9 +37,7 @@ class TrialExpiryBanner extends ConsumerWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            // TODO(upgrade): Navigate to subscription / upgrade screen.
-          },
+          onPressed: () => showUpgradePlanSheet(context),
           child: Text(
             'Upgrade',
             style: TextStyle(color: colorScheme.onErrorContainer),

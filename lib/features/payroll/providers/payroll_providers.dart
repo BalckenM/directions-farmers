@@ -29,15 +29,10 @@ import 'package:mobile_app/features/payroll/models/task_assignment.dart';
 
 // ─── Dependency Injection ────────────────────────────────────────────────────
 
-/// Holds the [PayrollRemoteDataSource] + a flag that flips to `true` once
-/// [preload()] has finished. The flag change triggers a cascade rebuild so
-/// every list provider re-reads the now-populated in-memory caches.
 class _LoadState {
   const _LoadState({required this.source, required this.ready, this.error});
-  final PayrollRemoteDataSource source;
+  final PayrollDataSource source;
   final bool ready;
-
-  /// Non-null when preload completed but encountered errors (partial data).
   final String? error;
 }
 
@@ -51,6 +46,10 @@ class _PayrollLoaderNotifier extends Notifier<_LoadState> {
         .then((_) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             state = _LoadState(source: source, ready: true);
+            // Directly refresh all downstream data providers now that the cache
+            // is populated.  addPostFrameCallback fires in postFrameCallbacks
+            // phase (after buildScope), so setState on ProviderScope is safe.
+            refreshPayrollProviders(ref);
             // Phase 2: load secondary data silently in the background.
             source.preloadBackground().catchError((_) {
               /* non-fatal */
@@ -64,6 +63,7 @@ class _PayrollLoaderNotifier extends Notifier<_LoadState> {
               ready: true,
               error: err.toString(),
             );
+            refreshPayrollProviders(ref);
             source.preloadBackground().catchError((_) {
               /* non-fatal */
             });
@@ -79,21 +79,34 @@ final _payrollLoaderProvider =
     );
 
 final payrollDataSourceProvider = Provider<PayrollDataSource>(
-  // Use select() so this provider only rebuilds when `source` itself changes
-  // (it never does — same instance for the lifetime of the app). Without select,
-  // the ready:false→true flip on preload completion rebuilds payrollDataSourceProvider
-  // which cascades to payrollRepositoryProvider and all 30+ downstream providers
-  // mid-frame, causing the "setState during build" Riverpod error.
   (ref) => ref.watch(_payrollLoaderProvider.select((s) => s.source)),
 );
 
+// ─── Stable repository singleton ─────────────────────────────────────────────
+// Internal keepAlive provider — never disposed, never invalidated directly.
+// payrollRepositoryProvider reads this to return the SAME PayrollRepository
+// instance on every rebuild.  When prev == next (reference equality), Riverpod
+// skips _notifyListeners(), so no watch-listener cascade fires and no
+// invalidateSelf() → scheduleProviderRefresh() → setState(ProviderScope) call
+// can happen during a Flutter build frame.
+final _payrollRepositoryInstanceProvider = Provider<PayrollRepository>((ref) {
+  ref.keepAlive();
+  return PayrollRepository(ref.read(payrollDataSourceProvider));
+});
+
 final payrollRepositoryProvider = Provider<PayrollRepository>((ref) {
-  // Watch the ready flag so this provider rebuilds when preloadCritical()
-  // finishes — causing all 30+ downstream data providers to re-read the
-  // now-populated in-memory caches. Safe because _PayrollLoaderNotifier
-  // always sets ready:true inside addPostFrameCallback (never mid-frame).
-  ref.watch(payrollReadyProvider);
-  return PayrollRepository(ref.watch(payrollDataSourceProvider));
+  // Always returns the same PayrollRepository instance (reference equality).
+  // Because prev == next, Riverpod skips _notifyListeners on every rebuild,
+  // preventing the 20+ watch-listener cascade that triggers
+  // "setState() called during build" via ConsumerStatefulWidget ticker-resume.
+  //
+  // IMPORTANT: Do NOT call refreshPayrollProviders(ref) from here.
+  // This provider's `ref` is a dependency of every downstream data provider
+  // (employeesProvider, payRunsProvider, …).  Calling ref.invalidate on any
+  // of those from THIS ref causes CircularDependencyError in debug mode.
+  // Action/sync providers call refreshPayrollProviders(ref) using their own
+  // Notifier ref, which is NOT in the downstream dependency chain.
+  return ref.read(_payrollRepositoryInstanceProvider);
 });
 
 /// `true` once the initial API preload has finished (success or partial).
@@ -141,6 +154,20 @@ final payGroupsProvider = Provider<List<PayGroup>>((ref) {
 final activePayGroupsProvider = Provider<List<PayGroup>>((ref) {
   return ref.watch(payGroupsProvider).where((g) => g.isActive).toList();
 });
+
+/// Returns the employee IDs that are members of [groupId], then filters
+/// the in-memory employee list.  Rebuilds automatically when the repository
+/// is invalidated (e.g. after calculatePayRun or addPayGroup).
+final employeesForGroupProvider =
+    Provider.family<List<PayrollEmployee>, String>((ref, groupId) {
+      final repo = ref.watch(payrollRepositoryProvider);
+      final memberIds = repo.getGroupMemberIds(groupId).toSet();
+      if (memberIds.isEmpty) return const [];
+      return repo
+          .getEmployees()
+          .where((e) => memberIds.contains(e.id))
+          .toList();
+    });
 
 // ─── Pay structures ───────────────────────────────────────────────────────────
 
@@ -510,3 +537,59 @@ final benefitContributionsByEmployeeProvider =
           .watch(payrollRepositoryProvider)
           .getBenefitContributions(employeeId: employeeId);
     });
+
+// ─── Refresh helper ───────────────────────────────────────────────────────────
+/// Invalidates every payroll data provider so widgets re-read the in-memory
+/// cache.  Safe to call from addPostFrameCallback, Future.microtask, and
+/// user-action Notifier methods — i.e. any context that is NOT a Flutter build
+/// phase (SchedulerPhase.persistentCallbacks).
+///
+/// After the first ref.invalidate call ProviderScope is already dirty
+/// (_dirty = true), so all subsequent calls inside this function are no-ops
+/// (scheduleRefresh skips the setState call).  The cost is therefore a single
+/// extra Flutter frame, not N frames.
+void refreshPayrollProviders(Ref ref) {
+  // ── leaf providers (direct repo readers) ──────────────────────────────────
+  ref.invalidate(employeesProvider);
+  ref.invalidate(employeeProvider);
+  ref.invalidate(contractsProvider);
+  ref.invalidate(payGroupsProvider);
+  ref.invalidate(employeesForGroupProvider);
+  ref.invalidate(payStructuresProvider);
+  ref.invalidate(shiftsProvider);
+  ref.invalidate(taskAssignmentsProvider);
+  ref.invalidate(attendanceProvider);
+  ref.invalidate(pieceworkLogsProvider);
+  ref.invalidate(payRunsProvider);
+  ref.invalidate(payRunProvider);
+  ref.invalidate(payslipsProvider);
+  ref.invalidate(garnisheeOrdersProvider);
+  ref.invalidate(deductionRulesProvider);
+  ref.invalidate(leaveTypesProvider);
+  ref.invalidate(leaveBalancesProvider);
+  ref.invalidate(leaveRequestsProvider);
+  ref.invalidate(complianceAlertsProvider);
+  ref.invalidate(incidentsProvider);
+  ref.invalidate(auditLogProvider);
+  ref.invalidate(transactionsProvider);
+  ref.invalidate(communicationsProvider);
+  ref.invalidate(allComplianceAlertsProvider);
+  ref.invalidate(employerConfigProvider);
+  ref.invalidate(benefitContributionsProvider);
+  ref.invalidate(benefitContributionsByEmployeeProvider);
+  // ── composite / derived providers ─────────────────────────────────────────
+  ref.invalidate(activeEmployeesProvider);
+  ref.invalidate(activePayGroupsProvider);
+  ref.invalidate(allGarnisheeOrdersProvider);
+  ref.invalidate(garnisheeByIdProvider);
+  ref.invalidate(allPayRunsProvider);
+  ref.invalidate(pendingLeaveRequestsProvider);
+  ref.invalidate(openComplianceAlertsCountProvider);
+  ref.invalidate(criticalAlertsProvider);
+  ref.invalidate(payrollDashboardStatsProvider);
+  ref.invalidate(allAuditLogProvider);
+  ref.invalidate(allTransactionsProvider);
+  ref.invalidate(allIncidentsProvider);
+  ref.invalidate(openIncidentsProvider);
+  ref.invalidate(incidentByIdProvider);
+}

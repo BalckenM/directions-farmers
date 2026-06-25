@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
-import 'primary_button.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
 
 /// Centred empty-state illustration with title, subtitle, and optional CTA.
 class EmptyState extends StatelessWidget {

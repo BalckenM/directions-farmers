@@ -7,17 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/auth/user_role.dart';
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/utils/web_download.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../models/flock.dart';
-import '../models/poultry_flock.dart';
-import '../providers/poultry_providers.dart';
+import 'package:mobile_app/core/auth/user_role.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/core/utils/web_download.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/poultry/models/flock.dart';
+import 'package:mobile_app/features/poultry/models/poultry_flock.dart';
+import 'package:mobile_app/features/poultry/providers/poultry_providers.dart';
 
 class FlockDetailScreen extends ConsumerStatefulWidget {
   const FlockDetailScreen({super.key, required this.flockId});
@@ -310,8 +310,9 @@ class _OverviewTab extends ConsumerWidget {
                           final hdpSpots = <FlSpot>[];
                           for (var i = 0; i < last30.length; i++) {
                             final v = last30[i].hdpPct;
-                            if (v != null)
+                            if (v != null) {
                               hdpSpots.add(FlSpot(i.toDouble(), v));
+                            }
                           }
                           if (hdpSpots.isEmpty) return null;
                           return Column(

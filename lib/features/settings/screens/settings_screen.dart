@@ -1,23 +1,25 @@
+// ignore_for_file: avoid_web_libraries_in_flutter
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/confirm_dialog.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../providers/profile_image_provider.dart';
-import '../providers/settings_providers.dart';
-import 'paddocks_screen.dart' show paddocksProvider;
-import 'upgrade_plan_sheet.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_shadows.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/billing/providers/billing_providers.dart';
+import 'package:mobile_app/features/settings/providers/profile_image_provider.dart';
+import 'package:mobile_app/features/settings/screens/paddocks_screen.dart'
+    show paddocksProvider;
+import 'package:mobile_app/features/settings/screens/upgrade_plan_sheet.dart';
+import 'package:mobile_app/shared/widgets/confirm_dialog.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -363,7 +365,9 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
                       radius: 32,
                       backgroundColor: AppColors.primary.withAlpha(20),
                       backgroundImage: imagePath != null
-                          ? FileImage(File(imagePath))
+                          ? (kIsWeb
+                                ? NetworkImage(imagePath)
+                                : FileImage(File(imagePath)) as ImageProvider)
                           : null,
                       child: imagePath == null
                           ? const Icon(
@@ -433,7 +437,11 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
                 label: 'Modules',
               ),
               Container(width: 1, height: 32, color: cs.outlineVariant),
-              _StatPill(icon: Icons.group_rounded, value: '$teamCount', label: 'Team'),
+              _StatPill(
+                icon: Icons.group_rounded,
+                value: '$teamCount',
+                label: 'Team',
+              ),
               Container(width: 1, height: 32, color: cs.outlineVariant),
               _StatPill(
                 icon: Icons.landscape_rounded,
@@ -451,12 +459,13 @@ class _FarmProfileHeaderState extends ConsumerState<_FarmProfileHeader> {
 class _ProBadge extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
-    final planLabel = switch (user?.subscriptionPlan) {
+    final sub = ref.watch(subscriptionProvider);
+    final planSlug = sub.value?.plan.slug;
+    final planLabel = switch (planSlug) {
       'starter' => 'Starter Plan',
       'growth' => 'Growth Plan',
       'enterprise' => 'Enterprise Plan',
-      _ => 'Free Plan',
+      _ => sub.isLoading ? '' : 'Free Plan',
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

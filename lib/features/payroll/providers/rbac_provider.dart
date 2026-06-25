@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/payroll_role.dart';
+import 'package:mobile_app/features/payroll/models/payroll_role.dart';
 
 // ─── Current-user role provider ──────────────────────────────────────────────
 // In production this would be populated from the auth token / Firestore user

@@ -1,4 +1,4 @@
-import '../models/advisor_models.dart';
+import 'package:mobile_app/features/crop/models/advisor_models.dart';
 
 abstract class AdvisorDataSource {
   /// Returns a response for the given [query] using farm context.

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// A row with a bold section title and an optional "See all" / action link.
 ///

@@ -1,5 +1,5 @@
-import '../models/goat_animal.dart';
-import '../models/goat_records.dart';
+import 'package:mobile_app/features/goat/models/goat_animal.dart';
+import 'package:mobile_app/features/goat/models/goat_records.dart';
 
 /// Contract for all goat data operations (GET / POST / PUT / PATCH / DELETE).
 ///

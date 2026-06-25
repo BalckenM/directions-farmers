@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'livestock_providers.dart';
-import '../models/group.dart';
+import 'package:mobile_app/features/livestock/providers/livestock_providers.dart';
+import 'package:mobile_app/features/livestock/models/group.dart';
 
 // ── Groups from repository ────────────────────────────────────────────────────
 

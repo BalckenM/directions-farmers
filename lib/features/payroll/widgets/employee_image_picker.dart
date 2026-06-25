@@ -1,5 +1,7 @@
+// ignore_for_file: avoid_web_libraries_in_flutter
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_app/core/theme/app_colors.dart';
@@ -79,6 +81,9 @@ class EmployeeImagePicker extends StatelessWidget {
 
   ImageProvider? _resolveImage() {
     if (localImagePath != null) {
+      // On web, image_picker returns a blob URL — use NetworkImage.
+      // On native, use FileImage with dart:io File.
+      if (kIsWeb) return NetworkImage(localImagePath!);
       return FileImage(File(localImagePath!));
     }
     if (currentImageUrl != null && currentImageUrl!.isNotEmpty) {

@@ -4,18 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../livestock/providers/livestock_providers.dart';
-import '../providers/production_providers.dart';
-import '../models/milk_record.dart';
-import 'milk_records_screen.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_shadows.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/features/livestock/providers/livestock_providers.dart';
+import 'package:mobile_app/features/production/providers/production_providers.dart';
+import 'package:mobile_app/features/production/models/milk_record.dart';
+import 'package:mobile_app/features/production/screens/milk_records_screen.dart';
 
 class AddMilkRecordScreen extends ConsumerStatefulWidget {
   const AddMilkRecordScreen({super.key});
@@ -125,7 +125,7 @@ class _AddMilkRecordScreenState extends ConsumerState<AddMilkRecordScreen> {
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: _species,
+                    initialValue: _species,
                     decoration: const InputDecoration(
                       labelText: 'Species *',
                       prefixIcon: Icon(Icons.category_outlined),
@@ -165,7 +165,7 @@ class _AddMilkRecordScreenState extends ConsumerState<AddMilkRecordScreen> {
                         return animalsAsync.when(
                           loading: () => const Center(
                               child: CircularProgressIndicator()),
-                          error: (_, __) => FarmTextField(
+                          error: (_, _) => FarmTextField(
                             controller: _tagCtrl,
                             label: 'Animal Tag / ID *',
                             hint: 'e.g. A-001',
@@ -178,7 +178,7 @@ class _AddMilkRecordScreenState extends ConsumerState<AddMilkRecordScreen> {
                           ),
                           data: (animals) =>
                               DropdownButtonFormField<String>(
-                            value: _selectedAnimalId,
+                            initialValue: _selectedAnimalId,
                             decoration: const InputDecoration(
                               labelText: 'Select Animal *',
                               prefixIcon: Icon(Icons.tag_rounded),

@@ -10,8 +10,7 @@ import 'package:mobile_app/features/payroll/models/pay_group.dart';
 import 'package:mobile_app/features/payroll/models/pay_run.dart';
 import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
-import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
-import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
 import 'package:mobile_app/shared/widgets/avatar_widget.dart';
 import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
 import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
@@ -55,16 +54,24 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
     // Watch shared providers here in the stateful parent so that children
     // (_StepSelectPeriod, _StepPreReport) never trigger a first-subscription
     // flush mid-build, which causes the setState-during-build crash.
-    final allEmployees = ref.watch(activeEmployeesProvider);
+    final ready = ref.watch(payrollReadyProvider);
+
+    // Show a spinner until preloadCritical() completes so the pay-group
+    // dropdown is never rendered with an empty list that won't auto-fill.
+    if (!ready) {
+      return FarmScaffold(
+        appBar: const FarmAppBar(title: 'Run Payroll'),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final allAlerts = ref
         .watch(complianceAlertsProvider)
         .where((a) => a.isOpen)
         .toList();
     final payGroups = ref.watch(activePayGroupsProvider);
     final pgEmployees = _selectedPayGroupId != null
-        ? allEmployees
-              .where((e) => e.payGroupId == _selectedPayGroupId)
-              .toList()
+        ? ref.watch(employeesForGroupProvider(_selectedPayGroupId!))
         : <PayrollEmployee>[];
     final pgAlerts = pgEmployees.isEmpty
         ? <ComplianceAlert>[]
@@ -99,7 +106,7 @@ class _RunPayrollScreenState extends ConsumerState<RunPayrollScreen> {
                   payGroupId: _selectedPayGroupId,
                   periodStart: _periodStart,
                   periodEnd: _periodEnd,
-                  employees: allEmployees,
+                  employees: pgEmployees,
                   onPayGroupChanged: (v) =>
                       setState(() => _selectedPayGroupId = v),
                   onPeriodStartChanged: (d) => setState(() => _periodStart = d),
@@ -296,23 +303,65 @@ class _StepSelectPeriod extends StatelessWidget {
             style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 24),
-          DropdownButtonFormField<String>(
-            initialValue: payGroupId,
-            decoration: const InputDecoration(
-              labelText: 'Pay Group *',
-              prefixIcon: Icon(Icons.group_work),
-              border: OutlineInputBorder(),
+          if (payGroups.isEmpty)
+            Card(
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded,
+                        color: Theme.of(context).colorScheme.onErrorContainer),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('No active pay groups',
+                              style: tt.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onErrorContainer)),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Create at least one pay group before running payroll.',
+                            style: tt.bodySmall?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer),
+                          ),
+                          const SizedBox(height: 8),
+                          FilledButton.tonal(
+                            onPressed: () =>
+                                context.push(AppRoutes.payrollAddPayGroup),
+                            child: const Text('Create Pay Group'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            DropdownButtonFormField<String>(
+              initialValue: payGroupId,
+              decoration: const InputDecoration(
+                labelText: 'Pay Group *',
+                prefixIcon: Icon(Icons.group_work),
+                border: OutlineInputBorder(),
+              ),
+              items: payGroups
+                  .map(
+                    (g) => DropdownMenuItem<String>(
+                      value: g.id,
+                      child: Text(g.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: onPayGroupChanged,
             ),
-            items: payGroups
-                .map(
-                  (g) => DropdownMenuItem<String>(
-                    value: g.id,
-                    child: Text(g.name),
-                  ),
-                )
-                .toList(),
-            onChanged: onPayGroupChanged,
-          ),
           const SizedBox(height: 16),
           _DateRow(
             label: 'Period Start',
@@ -328,9 +377,7 @@ class _StepSelectPeriod extends StatelessWidget {
           if (payGroupId != null) ...[
             const SizedBox(height: 24),
             _EmployeeCountCard(
-              employeeCount: employees
-                  .where((e) => e.payGroupId == payGroupId)
-                  .length,
+              employeeCount: employees.length,
               periodStart: periodStart,
               periodEnd: periodEnd,
             ),

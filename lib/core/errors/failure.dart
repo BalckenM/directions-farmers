@@ -1,4 +1,4 @@
-import 'app_exception.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
 
 /// Sealed failure hierarchy used in repository return types (Result pattern).
 ///

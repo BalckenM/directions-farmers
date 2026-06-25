@@ -1,4 +1,4 @@
-import '../models/disease_detection.dart';
+import 'package:mobile_app/features/crop/models/disease_detection.dart';
 
 abstract class DiseaseDataSource {
   /// Returns a catalogue of all known diseases/conditions.

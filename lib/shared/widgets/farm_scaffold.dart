@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/utils/drawer_notifier.dart';
-import 'farm_drawer.dart';
-import 'offline_banner.dart';
+import 'package:mobile_app/core/utils/drawer_notifier.dart';
+import 'package:mobile_app/shared/widgets/farm_drawer.dart';
+import 'package:mobile_app/shared/widgets/offline_banner.dart';
 
 /// A [Scaffold] wrapper that inserts the [OfflineBanner] above the [body]
 /// and enforces consistent background colour from the theme.

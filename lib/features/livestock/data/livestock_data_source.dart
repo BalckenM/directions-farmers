@@ -1,5 +1,5 @@
-import '../models/animal.dart';
-import '../models/group.dart';
+import 'package:mobile_app/features/livestock/models/animal.dart';
+import 'package:mobile_app/features/livestock/models/group.dart';
 
 /// Contract that all livestock data sources must fulfil.
 abstract class LivestockDataSource {

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../utils/logger.dart';
+import 'package:mobile_app/core/utils/logger.dart';
 
 /// Riverpod [ProviderObserver] that routes provider errors into [AppLogger].
 ///

@@ -256,9 +256,11 @@ import 'package:mobile_app/features/settings/screens/sync_backup_screen.dart';
 import 'package:mobile_app/features/settings/screens/theme_settings_screen.dart';
 import 'package:mobile_app/features/settings/screens/units_settings_screen.dart';
 import 'package:mobile_app/features/settings/screens/users_roles_screen.dart';
+import 'package:mobile_app/features/billing/screens/subscription_inactive_screen.dart';
 import 'package:mobile_app/features/traceability/screens/add_movement_record_screen.dart';
 import 'package:mobile_app/features/traceability/screens/movement_records_screen.dart';
 import 'package:mobile_app/core/auth/user_role.dart';
+import 'package:mobile_app/core/network/api_client.dart';
 import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:mobile_app/core/utils/drawer_notifier.dart';
 import 'package:mobile_app/core/router/app_routes.dart';
@@ -613,6 +615,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = ref.read(isAuthenticatedProvider);
       final loc = state.matchedLocation;
 
+      // 402 → subscription inactive screen (always redirect, except billing screen itself)
+      final isSubscriptionInactive = ref.read(subscriptionInactiveProvider);
+      if (isSubscriptionInactive &&
+          loc != AppRoutes.billingInactive &&
+          loc != AppRoutes.login) {
+        return AppRoutes.billingInactive;
+      }
+
       // Routes that are always accessible (auth + splash)
       const openRoutes = {
         AppRoutes.splash,
@@ -680,7 +690,18 @@ final routerProvider = Provider<GoRouter>((ref) {
   );
 
   // Refresh router whenever auth state changes so redirect is re-evaluated.
-  ref.listen(isAuthenticatedProvider, (_, _) => router.refresh());
+  // Use addPostFrameCallback to avoid Riverpod scheduler conflicts when the
+  // listener fires synchronously during a provider update.
+  ref.listen(isAuthenticatedProvider, (_, _) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => router.refresh());
+  });
+
+  // Refresh router when subscription becomes inactive (402 received).
+  ref.listen(subscriptionInactiveProvider, (_, active) {
+    if (active == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => router.refresh());
+    }
+  });
 
   return router;
 });
@@ -1985,6 +2006,12 @@ List<RouteBase> _buildRoutes() {
           builder: (_, _) => const EmployerConfigScreen(),
         ),
       ],
+    ),
+
+    // ── Billing ──────────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.billingInactive,
+      builder: (_, _) => const SubscriptionInactiveScreen(),
     ),
   ];
 }

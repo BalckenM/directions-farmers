@@ -786,8 +786,9 @@ class _PayTrendSection extends StatelessWidget {
                       reservedSize: 26,
                       getTitlesWidget: (v, _) {
                         final i = v.toInt();
-                        if (i < 0 || i >= data.length)
+                        if (i < 0 || i >= data.length) {
                           return const SizedBox.shrink();
+                        }
                         return Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(

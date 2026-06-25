@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/livestock_constants.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/error_state.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../../dashboard/providers/dashboard_providers.dart';
-import '../../events/providers/events_providers.dart';
-import '../../events/models/breeding_event.dart';
-import '../../events/models/health_event.dart';
-import '../../events/models/weight_record.dart';
-import '../../production/providers/production_providers.dart';
-import '../../production/models/egg_record.dart';
-import '../../production/models/milk_record.dart';
-import '../../production/models/wool_record.dart';
+import 'package:mobile_app/core/constants/livestock_constants.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_shadows.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/error_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/dashboard/providers/dashboard_providers.dart';
+import 'package:mobile_app/features/events/providers/events_providers.dart';
+import 'package:mobile_app/features/events/models/breeding_event.dart';
+import 'package:mobile_app/features/events/models/health_event.dart';
+import 'package:mobile_app/features/events/models/weight_record.dart';
+import 'package:mobile_app/features/production/providers/production_providers.dart';
+import 'package:mobile_app/features/production/models/egg_record.dart';
+import 'package:mobile_app/features/production/models/milk_record.dart';
+import 'package:mobile_app/features/production/models/wool_record.dart';
 
 // ── Data model ────────────────────────────────────────────────────────────────
 

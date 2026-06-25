@@ -1,7 +1,7 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/feed_log.dart';
-import 'record_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/record/models/feed_log.dart';
+import 'package:mobile_app/features/record/data/record_data_source.dart';
 
 class RecordRepository {
   RecordRepository(this._source);

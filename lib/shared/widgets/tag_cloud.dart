@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
-import 'status_chip.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/status_chip.dart';
 
 /// A [Wrap]-based cloud of [StatusChip] widgets.
 ///

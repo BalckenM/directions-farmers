@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/cattle_records.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class PregnancyCheckScreen extends ConsumerStatefulWidget {
   const PregnancyCheckScreen({super.key, required this.cattleId});
@@ -122,7 +122,7 @@ class _PregnancyCheckScreenState
                         const SizedBox(width: 8),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _method,
+                            initialValue: _method,
                             decoration:
                                 const InputDecoration(labelText: 'Method'),
                             items: [
@@ -141,7 +141,7 @@ class _PregnancyCheckScreenState
                       ]),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _result,
+                        initialValue: _result,
                         decoration:
                             const InputDecoration(labelText: 'Result'),
                         items: ['pregnant', 'open', 'uncertain']
@@ -215,7 +215,7 @@ class _PregnancyCheckScreenState
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: checks.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final c = checks[i];

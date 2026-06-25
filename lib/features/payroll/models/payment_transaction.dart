@@ -30,8 +30,24 @@ abstract class PaymentTransaction with _$PaymentTransaction {
     required DateTime createdAt,
   }) = _PaymentTransaction;
 
-  factory PaymentTransaction.fromJson(Map<String, dynamic> json) =>
-      _$PaymentTransactionFromJson(json);
+  factory PaymentTransaction.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now().toIso8601String();
+    return _$PaymentTransactionFromJson(<String, dynamic>{
+      ...json,
+      'id': json['id']?.toString() ?? '',
+      'payRunId': (json['pay_run_id'] ?? json['payRunId'])?.toString() ?? '',
+      'employeeId':
+          (json['employee_id'] ?? json['employeeId'])?.toString() ?? '',
+      'bankName': json['bank_name'] ?? json['bankName'],
+      'accountNumber': json['account_number'] ?? json['accountNumber'],
+      'initiatedAt': json['initiated_at'] ?? json['initiatedAt'],
+      'completedAt': json['completed_at'] ?? json['completedAt'],
+      'failureReason': json['failure_reason'] ?? json['failureReason'],
+      'transactionDate':
+          json['transaction_date'] ?? json['transactionDate'] ?? now,
+      'createdAt': json['created_at'] ?? json['createdAt'] ?? now,
+    });
+  }
 
   bool get isCompleted => status == TransactionStatus.completed;
 }

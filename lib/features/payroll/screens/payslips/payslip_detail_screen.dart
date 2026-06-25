@@ -5,13 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../providers/payroll_providers.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
-import '../../services/payslip_pdf_generator.dart';
-import '../../widgets/payroll_widgets.dart';
+import 'package:mobile_app/features/payroll/services/payslip_pdf_generator.dart';
+import 'package:mobile_app/features/payroll/widgets/payroll_widgets.dart';
 
 
 final _zar    = NumberFormat.currency(locale: 'en_ZA', symbol: 'R ', decimalDigits: 2);

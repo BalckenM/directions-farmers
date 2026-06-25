@@ -225,11 +225,12 @@ class _AddPieceworkLogScreenState extends ConsumerState<AddPieceworkLogScreen> {
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2030),
                     );
-                    if (d != null)
+                    if (d != null) {
                       setState(() {
                         _date = d;
                         _shiftId = null;
                       });
+                    }
                   },
                   trailing: const Icon(
                     Icons.chevron_right,
@@ -315,8 +316,9 @@ class _AddPieceworkLogScreenState extends ConsumerState<AddPieceworkLogScreen> {
                         onChanged: (_) => setState(() {}),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Required';
-                          if (double.tryParse(v) == null)
+                          if (double.tryParse(v) == null) {
                             return 'Invalid number';
+                          }
                           return null;
                         },
                       ),
@@ -335,8 +337,9 @@ class _AddPieceworkLogScreenState extends ConsumerState<AddPieceworkLogScreen> {
                         onChanged: (_) => setState(() {}),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Required';
-                          if (double.tryParse(v) == null)
+                          if (double.tryParse(v) == null) {
                             return 'Invalid number';
+                          }
                           return null;
                         },
                       ),

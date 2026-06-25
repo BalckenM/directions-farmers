@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import '../models/employment_contract.dart';
-import '../models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/employment_contract.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
 
 // ─── Brand colours ───────────────────────────────────────────────────────────
 final _navy  = PdfColor.fromHex('1E3A5F');

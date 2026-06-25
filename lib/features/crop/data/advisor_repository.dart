@@ -1,7 +1,7 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/advisor_models.dart';
-import 'advisor_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/crop/models/advisor_models.dart';
+import 'package:mobile_app/features/crop/data/advisor_data_source.dart';
 
 class AdvisorRepository {
   AdvisorRepository(this._source);

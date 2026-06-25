@@ -1,5 +1,5 @@
-import '../models/activity_entry.dart';
-import '../models/paddock.dart';
+import 'package:mobile_app/features/settings/models/activity_entry.dart';
+import 'package:mobile_app/features/settings/models/paddock.dart';
 
 abstract class SettingsDataSource {
   Future<List<Paddock>> getPaddocks();

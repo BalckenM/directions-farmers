@@ -19,8 +19,9 @@ Color _leaveAccentColor(String typeName) {
   final l = typeName.toLowerCase();
   if (l.contains('annual')) return AppColors.success;
   if (l.contains('sick')) return AppColors.error;
-  if (l.contains('maternity') || l.contains('paternity'))
+  if (l.contains('maternity') || l.contains('paternity')) {
     return AppColors.secondary;
+  }
   if (l.contains('family')) return AppColors.warning;
   if (l.contains('unpaid')) return const Color(0xFF757575);
   if (l.contains('study')) return AppColors.primary;

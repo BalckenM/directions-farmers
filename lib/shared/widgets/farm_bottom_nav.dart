@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// Standalone [NavigationBar] widget with farm-specific tab definitions.
 ///

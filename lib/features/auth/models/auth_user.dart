@@ -58,41 +58,103 @@ class AuthUser {
 
   // ── Convenience ─────────────────────────────────────────────────────────────
   String get fullName => '$firstName $lastName';
-  bool get isOnTrial => subscriptionStatus == 'trial';
+
+  /// Alias: company name (backend field) == farmName (legacy Flutter field).
+  String get companyName => farmName;
+
+  /// Alias: features list from backend JWT == activatedModules.
+  List<String> get features => activatedModules;
+
+  /// True when backend status is 'trialing' (or legacy 'trial').
+  bool get isTrialing =>
+      subscriptionStatus == 'trialing' || subscriptionStatus == 'trial';
+
+  /// True when subscription allows full access.
+  bool get isActive =>
+      subscriptionStatus == 'active' ||
+      subscriptionStatus == 'trialing' ||
+      subscriptionStatus == 'trial';
+
+  /// Backward-compat alias — prefer [isTrialing].
+  bool get isOnTrial => isTrialing;
+
   bool hasModule(String module) => activatedModules.contains(module);
+
+  /// True when the user has a specific backend feature flag (e.g. 'payroll').
+  bool hasFeature(String key) => activatedModules.contains(key);
+
   bool get isOwner => farmOwnerId == null;
 
   // ── Serialisation ────────────────────────────────────────────────────────────
-  factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
-    id: json['id'] as String? ?? '',
-    email: json['email'] as String? ?? '',
-    firstName: (json['firstName'] ?? json['first_name']) as String? ?? '',
-    lastName: (json['lastName'] ?? json['last_name']) as String? ?? '',
-    farmName: (json['farmName'] ?? json['farm_name']) as String? ?? '',
-    country: json['country'] as String? ?? '',
-    province: json['province'] as String? ?? '',
-    subscriptionPlan:
-        (json['subscriptionPlan'] ?? json['subscription_plan']) as String? ??
-            'starter',
-    subscriptionStatus:
+  factory AuthUser.fromJson(Map<String, dynamic> json) {
+    // ── Name splitting ──────────────────────────────────────────────────────
+    // Backend JWT payload returns a single `name` field.
+    // Legacy/Flutter-side payloads may have firstName / first_name separately.
+    String firstName =
+        (json['firstName'] ?? json['first_name']) as String? ?? '';
+    String lastName = (json['lastName'] ?? json['last_name']) as String? ?? '';
+    if (firstName.isEmpty && lastName.isEmpty) {
+      final fullName = (json['name'] as String? ?? '').trim();
+      final spaceIdx = fullName.indexOf(' ');
+      if (spaceIdx > 0) {
+        firstName = fullName.substring(0, spaceIdx);
+        lastName = fullName.substring(spaceIdx + 1);
+      } else {
+        firstName = fullName;
+        lastName = '';
+      }
+    }
+
+    // ── Activated modules ───────────────────────────────────────────────────
+    // Backend JWT payload uses `features`; Flutter-side uses `activatedModules`
+    // or `activated_modules`.
+    final rawModules =
+        json['activatedModules'] ??
+        json['activated_modules'] ??
+        json['features'];
+    final modules =
+        (rawModules as List<dynamic>?)?.map((e) => e as String).toList() ??
+        const <String>[];
+
+    // ── Subscription status ─────────────────────────────────────────────────
+    // Backend uses `subscription_status`; map 'trialing' → 'trial' for display.
+    final subscriptionStatus =
         (json['subscriptionStatus'] ?? json['subscription_status'])
-                as String? ??
-            'trial',
-    activatedModules:
-        ((json['activatedModules'] ?? json['activated_modules'])
-                    as List<dynamic>?)
-                ?.map((e) => e as String)
-                .toList() ??
-            [],
-    mfaEnabled:
-        (json['mfaEnabled'] ?? json['mfa_enabled']) as bool? ?? false,
-    trialEndsAt: _parseDateTime(json['trialEndsAt'] ?? json['trial_ends_at']),
-    phone: json['phone'] as String?,
-    role: json['role'] as String? ?? 'superAdmin',
-    farmOwnerId:
-        (json['farmOwnerId'] ?? json['farm_owner_id']) as String?,
-    jobTitle: (json['jobTitle'] ?? json['job_title']) as String?,
-  );
+            as String? ??
+        'trialing';
+
+    // ── Subscription plan ───────────────────────────────────────────────────
+    // Derived from plan features on the backend; stored in `plan_slug` or
+    // inferred from the user object where available.
+    final subscriptionPlan =
+        (json['subscriptionPlan'] ??
+                json['subscription_plan'] ??
+                json['plan_slug'])
+            as String? ??
+        'starter';
+
+    return AuthUser(
+      id: (json['id'] ?? '').toString(),
+      email: json['email'] as String? ?? '',
+      firstName: firstName,
+      lastName: lastName,
+      farmName:
+          (json['farmName'] ?? json['farm_name'] ?? json['company_name'] ?? '')
+              as String? ??
+          '',
+      country: json['country'] as String? ?? '',
+      province: json['province'] as String? ?? '',
+      subscriptionPlan: subscriptionPlan,
+      subscriptionStatus: subscriptionStatus,
+      activatedModules: modules,
+      mfaEnabled: (json['mfaEnabled'] ?? json['mfa_enabled']) as bool? ?? false,
+      trialEndsAt: _parseDateTime(json['trialEndsAt'] ?? json['trial_ends_at']),
+      phone: json['phone'] as String?,
+      role: json['role'] as String? ?? 'superAdmin',
+      farmOwnerId: (json['farmOwnerId'] ?? json['farm_owner_id']) as String?,
+      jobTitle: (json['jobTitle'] ?? json['job_title']) as String?,
+    );
+  }
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;

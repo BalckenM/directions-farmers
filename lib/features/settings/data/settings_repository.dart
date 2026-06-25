@@ -1,8 +1,8 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/activity_entry.dart';
-import '../models/paddock.dart';
-import 'settings_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/settings/models/activity_entry.dart';
+import 'package:mobile_app/features/settings/models/paddock.dart';
+import 'package:mobile_app/features/settings/data/settings_data_source.dart';
 
 class SettingsRepository {
   SettingsRepository(this._source);

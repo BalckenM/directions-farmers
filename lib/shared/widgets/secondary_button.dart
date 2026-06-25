@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// Outlined secondary action button.
 class SecondaryButton extends StatelessWidget {

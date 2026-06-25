@@ -1,6 +1,6 @@
-import '../models/egg_record.dart';
-import '../models/milk_record.dart';
-import '../models/wool_record.dart';
+import 'package:mobile_app/features/production/models/egg_record.dart';
+import 'package:mobile_app/features/production/models/milk_record.dart';
+import 'package:mobile_app/features/production/models/wool_record.dart';
 
 /// Contract that all production data sources must fulfil.
 abstract class ProductionDataSource {

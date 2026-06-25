@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/date_picker_field.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../livestock/providers/groups_provider.dart';
-import '../providers/record_providers.dart';
-import '../models/feed_log.dart';
-import 'feed_log_screen.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/date_picker_field.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/features/livestock/providers/groups_provider.dart';
+import 'package:mobile_app/features/record/providers/record_providers.dart';
+import 'package:mobile_app/features/record/models/feed_log.dart';
+import 'package:mobile_app/features/record/screens/feed_log_screen.dart';
 
 class AddFeedLogScreen extends ConsumerStatefulWidget {
   const AddFeedLogScreen({super.key});
@@ -125,7 +125,7 @@ class _AddFeedLogScreenState extends ConsumerState<AddFeedLogScreen> {
 
             // Species
             DropdownButtonFormField<String>(
-              value: _species,
+              initialValue: _species,
               decoration: const InputDecoration(
                 labelText: 'Species *',
                 border: OutlineInputBorder(),
@@ -152,7 +152,7 @@ class _AddFeedLogScreenState extends ConsumerState<AddFeedLogScreen> {
                 return groupsAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
                   data: (groups) {
                     final filtered = _species == null
                         ? groups
@@ -162,7 +162,7 @@ class _AddFeedLogScreenState extends ConsumerState<AddFeedLogScreen> {
                                 _species!.toLowerCase())
                             .toList();
                     return DropdownButtonFormField<String>(
-                      value: _selectedGroupId,
+                      initialValue: _selectedGroupId,
                       decoration: const InputDecoration(
                         labelText: 'Group *',
                         border: OutlineInputBorder(),
@@ -196,7 +196,7 @@ class _AddFeedLogScreenState extends ConsumerState<AddFeedLogScreen> {
 
             // Feed type
             DropdownButtonFormField<String>(
-              value: _feedTypeCtrl.text.isEmpty ? null : _feedTypeCtrl.text,
+              initialValue: _feedTypeCtrl.text.isEmpty ? null : _feedTypeCtrl.text,
               decoration: const InputDecoration(
                 labelText: 'Feed Type *',
                 border: OutlineInputBorder(),

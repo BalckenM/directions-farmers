@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_dropdown.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../models/auth_state.dart';
-import '../providers/auth_provider.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/features/billing/models/plan.dart';
+import 'package:mobile_app/features/billing/providers/billing_providers.dart';
+import 'package:mobile_app/features/auth/models/auth_state.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
 
 // ── Registration type ────────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ enum _RegistrationType { owner, staff }
 
 // ── Step enum ─────────────────────────────────────────────────────────────────
 
-enum _RegStep { account, farm, plan, modules }
+enum _RegStep { account, company, plan }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -47,12 +48,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   bool _loading = false;
 
   // ── Selections ────────────────────────────────────────────────────────────
-  String _country = 'South Africa';
-  String _province = kCountryProvinces['South Africa']!.first;
-  late SubscriptionPlan _plan = kSubscriptionPlans[1];
-  late Set<String> _selectedModules = {
-    ...kSubscriptionPlans[1].includedModules,
-  };
+  BillingPlan? _selectedPlan;
 
   @override
   void dispose() {
@@ -83,21 +79,27 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     switch (_step) {
       case _RegStep.account:
         return _formKey.currentState?.validate() ?? false;
-      case _RegStep.farm:
+      case _RegStep.company:
         return _farmNameCtrl.text.trim().isNotEmpty;
       case _RegStep.plan:
-        return true;
-      case _RegStep.modules:
-        return _selectedModules.isNotEmpty;
+        return _selectedPlan != null;
     }
   }
 
   void _next() {
     if (!_validateCurrentStep()) {
-      if (_step == _RegStep.farm && _farmNameCtrl.text.trim().isEmpty) {
+      if (_step == _RegStep.company && _farmNameCtrl.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Please enter your farm name.'),
+          const SnackBar(
+            content: Text('Please enter your company name.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      if (_step == _RegStep.plan && _selectedPlan == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a plan to continue.'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -138,22 +140,46 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       return;
     }
     setState(() => _loading = true);
-    // Mock: simulate joining a farm via invite code
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    // In production: call authProvider.notifier.joinFarm(inviteCode, ...)
-    context.go(
-      AppRoutes.welcome,
-      extra: {'firstName': _firstNameCtrl.text.trim(), 'farmName': 'Your Farm'},
-    );
+    try {
+      final ds = ref.read(authRemoteDataSourceProvider);
+      await ds.acceptInvite(
+        token: inviteCode,
+        firstName: _firstNameCtrl.text.trim(),
+        lastName: _lastNameCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
+      if (!mounted) return;
+      // Refresh auth state so the router can redirect to the correct dashboard
+      await ref.read(authProvider.notifier).refreshSession();
+      if (!mounted) return;
+      setState(() => _loading = false);
+      final authState = ref.read(authProvider).value;
+      if (authState is AuthAuthenticated) {
+        context.go(
+          AppRoutes.welcome,
+          extra: {
+            'firstName': _firstNameCtrl.text.trim(),
+            'farmName': authState.user.farmName,
+          },
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to accept invite: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   Future<void> _register() async {
-    if (_selectedModules.isEmpty) {
+    if (_selectedPlan == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select at least one module.'),
+        const SnackBar(
+          content: Text('Please select a plan to continue.'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -167,11 +193,8 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           password: _passwordCtrl.text,
           firstName: _firstNameCtrl.text.trim(),
           lastName: _lastNameCtrl.text.trim(),
-          farmName: _farmNameCtrl.text.trim(),
-          country: _country,
-          province: _province,
-          subscriptionPlan: _plan.id,
-          activatedModules: _selectedModules.toList(),
+          companyName: _farmNameCtrl.text.trim(),
+          planSlug: _selectedPlan!.slug,
           phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
         );
     if (!mounted) return;
@@ -224,7 +247,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
               current: _step.index,
               labels: _regType == _RegistrationType.staff
                   ? const ['Account']
-                  : const ['Account', 'Farm', 'Plan', 'Modules'],
+                  : const ['Account', 'Company', 'Plan'],
             ),
           ),
 
@@ -256,62 +279,26 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     ),
                   ),
 
-                  // Step 2: Farm
+                  // Step 2: Company
                   _StepPage(
                     hero: const _StepHero(
-                      icon: Icons.home_work_outlined,
-                      title: 'Your Farm',
-                      subtitle: 'Tell us where and how you farm',
+                      icon: Icons.business_outlined,
+                      title: 'Company Details',
+                      subtitle: 'What is the name of your business?',
                     ),
-                    child: _FarmStep(
-                      farmNameCtrl: _farmNameCtrl,
-                      selectedCountry: _country,
-                      selectedProvince: _province,
-                      onCountryChanged: (c) => setState(() {
-                        _country = c;
-                        _province = kCountryProvinces[c]!.first;
-                      }),
-                      onProvinceChanged: (p) => setState(() => _province = p),
-                    ),
+                    child: _CompanyStep(companyNameCtrl: _farmNameCtrl),
                   ),
 
-                  // Step 3: Plan
+                  // Step 3: Plan (loaded from API)
                   _StepPage(
                     hero: const _StepHero(
                       icon: Icons.workspace_premium_outlined,
                       title: 'Choose a Plan',
-                      subtitle:
-                          'Start with a 30-day free trial — cancel anytime',
+                      subtitle: 'Start with a free trial — cancel anytime',
                     ),
-                    child: _PlanStep(
-                      selected: _plan,
-                      onSelect: (p) => setState(() {
-                        _plan = p;
-                        _selectedModules = {...p.includedModules};
-                      }),
-                    ),
-                  ),
-
-                  // Step 4: Modules
-                  _StepPage(
-                    hero: _StepHero(
-                      icon: Icons.apps_rounded,
-                      title: 'Activate Modules',
-                      subtitle:
-                          'Your ${_plan.label} plan includes these features',
-                    ),
-                    child: _ModulesStep(
-                      plan: _plan,
-                      selectedModules: _selectedModules,
-                      onToggle: (m) => setState(() {
-                        if (_selectedModules.contains(m)) {
-                          if (_selectedModules.length > 1) {
-                            _selectedModules.remove(m);
-                          }
-                        } else {
-                          _selectedModules.add(m);
-                        }
-                      }),
+                    child: _ApiPlanStep(
+                      selectedPlan: _selectedPlan,
+                      onSelect: (p) => setState(() => _selectedPlan = p),
                     ),
                   ),
                 ],
@@ -949,28 +936,16 @@ class _PasswordStrengthBarState extends State<_PasswordStrengthBar> {
   }
 }
 
-// ── Step 2: Farm details ──────────────────────────────────────────────────────
+// ── Step 2: Company details ───────────────────────────────────────────────────
 
-class _FarmStep extends StatelessWidget {
-  const _FarmStep({
-    required this.farmNameCtrl,
-    required this.selectedCountry,
-    required this.selectedProvince,
-    required this.onCountryChanged,
-    required this.onProvinceChanged,
-  });
+class _CompanyStep extends StatelessWidget {
+  const _CompanyStep({required this.companyNameCtrl});
 
-  final TextEditingController farmNameCtrl;
-  final String selectedCountry;
-  final String selectedProvince;
-  final ValueChanged<String> onCountryChanged;
-  final ValueChanged<String> onProvinceChanged;
+  final TextEditingController companyNameCtrl;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final provinces = kCountryProvinces[selectedCountry] ?? ['N/A'];
-
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Column(
@@ -978,44 +953,44 @@ class _FarmStep extends StatelessWidget {
         children: [
           const SizedBox(height: AppSpacing.sm),
           FarmTextField(
-            controller: farmNameCtrl,
-            label: 'Farm Name',
-            hint: 'e.g. Green Valley Farm',
+            controller: companyNameCtrl,
+            label: 'Company Name',
+            hint: 'e.g. Sunshine Payroll (Pty) Ltd',
             prefixIcon: Icon(
-              Icons.home_work_outlined,
+              Icons.business_outlined,
               color: cs.onSurfaceVariant,
             ),
-            textInputAction: TextInputAction.next,
+            textInputAction: TextInputAction.done,
             validator: (v) => (v == null || v.trim().isEmpty)
-                ? 'Farm name is required'
+                ? 'Company name is required'
                 : null,
           ),
           const SizedBox(height: AppSpacing.md),
-          FarmDropdown<String>(
-            label: 'Country',
-            value: selectedCountry,
-            prefixIcon: Icon(Icons.public_outlined, color: cs.onSurfaceVariant),
-            items: kCountryProvinces.keys
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                .toList(),
-            onChanged: (v) => v != null ? onCountryChanged(v) : null,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          FarmDropdown<String>(
-            label: selectedCountry == 'South Africa'
-                ? 'Province'
-                : 'Region / Province',
-            value: provinces.contains(selectedProvince)
-                ? selectedProvince
-                : provinces.first,
-            prefixIcon: Icon(
-              Icons.location_on_outlined,
-              color: cs.onSurfaceVariant,
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: cs.outlineVariant),
             ),
-            items: provinces
-                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                .toList(),
-            onChanged: (v) => v != null ? onProvinceChanged(v) : null,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 18,
+                  color: cs.onSurfaceVariant,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'This is the trading name your employees will see on their payslips.',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
         ],
@@ -1024,68 +999,101 @@ class _FarmStep extends StatelessWidget {
   }
 }
 
-// ── Step 3: Plan selection ────────────────────────────────────────────────────
+// ── Step 3: Plan selection from API ──────────────────────────────────────────
 
-class _PlanStep extends StatelessWidget {
-  const _PlanStep({required this.selected, required this.onSelect});
-  final SubscriptionPlan selected;
-  final ValueChanged<SubscriptionPlan> onSelect;
+class _ApiPlanStep extends ConsumerWidget {
+  const _ApiPlanStep({required this.selectedPlan, required this.onSelect});
+
+  final BillingPlan? selectedPlan;
+  final ValueChanged<BillingPlan> onSelect;
 
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
-        vertical: AppSpacing.sm,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plansAsync = ref.watch(plansProvider);
+
+    return plansAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_rounded, size: 48),
+              const SizedBox(height: AppSpacing.md),
+              const Text('Could not load plans. Please try again.'),
+              const SizedBox(height: AppSpacing.md),
+              FilledButton(
+                onPressed: () => ref.invalidate(plansProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
       ),
-      children: [
-        ...kSubscriptionPlans.map(
-          (plan) => _PlanCard(
-            plan: plan,
-            isSelected: plan.id == selected.id,
-            onTap: () => onSelect(plan),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: AppSpacing.sm),
-          child: Text(
-            '* 30-day free trial. Cancel anytime.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+      data: (plans) => plans.isEmpty
+          ? const Center(child: Text('No plans available'))
+          : ListView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl,
+                vertical: AppSpacing.sm,
+              ),
+              children: [
+                ...plans.map(
+                  (plan) => _BillingPlanCard(
+                    plan: plan,
+                    isSelected: plan.slug == selectedPlan?.slug,
+                    onTap: () => onSelect(plan),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: Text(
+                    plan_trial_note(plans),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-      ],
     );
+  }
+
+  static String plan_trial_note(List<BillingPlan> plans) {
+    final trialDays = plans
+        .where((p) => p.trialEnabled)
+        .fold(0, (d, p) => p.trialDays);
+    if (trialDays > 0) return '* $trialDays-day free trial. Cancel anytime.';
+    return '* No credit card required to get started.';
   }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({
+class _BillingPlanCard extends StatelessWidget {
+  const _BillingPlanCard({
     required this.plan,
     required this.isSelected,
     required this.onTap,
   });
 
-  final SubscriptionPlan plan;
+  final BillingPlan plan;
   final bool isSelected;
   final VoidCallback onTap;
+
+  static const _accents = <String, Color>{
+    'starter': Color(0xFF5C6BC0),
+    'growth': Color(0xFF2E7D32),
+    'enterprise': Color(0xFF6750A4),
+  };
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-
-    final accent = switch (plan.id) {
-      'starter' => AppColors.secondary,
-      'growth' => AppColors.primary,
-      'enterprise' => const Color(0xFF6750A4),
-      _ => AppColors.primary,
-    };
-
-    final isPopular = plan.id == 'growth';
+    final accent = _accents[plan.slug] ?? AppColors.primary;
+    final isPopular = plan.slug == 'growth';
 
     return GestureDetector(
       onTap: onTap,
@@ -1112,11 +1120,7 @@ class _PlanCard extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: accent,
                     borderRadius: const BorderRadius.only(
                       topRight: Radius.circular(14),
                       bottomLeft: Radius.circular(10),
@@ -1144,36 +1148,24 @@ class _PlanCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              plan.label,
+                              plan.name,
                               style: tt.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 color: isSelected ? accent : cs.onSurface,
                               ),
                             ),
-                            Text(
-                              plan.tagline,
-                              style: tt.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                              ),
-                            ),
                           ],
                         ),
                       ),
-                      SizedBox(width: isPopular ? 80 : 0),
+                      if (isPopular) const SizedBox(width: 80),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '${plan.currency} ${plan.price}',
+                            plan.priceLabel,
                             style: tt.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
                               color: isSelected ? accent : cs.onSurface,
-                            ),
-                          ),
-                          Text(
-                            '/month',
-                            style: tt.labelSmall?.copyWith(
-                              color: cs.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -1188,32 +1180,40 @@ class _PlanCard extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  ...plan.features.map(
-                    (f) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_rounded,
-                            size: 15,
-                            color: isSelected ? accent : cs.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              f,
-                              style: tt.bodySmall?.copyWith(
-                                color: isSelected
-                                    ? cs.onSurface
-                                    : cs.onSurfaceVariant,
-                              ),
+                  if (plan.features.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    ...plan.features
+                        .take(4)
+                        .map(
+                          (f) => Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: AppSpacing.xs,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.check_rounded,
+                                  size: 15,
+                                  color: isSelected
+                                      ? accent
+                                      : cs.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    f,
+                                    style: tt.bodySmall?.copyWith(
+                                      color: isSelected
+                                          ? cs.onSurface
+                                          : cs.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
+                        ),
+                  ],
                 ],
               ),
             ),
@@ -1223,158 +1223,6 @@ class _PlanCard extends StatelessWidget {
     );
   }
 }
-
-// ── Step 4: Module selection — 2-column tap grid ──────────────────────────────
-
-const _moduleInfo = <String, ({String label, IconData icon})>{
-  FarmerModules.cattle: (label: 'Cattle', icon: Icons.agriculture_rounded),
-  FarmerModules.goat: (label: 'Goats', icon: Icons.pets_rounded),
-  FarmerModules.poultry: (label: 'Poultry', icon: Icons.egg_alt_rounded),
-  FarmerModules.pigs: (label: 'Pigs', icon: Icons.set_meal_rounded),
-  FarmerModules.apiculture: (
-    label: 'Apiculture',
-    icon: Icons.emoji_nature_rounded,
-  ),
-  FarmerModules.crop: (label: 'Crop Farming', icon: Icons.grass_rounded),
-  FarmerModules.financial: (
-    label: 'Financials',
-    icon: Icons.account_balance_wallet_rounded,
-  ),
-  FarmerModules.insights: (label: 'Analytics', icon: Icons.bar_chart_rounded),
-  FarmerModules.traceability: (
-    label: 'Traceability',
-    icon: Icons.route_rounded,
-  ),
-  FarmerModules.reports: (label: 'Reports', icon: Icons.description_rounded),
-};
-
-class _ModulesStep extends StatelessWidget {
-  const _ModulesStep({
-    required this.plan,
-    required this.selectedModules,
-    required this.onToggle,
-  });
-
-  final SubscriptionPlan plan;
-  final Set<String> selectedModules;
-  final ValueChanged<String> onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final tileW =
-            (constraints.maxWidth - AppSpacing.xl * 2 - AppSpacing.sm) / 2;
-
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            AppSpacing.sm,
-            AppSpacing.xl,
-            AppSpacing.xl,
-          ),
-          children: [
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: plan.includedModules.map((m) {
-                final info = _moduleInfo[m];
-                if (info == null) return const SizedBox.shrink();
-                final isOn = selectedModules.contains(m);
-                return _ModuleTile(
-                  info: info,
-                  isSelected: isOn,
-                  width: tileW,
-                  onTap: () => onToggle(m),
-                );
-              }).toList(),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _ModuleTile extends StatelessWidget {
-  const _ModuleTile({
-    required this.info,
-    required this.isSelected,
-    required this.width,
-    required this.onTap,
-  });
-
-  final ({String label, IconData icon}) info;
-  final bool isSelected;
-  final double width;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: width,
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withAlpha(14)
-              : cs.surfaceContainerLowest,
-          border: Border.all(
-            color: isSelected ? AppColors.primary : cs.outlineVariant,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withAlpha(20)
-                    : cs.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                info.icon,
-                size: 20,
-                color: isSelected ? AppColors.primary : cs.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              info.label,
-              style: tt.bodySmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: isSelected ? AppColors.primary : cs.onSurface,
-              ),
-            ),
-            const SizedBox(height: 6),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 2,
-              width: isSelected ? 24 : 0,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Footer CTA ────────────────────────────────────────────────────────────────
 
 class _RegistrationFooter extends StatelessWidget {
   const _RegistrationFooter({
@@ -1396,7 +1244,7 @@ class _RegistrationFooter extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final isStaff = regType == _RegistrationType.staff;
-    final isLast = step == _RegStep.modules;
+    final isLast = step == _RegStep.plan;
     final isStaffJoin = isStaff && step == _RegStep.account;
     final botPad = MediaQuery.paddingOf(context).bottom;
 

@@ -1,7 +1,7 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/movement_record.dart';
-import 'traceability_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/traceability/models/movement_record.dart';
+import 'package:mobile_app/features/traceability/data/traceability_data_source.dart';
 
 class TraceabilityRepository {
   TraceabilityRepository(this._source);

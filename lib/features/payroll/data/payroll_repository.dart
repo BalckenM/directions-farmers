@@ -59,6 +59,8 @@ class PayrollRepository {
 
   // -- Pay groups
   List<PayGroup> getPayGroups() => _source.getPayGroups();
+  List<String> getGroupMemberIds(String groupId) =>
+      _source.getGroupMemberIds(groupId);
   Future<PayGroup> addPayGroup(PayGroup g) => _source.addPayGroup(g);
   Future<PayGroup> updatePayGroup(PayGroup g) => _source.updatePayGroup(g);
   Future<PayGroup> deactivatePayGroup(String id) =>
@@ -137,9 +139,15 @@ class PayrollRepository {
     periodEnd,
     payDate: payDate,
   );
+  Future<PayRun> completePayRun(String id) => _source.completePayRun(id);
   Future<PayRun> approvePayRun(String id, String approverUserId) =>
       _source.approvePayRun(id, approverUserId);
   Future<PayRun> disbursePayRun(String id) => _source.disbursePayRun(id);
+  Future<PayRun> rejectPayRun(String id, {String? reason}) =>
+      _source.rejectPayRun(id, reason: reason);
+  Future<PayRun> cancelPayRun(String id, {String? reason}) =>
+      _source.cancelPayRun(id, reason: reason);
+  Future<PayRun> recalculatePayRun(String id) => _source.recalculatePayRun(id);
 
   // -- Payslips
   List<Payslip> getPayslips({String? employeeId, String? payRunId}) =>

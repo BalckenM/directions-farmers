@@ -79,11 +79,13 @@ class _ComplianceScreenState extends ConsumerState<ComplianceScreen> {
           _Filter.resolved => resolvedAlerts,
         })..sort((a, b) {
           if (a.severity == ComplianceSeverity.critical &&
-              b.severity != ComplianceSeverity.critical)
+              b.severity != ComplianceSeverity.critical) {
             return -1;
+          }
           if (b.severity == ComplianceSeverity.critical &&
-              a.severity != ComplianceSeverity.critical)
+              a.severity != ComplianceSeverity.critical) {
             return 1;
+          }
           return b.raisedAt.compareTo(a.raisedAt);
         });
 

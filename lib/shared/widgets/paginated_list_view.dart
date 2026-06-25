@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../models/pagination_meta.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/models/pagination_meta.dart';
 
 /// A paginated [ListView] that triggers [onLoadMore] when the user scrolls
 /// within [scrollThreshold] pixels of the bottom.

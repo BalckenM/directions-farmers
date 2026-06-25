@@ -21,6 +21,24 @@ abstract class TaskAssignment with _$TaskAssignment {
     required DateTime createdAt,
   }) = _TaskAssignment;
 
-  factory TaskAssignment.fromJson(Map<String, dynamic> json) =>
-      _$TaskAssignmentFromJson(json);
+  factory TaskAssignment.fromJson(Map<String, dynamic> json) {
+    const statusMap = {
+      'assigned': 'assigned',
+      'in_progress': 'inProgress',
+      'completed': 'completed',
+      'cancelled': 'cancelled',
+    };
+    final now = DateTime.now().toIso8601String();
+    return _$TaskAssignmentFromJson(<String, dynamic>{
+      ...json,
+      'id': json['id']?.toString() ?? '',
+      'employeeId':
+          (json['employee_id'] ?? json['employeeId'])?.toString() ?? '',
+      'shiftId': (json['shift_id'] ?? json['shiftId'])?.toString(),
+      'payrollCode': json['payroll_code'] ?? json['payrollCode'] ?? '',
+      'fieldOrArea': json['field_or_area'] ?? json['fieldOrArea'],
+      'status': statusMap[json['status']] ?? json['status'] ?? 'assigned',
+      'createdAt': json['created_at'] ?? json['createdAt'] ?? now,
+    });
+  }
 }

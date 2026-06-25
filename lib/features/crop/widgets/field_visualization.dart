@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'crop_illustration.dart';
+import 'package:mobile_app/features/crop/widgets/crop_illustration.dart';
 
 // ── Field Visualization Widget ─────────────────────────────────────────────────
 //
@@ -45,8 +45,8 @@ class FieldVisualizationWidget extends StatelessWidget {
               imageUrl: url,
               fit: BoxFit.cover,
               fadeInDuration: const Duration(milliseconds: 300),
-              placeholder: (_, __) => Container(color: bg.withAlpha(60)),
-              errorWidget: (_, __, ___) => _FallbackBackground(color: bg, cropName: cropName),
+              placeholder: (_, _) => Container(color: bg.withAlpha(60)),
+              errorWidget: (_, _, _) => _FallbackBackground(color: bg, cropName: cropName),
             ),
 
             // ── Layer 2: Gradient overlay — top & bottom readability ────────

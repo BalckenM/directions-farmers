@@ -1,9 +1,9 @@
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
 
-import '../models/employer_config.dart';
-import '../models/payroll_employee.dart';
-import '../models/payslip.dart';
+import 'package:mobile_app/features/payroll/models/employer_config.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/models/payslip.dart';
 
 /// Service producing UIF UI-19 monthly declaration exports.
 ///

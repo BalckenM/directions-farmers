@@ -21,12 +21,23 @@ abstract class PayGroup with _$PayGroup {
   }) = _PayGroup;
 
   factory PayGroup.fromJson(Map<String, dynamic> json) =>
-      _$PayGroupFromJson(json);
+      _$PayGroupFromJson(<String, dynamic>{
+        ...json,
+        'id': json['id']?.toString() ?? '',
+        'frequency': json['pay_frequency'] ?? json['frequency'] ?? 'monthly',
+        'payDayOffset':
+            json['pay_day'] as int? ?? json['payDayOffset'] as int? ?? 0,
+        'isActive': json['is_active'] ?? json['isActive'] ?? true,
+        'createdAt':
+            json['created_at'] ??
+            json['createdAt'] ??
+            DateTime.now().toIso8601String(),
+      });
 
   String get frequencyLabel => switch (frequency) {
-        PayFrequency.weekly => 'Weekly',
-        PayFrequency.biweekly => 'Bi-weekly',
-        PayFrequency.monthly => 'Monthly',
-        PayFrequency.daily => 'Daily',
-      };
+    PayFrequency.weekly => 'Weekly',
+    PayFrequency.biweekly => 'Bi-weekly',
+    PayFrequency.monthly => 'Monthly',
+    PayFrequency.daily => 'Daily',
+  };
 }

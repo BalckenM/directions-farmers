@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/network/api_client.dart';
-import '../data/cattle_data_source.dart';
-import '../data/cattle_remote_data_source.dart';
-import '../data/cattle_repository.dart';
-import '../models/cattle_animal.dart';
-import '../models/cattle_records.dart';
+import 'package:mobile_app/core/network/api_client.dart';
+import 'package:mobile_app/features/cattle/data/cattle_data_source.dart';
+import 'package:mobile_app/features/cattle/data/cattle_remote_data_source.dart';
+import 'package:mobile_app/features/cattle/data/cattle_repository.dart';
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
 
 // ── DI providers ──────────────────────────────────────────────────────────────
 

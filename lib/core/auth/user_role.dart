@@ -6,18 +6,18 @@ enum UserRole { superAdmin, farmManager, farmWorker, veterinarian }
 extension UserRoleX on UserRole {
   /// Serialise to the JSON slug stored in [AuthUser.role].
   String get slug => switch (this) {
-        UserRole.superAdmin => 'superAdmin',
-        UserRole.farmManager => 'farmManager',
-        UserRole.farmWorker => 'farmWorker',
-        UserRole.veterinarian => 'veterinarian',
-      };
+    UserRole.superAdmin => 'superAdmin',
+    UserRole.farmManager => 'farmManager',
+    UserRole.farmWorker => 'farmWorker',
+    UserRole.veterinarian => 'veterinarian',
+  };
 
   String get displayName => switch (this) {
-        UserRole.superAdmin => 'Super Admin',
-        UserRole.farmManager => 'Farm Manager',
-        UserRole.farmWorker => 'Farm Worker',
-        UserRole.veterinarian => 'Veterinarian',
-      };
+    UserRole.superAdmin => 'Super Admin',
+    UserRole.farmManager => 'Farm Manager',
+    UserRole.farmWorker => 'Farm Worker',
+    UserRole.veterinarian => 'Veterinarian',
+  };
 
   /// Can register or archive flock batches.
   bool get canAddFlock =>
@@ -44,12 +44,13 @@ extension UserRoleX on UserRole {
   bool get canManageSettings => this == UserRole.superAdmin;
 
   /// Parses a role slug back to the enum (defaults to [UserRole.farmWorker]).
+  /// Handles both camelCase (Flutter) and snake_case (backend JWT) variants.
   static UserRole fromString(String slug) => switch (slug) {
-        'superAdmin' => UserRole.superAdmin,
-        'farmManager' => UserRole.farmManager,
-        'veterinarian' => UserRole.veterinarian,
-        _ => UserRole.farmWorker,
-      };
+    'superAdmin' || 'super_admin' => UserRole.superAdmin,
+    'farmManager' || 'farm_manager' => UserRole.farmManager,
+    'veterinarian' => UserRole.veterinarian,
+    _ => UserRole.farmWorker,
+  };
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────

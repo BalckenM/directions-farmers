@@ -1,7 +1,7 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/disease_detection.dart';
-import 'disease_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/crop/models/disease_detection.dart';
+import 'package:mobile_app/features/crop/data/disease_data_source.dart';
 
 class DiseaseRepository {
   DiseaseRepository(this._source);

@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../providers/auth_provider.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
 
 /// Cold-start splash shown for ~1.8 s, then routes based on auth state.
 /// • Authenticated        → Dashboard

@@ -348,4 +348,7 @@ abstract final class AppRoutes {
   // ── Payroll — new feature routes ──────────────────────────────────────────
   static const String payrollSelfService = '/payroll/self-service';
   static const String payrollRetroactivePay = '/payroll/pay-runs/retroactive';
+
+  // ── Billing ─────────────────────────────────────────────────────────────────
+  static const String billingInactive = '/billing/inactive';
 }

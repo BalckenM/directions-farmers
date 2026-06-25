@@ -25,8 +25,20 @@ abstract class ComplianceAlert with _$ComplianceAlert {
     required DateTime raisedAt,
   }) = _ComplianceAlert;
 
-  factory ComplianceAlert.fromJson(Map<String, dynamic> json) =>
-      _$ComplianceAlertFromJson(json);
+  factory ComplianceAlert.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now().toIso8601String();
+    return _$ComplianceAlertFromJson(<String, dynamic>{
+      ...json,
+      'id': json['id']?.toString() ?? '',
+      'employeeId': (json['employee_id'] ?? json['employeeId'])?.toString(),
+      'payRunId': (json['pay_run_id'] ?? json['payRunId'])?.toString(),
+      'isResolved': json['is_resolved'] ?? json['isResolved'] ?? false,
+      'resolvedByUserId': (json['resolved_by_id'] ?? json['resolvedByUserId'])
+          ?.toString(),
+      'resolvedAt': json['resolved_at'] ?? json['resolvedAt'],
+      'raisedAt': json['raised_at'] ?? json['raisedAt'] ?? now,
+    });
+  }
 
   bool get isOpen => !isResolved;
 }

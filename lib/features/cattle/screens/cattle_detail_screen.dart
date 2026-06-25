@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/fmd_zone_indicator.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../../../shared/widgets/withdrawal_countdown.dart';
-import '../../livestock/models/animal.dart' show FmdZone;
-import '../models/cattle_animal.dart';
-import '../models/cattle_records.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/fmd_zone_indicator.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/shared/widgets/withdrawal_countdown.dart';
+import 'package:mobile_app/features/livestock/models/animal.dart' show FmdZone;
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class CattleDetailScreen extends ConsumerWidget {
   const CattleDetailScreen({super.key, required this.cattleId});
@@ -662,7 +662,7 @@ class _ProductionTab extends ConsumerWidget {
               _InfoRow(
                   label: 'FCR',
                   value:
-                      '${animal.beefSpecific!.feedConversionRatio!.toStringAsFixed(2)}'),
+                      animal.beefSpecific!.feedConversionRatio!.toStringAsFixed(2)),
             if (animal.beefSpecific!.slaughterWeightKg != null)
               _InfoRow(
                   label: 'Slaughter Weight',

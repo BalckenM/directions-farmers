@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/date_picker_field.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../models/harvest_record.dart';
-import '../../providers/crop_action_providers.dart';
-import '../../providers/crop_providers.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/date_picker_field.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/features/crop/models/harvest_record.dart';
+import 'package:mobile_app/features/crop/providers/crop_action_providers.dart';
+import 'package:mobile_app/features/crop/providers/crop_providers.dart';
 
 class EditHarvestScreen extends ConsumerStatefulWidget {
   const EditHarvestScreen({super.key, required this.record});

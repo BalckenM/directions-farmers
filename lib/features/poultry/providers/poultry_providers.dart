@@ -2,14 +2,14 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
-import '../../../features/auth/providers/auth_provider.dart';
-import '../data/poultry_data_source.dart';
-import '../data/poultry_remote_data_source.dart';
-import '../data/poultry_repository.dart';
-import '../models/flock.dart';
-import '../models/inventory_item.dart';
-import '../models/poultry_flock.dart';
+import 'package:mobile_app/core/network/api_client.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/poultry/data/poultry_data_source.dart';
+import 'package:mobile_app/features/poultry/data/poultry_remote_data_source.dart';
+import 'package:mobile_app/features/poultry/data/poultry_repository.dart';
+import 'package:mobile_app/features/poultry/models/flock.dart';
+import 'package:mobile_app/features/poultry/models/inventory_item.dart';
+import 'package:mobile_app/features/poultry/models/poultry_flock.dart';
 
 final poultryDataSourceProvider = Provider<PoultryDataSource>(
   (ref) => PoultryRemoteDataSource(ref.read(apiDioProvider)),

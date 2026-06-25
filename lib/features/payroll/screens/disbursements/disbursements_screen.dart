@@ -3,16 +3,16 @@ import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/app_routes.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/empty_state.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../../../shared/widgets/farm_dropdown.dart';
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/section_header.dart';
-import '../../../../shared/widgets/stat_card.dart';
-import '../../models/payment_transaction.dart';
-import '../../providers/payroll_providers.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/empty_state.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/section_header.dart';
+import 'package:mobile_app/shared/widgets/stat_card.dart';
+import 'package:mobile_app/features/payroll/models/payment_transaction.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
 
 
 enum _StatusFilter { all, completed, failed, processing }

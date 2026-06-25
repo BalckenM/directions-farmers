@@ -1,41 +1,42 @@
+// ignore_for_file: avoid_web_libraries_in_flutter
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../auth/providers/auth_provider.dart';
+import 'dart:js_interop';
 
-// ── Entry-point ───────────────────────────────────────────────────────────────
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
+import 'package:mobile_app/features/billing/models/plan.dart';
+import 'package:mobile_app/features/billing/providers/billing_providers.dart';
 
+// Entry-point
 void showUpgradePlanSheet(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => const _UpgradePlanSheet(),
+    builder: (ctx) => const _UpgradePlanSheet(),
   );
 }
 
-// ── Sheet ─────────────────────────────────────────────────────────────────────
-
 class _UpgradePlanSheet extends ConsumerStatefulWidget {
   const _UpgradePlanSheet();
-
   @override
   ConsumerState<_UpgradePlanSheet> createState() => _UpgradePlanSheetState();
 }
 
 class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
-  String? _selectedId; // plan being confirmed, null = none selected
-  bool _loading = false;
+  String? _loadingSlug;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final currentPlanId =
+    final plansAsync = ref.watch(plansProvider);
+    final currentPlanSlug =
         ref.watch(currentUserProvider)?.subscriptionPlan ?? 'starter';
 
     return Container(
@@ -50,7 +51,6 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
         expand: false,
         builder: (_, controller) => Column(
           children: [
-            // handle
             Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 4),
               child: Center(
@@ -64,8 +64,6 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
                 ),
               ),
             ),
-
-            // header
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
@@ -87,11 +85,11 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Upgrade Your Plan',
-                            style: tt.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700)),
-                        Text('Choose the plan that fits your farm',
-                            style: tt.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant)),
+                            style: tt.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700)),
+                        Text('Choose the plan that fits your business',
+                            style: tt.bodySmall
+                                ?.copyWith(color: cs.onSurfaceVariant)),
                       ],
                     ),
                   ),
@@ -102,32 +100,45 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
                 ],
               ),
             ),
-
             const Divider(height: 24),
-
-            // plan cards
             Expanded(
-              child: ListView.separated(
-                controller: controller,
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
-                itemCount: kSubscriptionPlans.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.md),
-                itemBuilder: (_, i) {
-                  final plan = kSubscriptionPlans[i];
-                  final isCurrent = plan.id == currentPlanId;
-                  final isSelected = _selectedId == plan.id;
-                  return _PlanCard(
-                    plan: plan,
-                    isCurrent: isCurrent,
-                    isSelected: isSelected,
-                    loading: _loading && isSelected,
-                    onSelect: isCurrent || _loading
-                        ? null
-                        : () => _confirmUpgrade(plan.id, plan.label),
-                  );
-                },
+              child: plansAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Could not load plans.'),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => ref.invalidate(plansProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+                data: (plans) => ListView.separated(
+                  controller: controller,
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+                  itemCount: plans.length,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (_, i) {
+                    final plan = plans[i];
+                    final isCurrent = plan.slug == currentPlanSlug;
+                    final isLoading = _loadingSlug == plan.slug;
+                    return _PlanCard(
+                      plan: plan,
+                      isCurrent: isCurrent,
+                      loading: isLoading,
+                      onSelect: (isCurrent || _loadingSlug != null)
+                          ? null
+                          : () => _startCheckout(plan),
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -136,117 +147,94 @@ class _UpgradePlanSheetState extends ConsumerState<_UpgradePlanSheet> {
     );
   }
 
-  Future<void> _confirmUpgrade(String planId, String planLabel) async {
+  Future<void> _startCheckout(BillingPlan plan) async {
     if (!mounted) return;
+    setState(() => _loadingSlug = plan.slug);
+    try {
+      final ds = ref.read(billingDataSourceProvider);
+      final result = await ds.initiateCheckout(planSlug: plan.slug);
+      final redirectUrl = result['redirectUrl'] ?? '';
+      if (!mounted) return;
+      setState(() => _loadingSlug = null);
+      if (redirectUrl.isEmpty) {
+        _showError('No checkout URL returned. Please contact support.');
+        return;
+      }
+      if (kIsWeb) {
+        _assignUrl(redirectUrl);
+      } else {
+        _showUrlDialog(redirectUrl);
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loadingSlug = null);
+      _showError(_extractError(e));
+    }
+  }
 
-    // Capture references before any async gaps
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-
-    final confirmed = await showDialog<bool>(
+  void _showUrlDialog(String url) {
+    showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Upgrade to $planLabel?'),
-        content: Text(
-          'Your plan will be updated to $planLabel. '
-          'Billing changes take effect at the start of the next cycle.',
+      builder: (ctx) => AlertDialog(
+        title: const Text('Complete Payment'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Open this link in your browser to complete payment:'),
+            const SizedBox(height: 12),
+            SelectableText(url,
+                style:
+                    const TextStyle(fontSize: 12, color: Colors.blueAccent)),
+          ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Confirm'),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
           ),
         ],
       ),
     );
+  }
 
-    if (confirmed != true) return;
+  void _showError(String msg) {
     if (!mounted) return;
-
-    setState(() {
-      _selectedId = planId;
-      _loading = true;
-    });
-
-    try {
-      final dio = ref.read(apiDioProvider);
-      await dio.put<Map<String, dynamic>>(
-        '/subscription/upgrade',
-        data: {'planId': planId},
-      );
-
-      if (!mounted) return;
-      setState(() => _loading = false);
-
-      // Refresh the user profile so the new plan is reflected in the app
-      ref.invalidate(authProvider);
-
-      navigator.pop(); // close sheet
-
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Plan upgraded to $planLabel successfully!'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.success,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Failed to upgrade plan: ${_extractError(e)}'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.error,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
-          ),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: AppColors.error,
+      behavior: SnackBarBehavior.floating,
+    ));
   }
 
   String _extractError(Object e) {
-    if (e is Exception) {
-      final str = e.toString();
-      if (str.contains('message')) {
-        final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(str);
-        if (match != null) return match.group(1)!;
-      }
-    }
-    return 'Please try again later';
+    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(e.toString());
+    return match?.group(1) ?? 'Please try again later';
   }
 }
 
-// ── Plan card ─────────────────────────────────────────────────────────────────
+@JS('window.location.assign')
+external void _assignUrl(String url);
 
+// Plan card widget
 class _PlanCard extends StatelessWidget {
   const _PlanCard({
     required this.plan,
     required this.isCurrent,
-    required this.isSelected,
     required this.loading,
     required this.onSelect,
   });
 
-  final SubscriptionPlan plan;
+  final BillingPlan plan;
   final bool isCurrent;
-  final bool isSelected;
   final bool loading;
   final VoidCallback? onSelect;
 
   static const _planColors = {
-    'starter': Color(0xFF5C6BC0), // indigo
-    'growth': Color(0xFF00897B), // teal
-    'enterprise': Color(0xFFE65100), // deep orange
+    'starter': Color(0xFF5C6BC0),
+    'growth': Color(0xFF00897B),
+    'enterprise': Color(0xFFE65100),
   };
 
   static const _planIcons = {
@@ -259,32 +247,23 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final color = _planColors[plan.id] ?? AppColors.primary;
-    final icon = _planIcons[plan.id] ?? Icons.star_rounded;
-    final isPopular = plan.id == 'growth';
+    final color = _planColors[plan.slug] ?? AppColors.primary;
+    final icon = _planIcons[plan.slug] ?? Icons.star_rounded;
+    final isPopular = plan.slug == 'growth';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isCurrent
-              ? AppColors.success
-              : isSelected
-                  ? color
-                  : cs.outlineVariant,
-          width: isCurrent || isSelected ? 2 : 1,
+          color: isCurrent ? AppColors.success : cs.outlineVariant,
+          width: isCurrent ? 2 : 1,
         ),
         borderRadius: AppRadius.card,
-        color: isCurrent
-            ? AppColors.success.withAlpha(8)
-            : isSelected
-                ? color.withAlpha(10)
-                : cs.surface,
+        color: isCurrent ? AppColors.success.withAlpha(8) : cs.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── card header ─────────────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
@@ -305,76 +284,54 @@ class _PlanCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          Text(plan.label,
-                              style: tt.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: color)),
-                          if (isPopular) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withAlpha(20),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text('Popular',
-                                  style: tt.labelSmall?.copyWith(
-                                      color: AppColors.secondary,
-                                      fontWeight: FontWeight.w700)),
-                            ),
-                          ],
-                        ],
-                      ),
-                      Text(plan.tagline,
-                          style: tt.bodySmall
-                              ?.copyWith(color: cs.onSurfaceVariant)),
+                      Text(plan.name,
+                          style: tt.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700, color: color)),
+                      if (isPopular) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withAlpha(20),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text('Popular',
+                              style: tt.labelSmall?.copyWith(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('R${plan.price}',
-                        style: tt.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w800, color: color)),
-                    Text('/ month',
-                        style: tt.labelSmall
-                            ?.copyWith(color: cs.onSurfaceVariant)),
-                  ],
-                ),
+                Text(plan.priceLabel,
+                    style: tt.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800, color: color)),
               ],
             ),
           ),
-
-          // ── features ────────────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ...plan.features.map((f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.check_circle_rounded,
-                              size: 16, color: color),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(f, style: tt.bodySmall),
-                          ),
-                        ],
-                      ),
-                    )),
+                if (plan.features.isNotEmpty)
+                  ...plan.features.map((f) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.check_circle_rounded,
+                                size: 16, color: color),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(f, style: tt.bodySmall)),
+                          ],
+                        ),
+                      )),
                 const SizedBox(height: AppSpacing.sm),
-
-                // ── action button ────────────────────────────────────────────
                 if (isCurrent)
                   SizedBox(
                     width: double.infinity,
@@ -393,18 +350,15 @@ class _PlanCard extends StatelessWidget {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: onSelect,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: color,
-                      ),
+                      style: FilledButton.styleFrom(backgroundColor: color),
                       child: loading
                           ? const SizedBox(
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white),
+                                  strokeWidth: 2, color: Colors.white),
                             )
-                          : Text('Select ${plan.label}'),
+                          : Text('Upgrade to ${plan.name}'),
                     ),
                   ),
               ],

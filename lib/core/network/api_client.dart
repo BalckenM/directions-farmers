@@ -8,6 +8,20 @@ import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/providers/secure_storage_provider.dart';
 import 'package:mobile_app/features/auth/data/auth_remote_data_source.dart';
 
+/// Signals that the backend returned 402 (subscription inactive).
+/// The router watches this and redirects to [AppRoutes.billingInactive].
+final subscriptionInactiveProvider =
+    NotifierProvider<_SubscriptionInactiveNotifier, bool>(
+      _SubscriptionInactiveNotifier.new,
+    );
+
+class _SubscriptionInactiveNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void setInactive() => state = true;
+  void reset() => state = false;
+}
+
 /// Dio HTTP client with automatic Bearer-token injection and 401 handling.
 ///
 /// Use [apiClientProvider] to obtain an instance from Riverpod.
@@ -92,7 +106,15 @@ class _AuthInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    if (err.response?.statusCode != 401) {
+    final statusCode = err.response?.statusCode;
+
+    // 402 → subscription inactive; signal the app and let the error propagate
+    if (statusCode == 402) {
+      _ref.read(subscriptionInactiveProvider.notifier).setInactive();
+      return handler.next(err);
+    }
+
+    if (statusCode != 401) {
       return handler.next(err);
     }
 
@@ -156,12 +178,13 @@ class _AuthInterceptor extends Interceptor {
 
       final response = await refreshDio.post<Map<String, dynamic>>(
         '/auth/refresh',
-        data: {'refreshToken': refreshToken},
+        data: {'refresh_token': refreshToken},
       );
 
-      final data = response.data!['data'] as Map<String, dynamic>;
-      final newAccessToken = data['accessToken'] as String;
-      final newRefreshToken = data['refreshToken'] as String;
+      // Backend returns flat { access_token, refresh_token, user } — no data wrapper
+      final data = response.data!;
+      final newAccessToken = data['access_token'] as String;
+      final newRefreshToken = data['refresh_token'] as String;
 
       await secure.write(kAccessTokenKey, newAccessToken);
       await secure.write(kRefreshTokenKey, newRefreshToken);

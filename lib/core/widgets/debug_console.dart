@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../utils/logger.dart';
+import 'package:mobile_app/core/utils/logger.dart';
 
 /// In-app debug console — only rendered in [kDebugMode].
 ///

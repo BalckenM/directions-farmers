@@ -1,4 +1,4 @@
-import 'auth_user.dart';
+import 'package:mobile_app/features/auth/models/auth_user.dart';
 
 /// Sealed auth state hierarchy.
 /// The router and UI pattern-match on this to decide what to show.

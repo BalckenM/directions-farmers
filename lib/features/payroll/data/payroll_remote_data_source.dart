@@ -1,6 +1,8 @@
-import 'package:image_picker/image_picker.dart' show XFile;
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:mobile_app/core/constants/app_constants.dart';
 import 'package:mobile_app/core/utils/logger.dart';
 import 'package:mobile_app/features/payroll/data/payroll_data_source.dart';
@@ -33,6 +35,36 @@ import 'package:mobile_app/features/payroll/models/worker_dispute.dart';
 /// Uses a write-through in-memory cache. Call [preload()] once at app start
 /// to populate all caches from the server.
 ///
+/// Normalises a raw leave-type JSON object from the backend before passing
+/// it to the freezed [LeaveType.fromJson]. The backend may send:
+///   • `id` as int instead of String
+///   • snake_case keys (`annual_entitlement_days`) instead of camelCase
+///   • `is_paid`, `requires_approval` instead of camelCase
+LeaveType _leaveTypeFromJson(Map<String, dynamic> raw) {
+  final m = <String, dynamic>{
+    'id': raw['id']?.toString() ?? '',
+    'code': raw['code']?.toString() ?? '',
+    'name': raw['name']?.toString() ?? '',
+    'annualEntitlementDays':
+        (raw['annualEntitlementDays'] ?? raw['annual_entitlement_days'] ?? 0)
+            is String
+        ? double.tryParse(
+                (raw['annualEntitlementDays'] ?? raw['annual_entitlement_days'])
+                    .toString(),
+              ) ??
+              0.0
+        : ((raw['annualEntitlementDays'] ?? raw['annual_entitlement_days'] ?? 0)
+                  as num)
+              .toDouble(),
+    'isPaid': raw['isPaid'] ?? raw['is_paid'] ?? false,
+    'requiresApproval':
+        raw['requiresApproval'] ?? raw['requires_approval'] ?? false,
+    'colorHex': raw['colorHex'] ?? raw['color_hex'],
+    'description': raw['description'],
+  };
+  return LeaveType.fromJson(m);
+}
+
 /// NOTE: The [PayrollDataSource] interface is synchronous. Write methods use
 /// a best-effort sync wrapper. Migrate the interface to async in a future sprint.
 class PayrollRemoteDataSource implements PayrollDataSource {
@@ -65,38 +97,45 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   final List<BenefitContribution> _benefitContributions = [];
   EmployerConfig? _employerConfig;
 
+  /// groupId → list of employee IDs that are members of that group.
+  final Map<String, List<String>> _groupMemberships = {};
+
   // ── Preload ────────────────────────────────────────────────────────────────
 
   /// Phase 1 — loads only the data needed to render the hub dashboard.
   /// Call this first; the UI unblocks as soon as it completes (~8 API calls).
   Future<void> preloadCritical() => Future.wait([
-    _fetchAllPaginated(
-      '/payroll/employees',
-      _employees,
-      PayrollEmployee.fromJson,
-    ),
-    _fetchList('/payroll/pay-groups', _payGroups, PayGroup.fromJson),
+    _fetchAllPaginated('/employees', _employees, PayrollEmployee.fromJson),
+    Future.wait([
+      _fetchList('/payroll-groups', _payGroups, PayGroup.fromJson),
+      _fetchMemberships(),
+    ]).then((_) {
+      if (_payGroups.isEmpty) {
+        AppLogger.warning(
+          'GET /payroll-groups returned 0 groups — check permissions '
+          '(payroll:view) and company_id filter on the backend.',
+          tag: 'Payroll',
+        );
+      } else {
+        AppLogger.info(
+          'GET /payroll-groups → ${_payGroups.length} group(s) loaded.',
+          tag: 'Payroll',
+        );
+      }
+    }),
     _fetchList(
       '/payroll/pay-structures',
       _payStructures,
       PayStructure.fromJson,
     ),
-    _fetchList('/payroll/pay-runs?limit=100', _payRuns, PayRun.fromJson),
+    _fetchList('/payroll?limit=100', _payRuns, PayRun.fromJson),
     _fetchList(
       '/payroll/compliance-alerts?limit=200',
       _alerts,
       ComplianceAlert.fromJson,
     ),
-    _fetchList(
-      '/payroll/leave-requests',
-      _leaveRequests,
-      LeaveRequest.fromJson,
-    ),
-    _fetchList(
-      '/payroll/leave-balances',
-      _leaveBalances,
-      LeaveBalance.fromJson,
-    ),
+    _fetchList('/leave', _leaveRequests, LeaveRequest.fromJson),
+    _fetchList('/leave/balances', _leaveBalances, LeaveBalance.fromJson),
     _fetchEmployerConfig(),
   ]);
 
@@ -108,37 +147,37 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       _contracts,
       EmploymentContract.fromJson,
     ),
-    _fetchList('/payroll/payslips?limit=200', _payslips, Payslip.fromJson),
+    _fetchList('/payslips?limit=200', _payslips, Payslip.fromJson),
     _fetchList('/payroll/deductions', _deductions, DeductionRule.fromJson),
     _fetchList(
       '/payroll/garnishee-orders',
       _garnishees,
       GarnisheeOrder.fromJson,
     ),
-    _fetchList('/payroll/leave-types', _leaveTypes, LeaveType.fromJson),
+    _fetchList('/leave/types/list', _leaveTypes, _leaveTypeFromJson),
     _fetchList(
       '/payroll/transactions?limit=200',
       _transactions,
       PaymentTransaction.fromJson,
     ),
-    _fetchList('/payroll/audit-log', _auditLog, AuditLogEntry.fromJson),
+    _fetchList('/audit', _auditLog, AuditLogEntry.fromJson),
     _fetchList('/payroll/incidents', _incidents, IncidentRecord.fromJson),
     _fetchList(
       '/payroll/communications',
       _communications,
       CommunicationLog.fromJson,
     ),
-    _fetchList('/payroll/shifts', _shifts, Shift.fromJson),
+    _fetchList('/attendance/shifts', _shifts, Shift.fromJson),
     _fetchList('/payroll/task-assignments', _tasks, TaskAssignment.fromJson),
     _fetchAllPaginated(
-      '/payroll/attendance',
+      '/attendance/records',
       _attendance,
       AttendanceRecord.fromJson,
     ),
     _fetchList('/payroll/piecework', _piecework, PieceworkLog.fromJson),
     _fetchList('/payroll/worker-disputes', _disputes, WorkerDispute.fromJson),
     _fetchList(
-      '/payroll/benefit-contributions',
+      '/benefits/enrolments/list',
       _benefitContributions,
       BenefitContribution.fromJson,
     ),
@@ -156,13 +195,41 @@ class PayrollRemoteDataSource implements PayrollDataSource {
         '/payroll/employer-config',
       );
       if (resp.data != null) {
-        _employerConfig = EmployerConfig.fromJson(resp.data!);
+        final d = resp.data!['data'] as Map<String, dynamic>? ?? resp.data!;
+        _employerConfig = EmployerConfig.fromJson(d);
       }
     } on DioException catch (e) {
       _logDioError('GET', '/payroll/employer-config', e);
     } catch (e, st) {
       AppLogger.error(
         'GET /payroll/employer-config failed',
+        tag: 'Payroll',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  Future<void> _fetchMemberships() async {
+    try {
+      final resp = await _dio.get<Map<String, dynamic>>(
+        '/payroll-groups/memberships',
+      );
+      if (resp.data == null) return;
+      final list =
+          (resp.data!['data'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      _groupMemberships.clear();
+      for (final m in list) {
+        final gId = m['payroll_group_id']?.toString() ?? '';
+        final eId = m['employee_id']?.toString() ?? '';
+        if (gId.isEmpty || eId.isEmpty) continue;
+        _groupMemberships.putIfAbsent(gId, () => []).add(eId);
+      }
+    } on DioException catch (e) {
+      _logDioError('GET', '/payroll-groups/memberships', e);
+    } catch (e, st) {
+      AppLogger.error(
+        'GET /payroll-groups/memberships failed',
         tag: 'Payroll',
         error: e,
         stackTrace: st,
@@ -200,11 +267,12 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   ) async {
     for (int attempt = 0; attempt < 3; attempt++) {
       try {
-        final resp = await _dio.get<List<dynamic>>(path);
+        final resp = await _dio.get<Map<String, dynamic>>(path);
         if (resp.data != null) {
+          final raw = (resp.data!['data'] as List<dynamic>?) ?? [];
           cache
             ..clear()
-            ..addAll(resp.data!.cast<Map<String, dynamic>>().map(fromJson));
+            ..addAll(raw.cast<Map<String, dynamic>>().map(fromJson));
         }
         return;
       } on DioException catch (e) {
@@ -242,10 +310,13 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       final separator = basePath.contains('?') ? '&' : '?';
       final path = '$basePath${separator}page=$page&limit=$pageSize';
       try {
-        final resp = await _dio.get<List<dynamic>>(path);
-        if (resp.data == null || resp.data!.isEmpty) break;
-        cache.addAll(resp.data!.cast<Map<String, dynamic>>().map(fromJson));
-        if (resp.data!.length < pageSize) break; // last page
+        final resp = await _dio.get<Map<String, dynamic>>(path);
+        if (resp.data == null) break;
+        final list = (resp.data!['data'] as List<dynamic>?) ?? [];
+        if (list.isEmpty) break;
+        cache.addAll(list.cast<Map<String, dynamic>>().map(fromJson));
+        final total = resp.data!['total'] as int? ?? list.length;
+        if (cache.length >= total || list.length < pageSize) break;
         page++;
         retries = 0;
       } on DioException catch (e) {
@@ -283,7 +354,8 @@ class PayrollRemoteDataSource implements PayrollDataSource {
         data: body,
         options: options,
       );
-      return f(r.data!);
+      final d = (r.data!['data'] as Map<String, dynamic>?) ?? r.data!;
+      return f(d);
     } on DioException catch (e) {
       _logDioError('POST', path, e);
       rethrow;
@@ -297,7 +369,8 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   ) async {
     try {
       final r = await _dio.put<Map<String, dynamic>>(path, data: body);
-      return f(r.data!);
+      final d = (r.data!['data'] as Map<String, dynamic>?) ?? r.data!;
+      return f(d);
     } on DioException catch (e) {
       _logDioError('PUT', path, e);
       rethrow;
@@ -311,7 +384,8 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   ) async {
     try {
       final r = await _dio.patch<Map<String, dynamic>>(path, data: body);
-      return f(r.data!);
+      final d = (r.data!['data'] as Map<String, dynamic>?) ?? r.data!;
+      return f(d);
     } on DioException catch (e) {
       _logDioError('PATCH', path, e);
       rethrow;
@@ -328,6 +402,37 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   // ── Employees ──────────────────────────────────────────────────────────────
+
+  /// Maps a [PayrollEmployee] to the snake_case body shape expected by the backend.
+  Map<String, dynamic> _employeeToBody(PayrollEmployee e) => {
+    'name': e.fullName,
+    'role': 'employee',
+    'job_title': e.occupationTitle,
+    'start_date': e.startDate.toIso8601String().split('T').first,
+    if (e.endDate != null)
+      'end_date': e.endDate!.toIso8601String().split('T').first,
+    if (e.email != null) 'email': e.email,
+    if (e.phone != null) 'phone': e.phone,
+    'address': e.address,
+    'national_id': e.idOrPassportNumber,
+    'emergency_contact': {'name': e.nextOfKinName, 'phone': e.nextOfKinPhone},
+    'employment_status': e.status.name,
+    'agr_employment_type': e.engagementType.name,
+    if (e.bankName != null) 'bank_name': e.bankName,
+    if (e.bankAccountNumber != null) 'bank_account_no': e.bankAccountNumber,
+    if (e.bankBranchCode != null) 'bank_branch': e.bankBranchCode,
+    'agr_housing_provided': e.hasHousingBenefit,
+    if (e.housingValuePerMonth != null)
+      'agr_housing_value': e.housingValuePerMonth,
+    'agr_meals_provided': e.hasFoodBenefit,
+    if (e.foodValuePerMonth != null)
+      'agr_meals_daily_value': e.foodValuePerMonth,
+    if (e.dateOfBirth != null)
+      'date_of_birth': e.dateOfBirth!.toIso8601String().split('T').first,
+    // gross_salary required by backend; not in Flutter model — default 0
+    'gross_salary': 0,
+  };
+
   @override
   List<PayrollEmployee> getEmployees() => List.unmodifiable(_employees);
   @override
@@ -335,11 +440,18 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       _employees.where((e) => e.id == id).firstOrNull;
   @override
   Future<PayrollEmployee> addEmployee(PayrollEmployee employee) async {
-    final s = await _post(
-      '/payroll/employees',
-      employee.toJson(),
-      PayrollEmployee.fromJson,
+    final r = await _dio.post<Map<String, dynamic>>(
+      '/employees',
+      data: _employeeToBody(employee),
     );
+    // Backend returns {data: {user: {...}, employee: {...}}}
+    final d = r.data!['data'] as Map<String, dynamic>? ?? r.data!;
+    final empData = d['employee'] as Map<String, dynamic>? ?? d;
+    final merged = <String, dynamic>{
+      ...empData,
+      if (d.containsKey('user')) 'user': d['user'],
+    };
+    final s = PayrollEmployee.fromJson(merged);
     _employees.add(s);
     return s;
   }
@@ -348,30 +460,46 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   Future<Map<String, dynamic>> bulkImportEmployees(
     List<PayrollEmployee> employees,
   ) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/payroll/employees/import',
-      data: {'employees': employees.map((e) => e.toJson()).toList()},
+    // Backend expects a CSV file upload (multipart), not a JSON array.
+    final buffer = StringBuffer();
+    buffer.writeln(
+      'name,email,employee_no,job_title,start_date,gross_salary,phone',
     );
-    final result = response.data ?? {};
-    final inserted = (result['rows'] as List<dynamic>? ?? [])
-        .map((r) => PayrollEmployee.fromJson(r as Map<String, dynamic>))
-        .toList();
-    _employees.addAll(inserted);
-    return result;
+    for (final e in employees) {
+      final safeName = e.fullName.replaceAll('"', '""');
+      buffer.writeln(
+        '"$safeName",${e.email ?? ''},,' // employee_no left blank
+        '"${e.occupationTitle}",'
+        '${e.startDate.toIso8601String().split('T').first},'
+        '0,${e.phone ?? ''}',
+      );
+    }
+    final file = MultipartFile.fromBytes(
+      utf8.encode(buffer.toString()),
+      filename: 'import.csv',
+      contentType: DioMediaType('text', 'csv'),
+    );
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/employees/import',
+      data: FormData.fromMap({'file': file}),
+    );
+    return response.data ?? {};
   }
 
   @override
   Future<PayrollEmployee> updateEmployee(PayrollEmployee employee) async {
-    final s = await _put(
-      '/payroll/employees/${employee.id}',
-      employee.toJson(),
-      PayrollEmployee.fromJson,
+    final r = await _dio.put<Map<String, dynamic>>(
+      '/employees/${employee.id}',
+      data: _employeeToBody(employee),
     );
+    final d = (r.data!['data'] as Map<String, dynamic>?) ?? r.data!;
+    final s = PayrollEmployee.fromJson(d);
     final i = _employees.indexWhere((e) => e.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _employees[i] = s;
-    else
+    } else {
       _employees.add(s);
+    }
     return s;
   }
 
@@ -390,12 +518,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     } else {
       file = await MultipartFile.fromFile(filePath);
     }
-    final formData = FormData.fromMap({'image': file});
-    final r = await _dio.post<Map<String, dynamic>>(
-      '/payroll/employees/$employeeId/profile-image',
-      data: formData,
-    );
-    final imageUrl = r.data!['profileImageUrl'] as String;
+    final formData = FormData.fromMap({'photo': file});
+    await _dio.post<void>('/employees/$employeeId/photo', data: formData);
+    // Backend returns {photo_upload_id: N}; serve photo via GET /employees/:id/photo
+    final baseUrl = _dio.options.baseUrl.replaceAll(RegExp(r'/$'), '');
+    final imageUrl = '$baseUrl/employees/$employeeId/photo';
     final i = _employees.indexWhere((e) => e.id == employeeId);
     if (i >= 0) {
       _employees[i] = _employees[i].copyWith(profileImageUrl: imageUrl);
@@ -432,39 +559,49 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       EmploymentContract.fromJson,
     );
     final i = _contracts.indexWhere((c) => c.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _contracts[i] = s;
-    else
+    } else {
       _contracts.add(s);
+    }
     return s;
   }
 
   // ── Pay groups ──────────────────────────────────────────────────────────────
   @override
   List<PayGroup> getPayGroups() => List.unmodifiable(_payGroups);
+
+  @override
+  List<String> getGroupMemberIds(String groupId) =>
+      List.unmodifiable(_groupMemberships[groupId] ?? const []);
+
   @override
   Future<PayGroup> addPayGroup(PayGroup group) async {
-    final s = await _post(
-      '/payroll/pay-groups',
-      group.toJson(),
-      PayGroup.fromJson,
-    );
+    final s = await _post('/payroll-groups', {
+      'name': group.name,
+      'pay_frequency': group.frequency.name,
+      'pay_day': group.payDayOffset,
+      if (group.description != null) 'description': group.description,
+    }, PayGroup.fromJson);
     _payGroups.add(s);
     return s;
   }
 
   @override
   Future<PayGroup> updatePayGroup(PayGroup group) async {
-    final s = await _put(
-      '/payroll/pay-groups/${group.id}',
-      group.toJson(),
-      PayGroup.fromJson,
-    );
+    final s = await _put('/payroll-groups/${group.id}', {
+      'name': group.name,
+      'pay_frequency': group.frequency.name,
+      'pay_day': group.payDayOffset,
+      if (group.description != null) 'description': group.description,
+      'is_active': group.isActive,
+    }, PayGroup.fromJson);
     final i = _payGroups.indexWhere((g) => g.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _payGroups[i] = s;
-    else
+    } else {
       _payGroups.add(s);
+    }
     return s;
   }
 
@@ -490,10 +627,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       PayStructure.fromJson,
     );
     final i = _payStructures.indexWhere((p) => p.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _payStructures[i] = s;
-    else
+    } else {
       _payStructures.add(s);
+    }
     return s;
   }
 
@@ -501,8 +639,9 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   @override
   List<Shift> getShifts({DateTime? weekStart, String? employeeId}) {
     var list = _shifts.toList();
-    if (employeeId != null)
+    if (employeeId != null) {
       list = list.where((s) => s.employeeIds.contains(employeeId)).toList();
+    }
     if (weekStart != null) {
       final end = weekStart.add(const Duration(days: 7));
       list = list
@@ -514,23 +653,24 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   Future<Shift> addShift(Shift shift) async {
-    final s = await _post('/payroll/shifts', shift.toJson(), Shift.fromJson);
+    final s = await _post('/attendance/shifts', shift.toJson(), Shift.fromJson);
     _shifts.add(s);
     return s;
   }
 
   @override
   Future<Shift> updateShift(Shift shift) async {
-    final s = await _put(
-      '/payroll/shifts/${shift.id}',
+    final s = await _patch(
+      '/attendance/shifts/${shift.id}',
       shift.toJson(),
       Shift.fromJson,
     );
     final i = _shifts.indexWhere((e) => e.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _shifts[i] = s;
-    else
+    } else {
       _shifts.add(s);
+    }
     return s;
   }
 
@@ -541,9 +681,10 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     DateTime? date,
   }) {
     var list = _tasks.toList();
-    if (employeeId != null)
+    if (employeeId != null) {
       list = list.where((t) => t.employeeId == employeeId).toList();
-    if (date != null)
+    }
+    if (date != null) {
       list = list
           .where(
             (t) =>
@@ -552,6 +693,7 @@ class PayrollRemoteDataSource implements PayrollDataSource {
                 t.date.day == date.day,
           )
           .toList();
+    }
     return list;
   }
 
@@ -574,10 +716,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       TaskAssignment.fromJson,
     );
     final i = _tasks.indexWhere((t) => t.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _tasks[i] = s;
-    else
+    } else {
       _tasks.add(s);
+    }
     return s;
   }
 
@@ -590,9 +733,10 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     DateTime? toDate,
   }) {
     var list = _attendance.toList();
-    if (employeeId != null)
+    if (employeeId != null) {
       list = list.where((a) => a.employeeId == employeeId).toList();
-    if (date != null)
+    }
+    if (date != null) {
       list = list
           .where(
             (a) =>
@@ -601,17 +745,20 @@ class PayrollRemoteDataSource implements PayrollDataSource {
                 a.date.day == date.day,
           )
           .toList();
-    if (fromDate != null)
+    }
+    if (fromDate != null) {
       list = list.where((a) => !a.date.isBefore(fromDate)).toList();
-    if (toDate != null)
+    }
+    if (toDate != null) {
       list = list.where((a) => !a.date.isAfter(toDate)).toList();
+    }
     return list;
   }
 
   @override
   Future<AttendanceRecord> addAttendanceRecord(AttendanceRecord record) async {
     final s = await _post(
-      '/payroll/attendance',
+      '/attendance/records',
       record.toJson(),
       AttendanceRecord.fromJson,
     );
@@ -623,16 +770,17 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   Future<AttendanceRecord> updateAttendanceRecord(
     AttendanceRecord record,
   ) async {
-    final s = await _put(
-      '/payroll/attendance/${record.id}',
+    final s = await _patch(
+      '/attendance/records/${record.id}',
       record.toJson(),
       AttendanceRecord.fromJson,
     );
     final i = _attendance.indexWhere((a) => a.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _attendance[i] = s;
-    else
+    } else {
       _attendance.add(s);
+    }
     return s;
   }
 
@@ -644,11 +792,13 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     String? shiftId,
   }) {
     var list = _piecework.toList();
-    if (employeeId != null)
+    if (employeeId != null) {
       list = list.where((p) => p.employeeId == employeeId).toList();
-    if (shiftId != null)
+    }
+    if (shiftId != null) {
       list = list.where((p) => p.shiftId == shiftId).toList();
-    if (date != null)
+    }
+    if (date != null) {
       list = list
           .where(
             (p) =>
@@ -657,6 +807,7 @@ class PayrollRemoteDataSource implements PayrollDataSource {
                 p.date.day == date.day,
           )
           .toList();
+    }
     return list;
   }
 
@@ -687,13 +838,19 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     DateTime periodEnd, {
     DateTime? payDate,
   }) async {
+    // Backend requires period_label, period_start, period_end.
+    // group_ids is an optional filter array (not pay_group_id).
+    final start = periodStart.toIso8601String().substring(0, 10);
+    final end = periodEnd.toIso8601String().substring(0, 10);
+    final label =
+        '${periodStart.year}-${periodStart.month.toString().padLeft(2, '0')}';
     final s = await _post(
-      '/payroll/pay-runs/calculate',
+      '/payroll/run',
       {
-        'payGroupId': payGroupId,
-        'periodStart': periodStart.toIso8601String().substring(0, 10),
-        'periodEnd': periodEnd.toIso8601String().substring(0, 10),
-        'payDate': (payDate ?? periodEnd).toIso8601String().substring(0, 10),
+        'period_label': label,
+        'period_start': start,
+        'period_end': end,
+        'group_ids': [payGroupId],
       },
       PayRun.fromJson,
       timeout: AppConstants.apiLongTimeout,
@@ -703,30 +860,83 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   }
 
   @override
-  Future<PayRun> approvePayRun(String id, String approverUserId) async {
-    final s = await _patch('/payroll/pay-runs/$id/approve', {
-      'approverUserId': approverUserId,
-    }, PayRun.fromJson);
+  Future<PayRun> completePayRun(String id) async {
+    // PATCH /:id/complete — moves draft → completed (required before approve)
+    final s = await _patch('/payroll/$id/complete', {}, PayRun.fromJson);
     final i = _payRuns.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _payRuns[i] = s;
-    else
+    } else {
       _payRuns.add(s);
+    }
+    return s;
+  }
+
+  @override
+  Future<PayRun> approvePayRun(String id, String approverUserId) async {
+    // Backend uses req.user.id — no approverUserId needed in body.
+    // Run must be in 'completed' status first (call completePayRun first).
+    final s = await _patch('/payroll/$id/approve', {}, PayRun.fromJson);
+    final i = _payRuns.indexWhere((r) => r.id == s.id);
+    if (i >= 0) {
+      _payRuns[i] = s;
+    } else {
+      _payRuns.add(s);
+    }
     return s;
   }
 
   @override
   Future<PayRun> disbursePayRun(String id) async {
-    final s = await _patch(
-      '/payroll/pay-runs/$id/disburse',
-      {},
-      PayRun.fromJson,
-    );
+    final s = await _patch('/payroll/$id/pay', {}, PayRun.fromJson);
     final i = _payRuns.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _payRuns[i] = s;
-    else
+    } else {
       _payRuns.add(s);
+    }
+    return s;
+  }
+
+  @override
+  Future<PayRun> rejectPayRun(String id, {String? reason}) async {
+    final body = reason != null
+        ? <String, dynamic>{'reason': reason}
+        : <String, dynamic>{};
+    final s = await _patch('/payroll/$id/reject', body, PayRun.fromJson);
+    final i = _payRuns.indexWhere((r) => r.id == s.id);
+    if (i >= 0) {
+      _payRuns[i] = s;
+    } else {
+      _payRuns.add(s);
+    }
+    return s;
+  }
+
+  @override
+  Future<PayRun> cancelPayRun(String id, {String? reason}) async {
+    final body = reason != null
+        ? <String, dynamic>{'reason': reason}
+        : <String, dynamic>{};
+    final s = await _patch('/payroll/$id/cancel', body, PayRun.fromJson);
+    final i = _payRuns.indexWhere((r) => r.id == s.id);
+    if (i >= 0) {
+      _payRuns[i] = s;
+    } else {
+      _payRuns.add(s);
+    }
+    return s;
+  }
+
+  @override
+  Future<PayRun> recalculatePayRun(String id) async {
+    final s = await _patch('/payroll/$id/recalculate', {}, PayRun.fromJson);
+    final i = _payRuns.indexWhere((r) => r.id == s.id);
+    if (i >= 0) {
+      _payRuns[i] = s;
+    } else {
+      _payRuns.add(s);
+    }
     return s;
   }
 
@@ -734,10 +944,12 @@ class PayrollRemoteDataSource implements PayrollDataSource {
   @override
   List<Payslip> getPayslips({String? employeeId, String? payRunId}) {
     var list = _payslips.toList();
-    if (employeeId != null)
+    if (employeeId != null) {
       list = list.where((p) => p.employeeId == employeeId).toList();
-    if (payRunId != null)
+    }
+    if (payRunId != null) {
       list = list.where((p) => p.payRunId == payRunId).toList();
+    }
     return list;
   }
 
@@ -777,10 +989,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       DeductionRule.fromJson,
     );
     final i = _deductions.indexWhere((d) => d.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _deductions[i] = s;
-    else
+    } else {
       _deductions.add(s);
+    }
     return s;
   }
 
@@ -811,10 +1024,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       GarnisheeOrder.fromJson,
     );
     final i = _garnishees.indexWhere((g) => g.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _garnishees[i] = s;
-    else
+    } else {
       _garnishees.add(s);
+    }
     return s;
   }
 
@@ -836,20 +1050,21 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     LeaveStatus? status,
   }) {
     var list = _leaveRequests.toList();
-    if (employeeId != null)
+    if (employeeId != null) {
       list = list.where((r) => r.employeeId == employeeId).toList();
+    }
     if (status != null) list = list.where((r) => r.status == status).toList();
     return list;
   }
 
   @override
   Future<LeaveRequest> addLeaveRequest(LeaveRequest request) async {
-    final s = await _post('/payroll/leave-requests', {
-      'employeeId': request.employeeId,
-      'leaveTypeId': request.leaveTypeId,
-      'startDate': request.startDate.toIso8601String().split('T').first,
-      'endDate': request.endDate.toIso8601String().split('T').first,
-      'daysRequested': request.daysRequested,
+    final s = await _post('/leave', {
+      'employee_id': request.employeeId,
+      'leave_type_id': request.leaveTypeId,
+      'start_date': request.startDate.toIso8601String().split('T').first,
+      'end_date': request.endDate.toIso8601String().split('T').first,
+      'days': request.daysRequested,
       if (request.reason.isNotEmpty) 'reason': request.reason,
     }, LeaveRequest.fromJson);
     _leaveRequests.add(s);
@@ -858,14 +1073,14 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   Future<LeaveRequest> approveLeaveRequest(String id, String approverId) async {
-    final s = await _patch('/payroll/leave-requests/$id/approve', {
-      'approverId': approverId,
-    }, LeaveRequest.fromJson);
+    // Backend uses req.user.id — approverId is ignored
+    final s = await _patch('/leave/$id/approve', {}, LeaveRequest.fromJson);
     final i = _leaveRequests.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _leaveRequests[i] = s;
-    else
+    } else {
       _leaveRequests.add(s);
+    }
     return s;
   }
 
@@ -875,31 +1090,27 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     String approverId,
     String reason,
   ) async {
-    final s = await _patch('/payroll/leave-requests/$id/reject', {
-      'approverId': approverId,
+    final s = await _patch('/leave/$id/reject', {
       'reason': reason,
     }, LeaveRequest.fromJson);
     final i = _leaveRequests.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _leaveRequests[i] = s;
-    else
+    } else {
       _leaveRequests.add(s);
+    }
     return s;
   }
 
   @override
   Future<LeaveRequest> cancelLeaveRequest(String id) async {
-    final s = await _patch(
-      '/payroll/leave-requests/$id/cancel',
-      {},
-      LeaveRequest.fromJson,
-    );
-    final i = _leaveRequests.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
-      _leaveRequests[i] = s;
-    else
-      _leaveRequests.add(s);
-    return s;
+    // Backend uses DELETE /leave/:id — no cancel endpoint
+    final idx = _leaveRequests.indexWhere((r) => r.id == id);
+    final existing = idx >= 0 ? _leaveRequests[idx] : null;
+    await _del('/leave/$id');
+    _leaveRequests.removeWhere((r) => r.id == id);
+    return existing?.copyWith(status: LeaveStatus.cancelled) ??
+        (throw StateError('LeaveRequest $id not found in cache'));
   }
 
   // ── Payment transactions ─────────────────────────────────────────────────────
@@ -909,10 +1120,12 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     String? employeeId,
   }) {
     var list = _transactions.toList();
-    if (payRunId != null)
+    if (payRunId != null) {
       list = list.where((t) => t.payRunId == payRunId).toList();
-    if (employeeId != null)
+    }
+    if (employeeId != null) {
       list = list.where((t) => t.employeeId == employeeId).toList();
+    }
     return list;
   }
 
@@ -955,10 +1168,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       'resolution': resolution,
     }, ComplianceAlert.fromJson);
     final i = _alerts.indexWhere((a) => a.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _alerts[i] = s;
-    else
+    } else {
       _alerts.add(s);
+    }
     return s;
   }
 
@@ -970,10 +1184,12 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     int limit = 100,
   }) {
     var list = _auditLog.toList();
-    if (entityType != null)
+    if (entityType != null) {
       list = list.where((a) => a.entityType == entityType).toList();
-    if (entityId != null)
+    }
+    if (entityId != null) {
       list = list.where((a) => a.entityId == entityId).toList();
+    }
     return list.take(limit).toList();
   }
 
@@ -1003,10 +1219,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       IncidentRecord.fromJson,
     );
     final i = _incidents.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _incidents[i] = s;
-    else
+    } else {
       _incidents.add(s);
+    }
     return s;
   }
 
@@ -1042,15 +1259,22 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     DateTime terminationDate,
     String reason,
   ) async {
-    final s = await _patch('/payroll/employees/$id/terminate', {
-      'terminationDate': terminationDate.toIso8601String(),
-      'reason': reason,
-    }, PayrollEmployee.fromJson);
+    final r = await _dio.put<Map<String, dynamic>>(
+      '/employees/$id',
+      data: {
+        'employment_status': 'terminated',
+        'end_date': terminationDate.toIso8601String().split('T').first,
+        'separation_reason': reason,
+      },
+    );
+    final d = (r.data!['data'] as Map<String, dynamic>?) ?? r.data!;
+    final s = PayrollEmployee.fromJson(d);
     final i = _employees.indexWhere((e) => e.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _employees[i] = s;
-    else
+    } else {
       _employees.add(s);
+    }
     return s;
   }
 
@@ -1060,16 +1284,17 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       'reason': reason,
     }, EmploymentContract.fromJson);
     final i = _contracts.indexWhere((c) => c.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _contracts[i] = s;
-    else
+    } else {
       _contracts.add(s);
+    }
     return s;
   }
 
   @override
   Future<bool> deleteShift(String id) async {
-    await _del('/payroll/shifts/$id');
+    await _del('/attendance/shifts/$id');
     _shifts.removeWhere((s) => s.id == id);
     return true;
   }
@@ -1089,10 +1314,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       DeductionRule.fromJson,
     );
     final i = _deductions.indexWhere((d) => d.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _deductions[i] = s;
-    else
+    } else {
       _deductions.add(s);
+    }
     return s;
   }
 
@@ -1107,7 +1333,7 @@ class PayrollRemoteDataSource implements PayrollDataSource {
 
   @override
   Future<bool> deleteLeaveRequest(String id) async {
-    await _del('/payroll/leave-requests/$id');
+    await _del('/leave/$id');
     _leaveRequests.removeWhere((r) => r.id == id);
     return true;
   }
@@ -1120,26 +1346,26 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       IncidentRecord.fromJson,
     );
     final i = _incidents.indexWhere((r) => r.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _incidents[i] = s;
-    else
+    } else {
       _incidents.add(s);
+    }
     return s;
   }
 
   @override
   Future<PayGroup> deactivatePayGroup(String id) async {
-    final s = await _patch(
-      '/payroll/pay-groups/$id/deactivate',
-      {},
-      PayGroup.fromJson,
-    );
-    final i = _payGroups.indexWhere((g) => g.id == s.id);
-    if (i >= 0)
-      _payGroups[i] = s;
-    else
-      _payGroups.add(s);
-    return s;
+    // Backend has no /deactivate — uses DELETE instead.
+    // We remove from backend and mark inactive in local cache.
+    await _del('/payroll-groups/$id');
+    final idx = _payGroups.indexWhere((g) => g.id == id);
+    if (idx >= 0) {
+      final deactivated = _payGroups[idx].copyWith(isActive: false);
+      _payGroups[idx] = deactivated;
+      return deactivated;
+    }
+    throw StateError('PayGroup $id not found in cache');
   }
 
   // ── Employer configuration ──────────────────────────────────────────────────
@@ -1183,10 +1409,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       WorkerDispute.fromJson,
     );
     final i = _disputes.indexWhere((d) => d.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _disputes[i] = s;
-    else
+    } else {
       _disputes.add(s);
+    }
     return s;
   }
 
@@ -1201,10 +1428,11 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       'resolutionNote': resolutionNote,
     }, WorkerDispute.fromJson);
     final i = _disputes.indexWhere((d) => d.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _disputes[i] = s;
-    else
+    } else {
       _disputes.add(s);
+    }
     return s;
   }
 
@@ -1214,20 +1442,22 @@ class PayrollRemoteDataSource implements PayrollDataSource {
       'resolvedBy': resolvedBy,
     }, WorkerDispute.fromJson);
     final i = _disputes.indexWhere((d) => d.id == s.id);
-    if (i >= 0)
+    if (i >= 0) {
       _disputes[i] = s;
-    else
+    } else {
       _disputes.add(s);
+    }
     return s;
   }
 
   // ── Benefit contributions ──────────────────────────────────────────────────
   @override
   List<BenefitContribution> getBenefitContributions({String? employeeId}) {
-    if (employeeId != null)
+    if (employeeId != null) {
       return _benefitContributions
           .where((b) => b.employeeId == employeeId)
           .toList();
+    }
     return List.unmodifiable(_benefitContributions);
   }
 
@@ -1236,10 +1466,12 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     BenefitContribution contribution,
   ) async {
     final response = await _dio.post<Map<String, dynamic>>(
-      '/payroll/benefit-contributions',
+      '/benefits/enrolments',
       data: contribution.toJson(),
     );
-    final created = BenefitContribution.fromJson(response.data!);
+    final d =
+        (response.data!['data'] as Map<String, dynamic>?) ?? response.data!;
+    final created = BenefitContribution.fromJson(d);
     _benefitContributions.add(created);
     return created;
   }
@@ -1249,21 +1481,24 @@ class PayrollRemoteDataSource implements PayrollDataSource {
     BenefitContribution contribution,
   ) async {
     final response = await _dio.put<Map<String, dynamic>>(
-      '/payroll/benefit-contributions/${contribution.id}',
+      '/benefits/enrolments/${contribution.id}',
       data: contribution.toJson(),
     );
-    final updated = BenefitContribution.fromJson(response.data!);
+    final d =
+        (response.data!['data'] as Map<String, dynamic>?) ?? response.data!;
+    final updated = BenefitContribution.fromJson(d);
     final i = _benefitContributions.indexWhere((b) => b.id == updated.id);
-    if (i >= 0)
+    if (i >= 0) {
       _benefitContributions[i] = updated;
-    else
+    } else {
       _benefitContributions.add(updated);
+    }
     return updated;
   }
 
   @override
   Future<void> deleteBenefitContribution(String id) async {
-    await _dio.delete<void>('/payroll/benefit-contributions/$id');
+    await _dio.delete<void>('/benefits/enrolments/$id');
     _benefitContributions.removeWhere((b) => b.id == id);
   }
 }

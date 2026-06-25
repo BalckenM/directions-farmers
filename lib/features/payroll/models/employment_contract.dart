@@ -5,6 +5,7 @@ part 'employment_contract.freezed.dart';
 part 'employment_contract.g.dart';
 
 enum ContractType { permanent, fixedTerm, seasonal, casual }
+
 enum ContractStatus { draft, signed, expired, terminated }
 
 @freezed
@@ -29,8 +30,35 @@ abstract class EmploymentContract with _$EmploymentContract {
     required DateTime createdAt,
   }) = _EmploymentContract;
 
-  factory EmploymentContract.fromJson(Map<String, dynamic> json) =>
-      _$EmploymentContractFromJson(json);
+  factory EmploymentContract.fromJson(Map<String, dynamic> json) {
+    const typeMap = {
+      'permanent': 'permanent',
+      'fixed_term': 'fixedTerm',
+      'seasonal': 'seasonal',
+      'casual': 'casual',
+    };
+    final now = DateTime.now().toIso8601String();
+    return _$EmploymentContractFromJson(<String, dynamic>{
+      ...json,
+      'id': json['id']?.toString() ?? '',
+      'employeeId':
+          (json['employee_id'] ?? json['employeeId'])?.toString() ?? '',
+      'type': typeMap[json['type']] ?? json['type'] ?? 'permanent',
+      'startDate': json['start_date'] ?? json['startDate'] ?? now,
+      'endDate': json['end_date'] ?? json['endDate'],
+      'jobDescription': json['job_description'] ?? json['jobDescription'] ?? '',
+      'grossMonthlySalary':
+          (json['gross_monthly_salary'] as num?)?.toDouble() ??
+          (json['grossMonthlySalary'] as num?)?.toDouble() ??
+          0.0,
+      'signedAt': json['signed_at'] ?? json['signedAt'],
+      'signedByName': json['signed_by_name'] ?? json['signedByName'],
+      'signatureImageBase64':
+          json['signature_image_base64'] ?? json['signatureImageBase64'],
+      'pdfPath': json['pdf_path'] ?? json['pdfPath'],
+      'createdAt': json['created_at'] ?? json['createdAt'] ?? now,
+    });
+  }
 
   bool get isActive => status == ContractStatus.signed;
   bool get isExpired =>

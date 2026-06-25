@@ -1,13 +1,12 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_app/shared/widgets/avatar_widget.dart';
-import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
-import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
-
+import 'package:mobile_app/core/theme/app_colors.dart';
 import 'package:mobile_app/features/payroll/models/shift.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
 import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/shared/widgets/avatar_widget.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
 
 class AddShiftScreen extends ConsumerStatefulWidget {
   const AddShiftScreen({super.key, this.editShift, this.preselectedDate});
@@ -297,7 +296,7 @@ class _AddShiftScreenState extends ConsumerState<AddShiftScreen> {
                         ),
                         secondary: AvatarWidget(
                           imageUrl: emp.profileImageUrl,
-                          initials: '${emp.firstName[0]}${emp.lastName[0]}',
+                          initials: '${emp.firstName.isNotEmpty ? emp.firstName[0].toUpperCase() : ''}${emp.lastName.isNotEmpty ? emp.lastName[0].toUpperCase() : '?'}',
                           radius: 16,
                           backgroundColor: AppColors.success.withValues(
                             alpha: 0.12,

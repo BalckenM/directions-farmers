@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/network/api_client.dart';
-import '../data/livestock_data_source.dart';
-import '../data/livestock_remote_data_source.dart';
-import '../data/livestock_repository.dart';
-import '../models/animal.dart';
-import 'local_animal_store.dart';
+import 'package:mobile_app/core/network/api_client.dart';
+import 'package:mobile_app/features/livestock/data/livestock_data_source.dart';
+import 'package:mobile_app/features/livestock/data/livestock_remote_data_source.dart';
+import 'package:mobile_app/features/livestock/data/livestock_repository.dart';
+import 'package:mobile_app/features/livestock/models/animal.dart';
+import 'package:mobile_app/features/livestock/providers/local_animal_store.dart';
 
 final livestockDataSourceProvider = Provider<LivestockDataSource>(
   (ref) => LivestockRemoteDataSource(ref.read(apiDioProvider)),

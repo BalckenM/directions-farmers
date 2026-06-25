@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/cattle_records.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class BodyConditionScreen extends ConsumerStatefulWidget {
   const BodyConditionScreen({super.key, required this.cattleId});
@@ -172,16 +172,18 @@ class _BodyConditionScreenState
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: records.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final r = records[i];
                         Color scoreColor = Colors.green;
-                        if (r.score < 2.5 || r.score > 4.0)
+                        if (r.score < 2.5 || r.score > 4.0) {
                           scoreColor = Colors.orange;
-                        if (r.score < 2.0 || r.score > 4.5)
+                        }
+                        if (r.score < 2.0 || r.score > 4.5) {
                           scoreColor =
                               Theme.of(context).colorScheme.error;
+                        }
                         return Card(
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),

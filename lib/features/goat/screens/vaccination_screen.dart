@@ -1,11 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/goat_records.dart';
-import '../providers/goat_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/goat/models/goat_records.dart';
+import 'package:mobile_app/features/goat/providers/goat_providers.dart';
 
 class GoatVaccinationScreen extends ConsumerStatefulWidget {
   const GoatVaccinationScreen({super.key});
@@ -204,7 +204,7 @@ class _GoatVaccinationScreenState
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: vaccs.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final v = vaccs[i];

@@ -1,8 +1,8 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/animal.dart';
-import '../models/group.dart';
-import 'livestock_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/livestock/models/animal.dart';
+import 'package:mobile_app/features/livestock/models/group.dart';
+import 'package:mobile_app/features/livestock/data/livestock_data_source.dart';
 
 class LivestockRepository {
   LivestockRepository(this._source);

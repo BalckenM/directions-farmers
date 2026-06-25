@@ -1,5 +1,5 @@
-import '../models/farm_weather.dart';
-import '../models/weather_alert.dart';
+import 'package:mobile_app/features/crop/models/farm_weather.dart';
+import 'package:mobile_app/features/crop/models/weather_alert.dart';
 
 abstract class WeatherDataSource {
   Future<FarmWeather> getCurrentWeather(String farmId);

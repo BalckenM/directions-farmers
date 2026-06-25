@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/events_repository.dart';
-import '../models/breeding_event.dart';
-import '../models/health_event.dart';
-import '../models/weight_record.dart';
-import 'events_providers.dart';
+import 'package:mobile_app/features/events/data/events_repository.dart';
+import 'package:mobile_app/features/events/models/breeding_event.dart';
+import 'package:mobile_app/features/events/models/health_event.dart';
+import 'package:mobile_app/features/events/models/weight_record.dart';
+import 'package:mobile_app/features/events/providers/events_providers.dart';
 
 class EventsActionNotifier extends Notifier<AsyncValue<void>> {
   @override

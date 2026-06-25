@@ -1,5 +1,5 @@
-import '../models/dashboard_summary.dart';
-import 'dashboard_data_source.dart';
+import 'package:mobile_app/features/dashboard/models/dashboard_summary.dart';
+import 'package:mobile_app/features/dashboard/data/dashboard_data_source.dart';
 
 /// Aggregates data into a [DashboardSummary].
 class DashboardRepository {

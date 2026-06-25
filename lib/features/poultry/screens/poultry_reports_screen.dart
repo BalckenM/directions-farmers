@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../models/flock.dart';
-import '../models/poultry_flock.dart';
-import '../providers/poultry_providers.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/features/poultry/models/flock.dart';
+import 'package:mobile_app/features/poultry/models/poultry_flock.dart';
+import 'package:mobile_app/features/poultry/providers/poultry_providers.dart';
 
 class PoultryReportsScreen extends ConsumerStatefulWidget {
   const PoultryReportsScreen({super.key, required this.flockId});

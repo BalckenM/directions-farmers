@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// Visualises a Body Condition Score on either a 5-point or 9-point scale.
 ///

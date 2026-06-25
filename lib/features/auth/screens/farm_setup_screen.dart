@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_routes.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_dropdown.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../data/subscription_data.dart';
-import '../providers/auth_provider.dart';
+import 'package:mobile_app/core/router/app_routes.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_dropdown.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/features/auth/data/subscription_data.dart';
+import 'package:mobile_app/features/auth/providers/auth_provider.dart';
 
 /// Module display metadata (mirrors _moduleInfo in registration_screen.dart).
 const _moduleInfo = <String, ({String label, IconData icon})>{

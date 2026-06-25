@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/loading_shimmer.dart';
-import '../models/cattle_records.dart';
-import '../providers/cattle_providers.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/loading_shimmer.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
+import 'package:mobile_app/features/cattle/providers/cattle_providers.dart';
 
 class FeedSupplementScreen extends ConsumerStatefulWidget {
   const FeedSupplementScreen({super.key});
@@ -207,7 +207,7 @@ class _FeedSupplementScreenState
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: records.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final r = records[i];

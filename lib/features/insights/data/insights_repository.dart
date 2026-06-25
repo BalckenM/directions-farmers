@@ -1,6 +1,6 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import 'insights_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/insights/data/insights_data_source.dart';
 
 class InsightsRepository {
   InsightsRepository(this._source);

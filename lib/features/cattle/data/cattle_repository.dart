@@ -1,9 +1,9 @@
 
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/cattle_animal.dart';
-import '../models/cattle_records.dart';
-import 'cattle_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/cattle/models/cattle_animal.dart';
+import 'package:mobile_app/features/cattle/models/cattle_records.dart';
+import 'package:mobile_app/features/cattle/data/cattle_data_source.dart';
 
 class CattleRepository {
   CattleRepository(this._source);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_radius.dart';
-import '../../core/theme/app_spacing.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
 
 /// Shows a modal bottom sheet with a standard farm-app design.
 Future<T?> showInfoSheet<T>(

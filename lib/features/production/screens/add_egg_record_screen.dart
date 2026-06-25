@@ -4,18 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_radius.dart';
-import '../../../core/theme/app_shadows.dart';
-import '../../../core/theme/app_spacing.dart';
-import '../../../shared/widgets/farm_app_bar.dart';
-import '../../../shared/widgets/farm_scaffold.dart';
-import '../../../shared/widgets/farm_text_field.dart';
-import '../../../shared/widgets/primary_button.dart';
-import '../../livestock/providers/groups_provider.dart';
-import '../providers/production_providers.dart';
-import '../models/egg_record.dart';
-import 'egg_records_screen.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
+import 'package:mobile_app/core/theme/app_radius.dart';
+import 'package:mobile_app/core/theme/app_shadows.dart';
+import 'package:mobile_app/core/theme/app_spacing.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_text_field.dart';
+import 'package:mobile_app/shared/widgets/primary_button.dart';
+import 'package:mobile_app/features/livestock/providers/groups_provider.dart';
+import 'package:mobile_app/features/production/providers/production_providers.dart';
+import 'package:mobile_app/features/production/models/egg_record.dart';
+import 'package:mobile_app/features/production/screens/egg_records_screen.dart';
 
 class AddEggRecordScreen extends ConsumerStatefulWidget {
   const AddEggRecordScreen({super.key});
@@ -115,14 +115,14 @@ class _AddEggRecordScreenState extends ConsumerState<AddEggRecordScreen> {
                   return groupsAsync.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                     data: (groups) {
                       final flocks = groups
                           .where((g) =>
                               g.species.toLowerCase() == 'poultry')
                           .toList();
                       return DropdownButtonFormField<String>(
-                        value: _selectedGroupId,
+                        initialValue: _selectedGroupId,
                         decoration: const InputDecoration(
                           labelText: 'Select Flock *',
                           prefixIcon: Icon(Icons.group_outlined),

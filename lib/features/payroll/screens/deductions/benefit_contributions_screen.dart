@@ -478,8 +478,9 @@ class _BcSheetState extends ConsumerState<_BcSheet> {
                       ),
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
-                        if (double.tryParse(v.replaceAll(',', '.')) == null)
+                        if (double.tryParse(v.replaceAll(',', '.')) == null) {
                           return 'Invalid';
+                        }
                         return null;
                       },
                     ),

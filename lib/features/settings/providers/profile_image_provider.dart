@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/providers/shared_preferences_provider.dart';
+import 'package:mobile_app/core/providers/shared_preferences_provider.dart';
 
 const _kProfileImageKey = 'profile_image_path';
 

@@ -1,9 +1,9 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/errors/failure.dart';
-import '../models/egg_record.dart';
-import '../models/milk_record.dart';
-import '../models/wool_record.dart';
-import 'production_data_source.dart';
+import 'package:mobile_app/core/errors/app_exception.dart';
+import 'package:mobile_app/core/errors/failure.dart';
+import 'package:mobile_app/features/production/models/egg_record.dart';
+import 'package:mobile_app/features/production/models/milk_record.dart';
+import 'package:mobile_app/features/production/models/wool_record.dart';
+import 'package:mobile_app/features/production/data/production_data_source.dart';
 
 class ProductionRepository {
   ProductionRepository(this._source);

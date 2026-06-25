@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../shared/widgets/farm_scaffold.dart';
-import '../../../../shared/widgets/farm_app_bar.dart';
-import '../../models/payroll_employee.dart';
-import '../../providers/payroll_providers.dart';
-import '../../providers/payroll_action_providers.dart';
-import '../../theme/payroll_tokens.dart';
+import 'package:mobile_app/shared/widgets/farm_scaffold.dart';
+import 'package:mobile_app/shared/widgets/farm_app_bar.dart';
+import 'package:mobile_app/features/payroll/models/payroll_employee.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_providers.dart';
+import 'package:mobile_app/features/payroll/providers/payroll_action_providers.dart';
+import 'package:mobile_app/features/payroll/theme/payroll_tokens.dart';
 
 typedef _C = PayrollTokens;
 final _mFmt = DateFormat('d MMM y');

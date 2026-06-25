@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
+import 'package:mobile_app/core/theme/app_colors.dart';
 
 /// Pre-defined shadow + elevation tokens for FarmTrack.
 /// Material 3 uses tonal elevation for light themes (colour-based),

@@ -20,6 +20,7 @@ abstract class AuthDataSource {
     required String subscriptionPlan,
     required List<String> activatedModules,
     String? phone,
+    int? industryId,
   });
   Future<SocialLoginResult> socialLogin({
     required String provider,

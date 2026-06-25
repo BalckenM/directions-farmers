@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/animal.dart';
+import 'package:mobile_app/features/livestock/models/animal.dart';
 
 /// In-memory store for animals added/edited locally before Drift persistence
 /// is wired up.  Keyed by species code → list of [Animal] records.
